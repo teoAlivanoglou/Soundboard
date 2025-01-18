@@ -9,9 +9,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Soundboard.Models
 {
-    public partial class Sound(string name) : ObservableObject
+    public partial class Sound(string name, string? category = null) : ObservableObject
     {
         [ObservableProperty] public string? name = name;
+        [ObservableProperty] public string? category = category;
         [ObservableProperty] public double progress = 0;
         [ObservableProperty] public bool isPlaying = false;
     }
