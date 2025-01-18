@@ -17,7 +17,8 @@ namespace Soundboard
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is int i)
-                return new Thickness(i - 5, i - 2, i - 5, i - 2);
+                return new Thickness(i);
+                // return new Thickness(i - 2, i - 2, i - 2, i - 2);
 
             return null;
         }

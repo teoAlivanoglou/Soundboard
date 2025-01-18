@@ -24,6 +24,8 @@ namespace Soundboard
     public partial class MainWindow : Window
     {
         SoundboardViewModel viewModel = new SoundboardViewModel();
+        ScrollViewer? soundboardButtonsScrollViewer;
+
 
         public MainWindow()
         {
@@ -33,30 +35,49 @@ namespace Soundboard
             mainWindowStaticRef = this;
 
             viewModel.ReadSounds("C:\\Users\\teoal\\Documents\\Audacity");
+
+            soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtons);
         }
 
         private void UniformGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (sender is not UniformGrid grid) return;
-            if (grid.Children.Count == 0) return;
+            if (sender is not WrapPanel wrapPanel) return;
+            if (wrapPanel.Children.Count == 0) return;
 
-            ListViewItem? element0 = grid.Children[0] as ListViewItem;
+            ListViewItem? element0 = wrapPanel.Children[0] as ListViewItem;
             var templ = element0.Template;
         }
 
         private void WindowResized(object? sender, SizeChangedEventArgs? e)
         {
             var maxWidth = SoundboardButtons.ActualWidth - 10;
-            var maxCols = SoundboardButtons.Items.Count;
+
+            if (soundboardButtonsScrollViewer is null)
+            {
+                soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtons);
+
+                if (soundboardButtonsScrollViewer is not null)
+
+                    maxWidth -= soundboardButtonsScrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible
+                        ? SystemParameters.VerticalScrollBarWidth
+                        : 0;
+            }
+            else
+            {
+                maxWidth -= soundboardButtonsScrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible
+                    ? SystemParameters.VerticalScrollBarWidth
+                    : 0;
+            }
 
             int i = 1;
 
-            while (i * viewModel.MinButtonSize /* + (i-1) * viewModel.ExtraGap */ < maxWidth && i <= (maxCols + 1))
+            while (i * viewModel.MinButtonSize < maxWidth)
             {
                 i++;
             }
 
             viewModel.Columns = i - 1;
+            viewModel.ItemWidth = (int)(maxWidth / viewModel.Columns);
         }
 
         private void ButtonSizeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -112,47 +133,37 @@ namespace Soundboard
                     if (categoryFilter.Category != "All")
                         categoryFilter.Enabled = filter.Enabled;
                 }
-                if (filter.Enabled)
-                {
-                    viewModel.VisibleSoundItems.Clear();
-                    for (int i = 0; i < viewModel.SoundItems.Count; i++)
-                    {
-                        viewModel.VisibleSoundItems.Add(viewModel.SoundItems[i]);
-                    }
-                }
             }
-
-
-            return;
-            filter!.Enabled = !filter.Enabled;
+            else
+            {
+                filter.Enabled = !filter.Enabled;
+            }
 
             foreach (var sound in viewModel.SoundItems)
             {
-                if (filter.Category == "All")
-                    sound.IsVisible = filter.Enabled;
-                else
-                {
-                    if (sound.Category == filter.Category)
-                    {
-                        sound.IsVisible = filter.Enabled;
-                    }
-                    else
-                    {
-                        sound.IsVisible = !filter.Enabled;
-                    }
-                }
+                var enabled = viewModel.Categories.FirstOrDefault(c => c.Category == sound.Category)?.Enabled ?? true;
+                sound.IsVisible = enabled;
+            }
+        }
 
-                if (!sound.IsVisible)
-                {
-                    if (viewModel.VisibleSoundItems.Contains(sound))
-                        viewModel.VisibleSoundItems.Remove(sound);
-                }
+        private childItem FindVisualChild<childItem>(DependencyObject obj)
+            where childItem : DependencyObject
+
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+                if (child != null && child is childItem)
+                    return (childItem)child;
                 else
                 {
-                    if (!viewModel.VisibleSoundItems.Contains(sound))
-                        viewModel.VisibleSoundItems.Add(sound);
+                    childItem childOfChild = FindVisualChild<childItem>(child);
+                    if (childOfChild != null)
+                        return childOfChild;
                 }
             }
+
+            return null;
         }
     }
 }

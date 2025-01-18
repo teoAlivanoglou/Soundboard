@@ -64,27 +64,37 @@
 
         </StackPanel>
 
-        <ListView x:Name="SoundboardButtons" Grid.Row="1" Grid.RowSpan="1"
-                  ItemsSource="{Binding VisibleSoundItems}">
+        <ListView x:Name="SoundboardButtons" Grid.Row="1"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  ItemsSource="{Binding SoundItems}" >
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <UniformGrid VerticalAlignment="Top" Columns="{Binding Columns}" HorizontalAlignment="Stretch"
-                                 IsItemsHost="True" SizeChanged="UniformGrid_SizeChanged" />
+                    <!-- <UniformGrid VerticalAlignment="Top" Columns="{Binding Columns}" HorizontalAlignment="Stretch" -->
+                    <!--              IsItemsHost="True" SizeChanged="UniformGrid_SizeChanged" /> -->
+                    <WrapPanel VerticalAlignment="Top" 
+                               
+                               HorizontalAlignment="Left" FlowDirection="LeftToRight" Orientation="Horizontal"
+                               Width="{Binding ActualWidth, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                               IsItemsHost="True" SizeChanged="UniformGrid_SizeChanged" />
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                     <Setter Property="Focusable" Value="False" />
-                </Style>
+                    <Setter Property="Margin" Value="-1"/>
+                    <Setter Property="Padding" Value="0"/>
+</Style>
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Border Background="{Binding Category, Converter={StaticResource CategoryColorConverter}}"
                             Height="{Binding RelativeSource={RelativeSource Self}, Path=ActualWidth}"
+                            Width="{Binding DataContext.ItemWidth, ElementName=window}"
                             Margin="{Binding DataContext.ButtonGap, Converter={StaticResource TestConverter}, ElementName=window}"
-                            Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                            MouseDown="SoundButtonClicked">
+                            MouseDown="SoundButtonClicked"
+                        Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+
                         <Grid>
                             <Border Background="#FF64FF64" HorizontalAlignment="Left">
                                 <Border.Width>

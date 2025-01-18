@@ -19,7 +19,6 @@ namespace Soundboard.ViewModels;
 public partial class SoundboardViewModel : ObservableObject
 {
     public ObservableCollection<Sound> SoundItems { get; set; }
-    public ObservableCollection<Sound> VisibleSoundItems { get; set; }
     public ObservableCollection<CategoryFilter> Categories { get; set; }
     [ObservableProperty] public int columns = 4;
     [ObservableProperty] public int minButtonSize = 70;
@@ -28,6 +27,7 @@ public partial class SoundboardViewModel : ObservableObject
 
 
     public AudioPlayer audioPlayer { get; private set; }
+    [ObservableProperty] public int itemWidth = 70;
 
 
     public SoundboardViewModel()
@@ -35,7 +35,7 @@ public partial class SoundboardViewModel : ObservableObject
         SoundItems =
         [
             new Sound("Sound 1"),
-            new Sound("Sound 2"),
+            new Sound("Sound 223442444"),
             new Sound("Sound 3"),
             new Sound("Sound 4"),
             new Sound("Sound 5"),
@@ -46,8 +46,9 @@ public partial class SoundboardViewModel : ObservableObject
             new Sound("Sound 104564564565464 564564 564565466545t 56456546342 2s vxcvsfsdfsdfgg"),
         ];
 
+        SoundItems[2].IsVisible = false;
+
         Categories = [];
-        VisibleSoundItems = [];
 
         audioPlayer = new AudioPlayer();
     }
@@ -67,7 +68,6 @@ public partial class SoundboardViewModel : ObservableObject
             if (Categories.All(c => c.Category != category))
                 Categories.Add(new CategoryFilter(category));
 
-            VisibleSoundItems.Add(sound);
         }
     }
 
