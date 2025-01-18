@@ -14,16 +14,48 @@ namespace Soundboard
 {
     class TestConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            UniformGrid? grid = value as UniformGrid;
-            //grid.Columns = 
-            return value;
+            if (value is int i)
+                return new Thickness(i - 5, i-2, i - 5, i-2);
+
+            return null;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return 5;
+        }
+    }
+
+    public class MultByTenConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            //if (value is double d)
+            //    return d * 10;
+            
+           if (value is double d)
+                return d * 10;  
+
+           if (value is int i)
+                return i * 10;
+
+            return value;
+
+
+            //return (double)value * 10;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double d)
+                return d / 10;
+
+            if (value is int i)
+                return i / 10;
+
+            return value;
         }
     }
 

@@ -37,17 +37,28 @@ namespace Soundboard
 
         }
 
-        private void WindowResized(object sender, SizeChangedEventArgs e)
+        private void WindowResized(object? sender, SizeChangedEventArgs? e)
         {
-            var maxWidth = SoundboardButtons.ActualWidth;
+            var maxWidth = SoundboardButtons.ActualWidth - 10;
+            var maxCols = SoundboardButtons.Items.Count;
 
             int i = 1;
 
-            while (i * viewModel.MinButtonSize /* + (i-1) * viewModel.ExtraGap */ < maxWidth ) {
+            while (i * viewModel.MinButtonSize /* + (i-1) * viewModel.ExtraGap */ < maxWidth && i <=(maxCols+1)) {
                 i++;
             }
 
             viewModel.Columns = i - 1;
+        }
+
+        private void ButtonSizeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            WindowResized(null, null);
+        }
+
+        private void ButtonGapChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            WindowResized(null, null);
         }
     }
 }

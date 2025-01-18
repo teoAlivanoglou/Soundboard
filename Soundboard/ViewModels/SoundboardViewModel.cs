@@ -16,7 +16,8 @@ public partial class SoundboardViewModel : ObservableObject
     public ObservableCollection<Sound> SoundItems { get; set; }
     [ObservableProperty] public int columns = 4;
     [ObservableProperty] public int minButtonSize = 70;
-    [ObservableProperty] public int extraGap = 0;
+    [ObservableProperty] public int buttonGap = 3;
+    //[ObservableProperty] public int extraGap = 0;
 
 
     public SoundboardViewModel()
