@@ -8,90 +8,160 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="402"
         d:DataContext="{d:DesignInstance Type=VM:SoundboardViewModel, IsDesignTimeCreatable=True}"
-        SizeChanged="WindowResized"
-        >
+        SizeChanged="WindowResized">
     <Window.Resources>
-        <local:TestConverter x:Key="TestConverter"/>
-        <local:MultiTestConverter x:Key="MultiTestConverter"/>
-        <local:MultByTenConverter x:Key="MultByTenConverter"/>
-
-
+        <local:TestConverter x:Key="TestConverter" />
+        <local:MultiTestConverter x:Key="MultiTestConverter" />
+        <local:MultByTenConverter x:Key="MultByTenConverter" />
+        <local:CategoryColorConverter x:Key="CategoryColorConverter" />
+        <local:TextBlockTextWidthConverter x:Key="TextBlockTextWidthConverter" />
+        <local:LerpConverter x:Key="LerpConverter" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <local:EnabledBrushConverter x:Key="EnabledBrushConverter" />
+        <local:NoCategoryConverter x:Key="NoCategoryConverter" />
     </Window.Resources>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <ListView x:Name="SoundboardButtons" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" Grid.RowSpan="1" ItemsSource="{Binding SoundItems}">
+
+        <ListView ItemsSource="{Binding Categories}" Padding="5 0 5 -3" BorderThickness="0">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <UniformGrid VerticalAlignment="Top" Columns="{Binding Columns}"  HorizontalAlignment="Stretch" IsItemsHost="True" SizeChanged="UniformGrid_SizeChanged"/>
+                    <StackPanel IsItemsHost="True" Orientation="Horizontal" />
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                    <Setter Property="Focusable" Value="False"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Focusable" Value="False" />
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Border Background="#FFCAC8D6"
-                            Height="{Binding RelativeSource={RelativeSource Self}, Path=ActualWidth}" 
-                            Margin="{Binding DataContext.ButtonGap, Converter={StaticResource TestConverter}, ElementName=window}">
-                        <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Border Padding="5 4" Margin="-4 0  -4 0"
+                            VerticalAlignment="Bottom"
+                            Background="{Binding Path=Category, Converter={StaticResource CategoryColorConverter}}"
+                            BorderThickness="3 3 3 0"
+                            MouseDown="TabButtonClick">
+                        <Border.BorderBrush>
+                            <MultiBinding Converter="{StaticResource EnabledBrushConverter}">
+                                <Binding Path="Enabled" />
+                                <Binding Path="." RelativeSource="{RelativeSource Self}"/>
+                            </MultiBinding>
+                        </Border.BorderBrush>
+                        <TextBlock Text="{Binding Category, Converter={StaticResource NoCategoryConverter}}" />
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <StackPanel Grid.Row="0">
+
+        </StackPanel>
+
+        <ListView x:Name="SoundboardButtons" Grid.Row="1" Grid.RowSpan="1"
+                  ItemsSource="{Binding VisibleSoundItems}">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid VerticalAlignment="Top" Columns="{Binding Columns}" HorizontalAlignment="Stretch"
+                                 IsItemsHost="True" SizeChanged="UniformGrid_SizeChanged" />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Focusable" Value="False" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="{Binding Category, Converter={StaticResource CategoryColorConverter}}"
+                            Height="{Binding RelativeSource={RelativeSource Self}, Path=ActualWidth}"
+                            Margin="{Binding DataContext.ButtonGap, Converter={StaticResource TestConverter}, ElementName=window}"
+                            Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                            MouseDown="SoundButtonClicked">
+                        <Grid>
+                            <Border Background="#FF64FF64" HorizontalAlignment="Left">
+                                <Border.Width>
+                                    <MultiBinding Converter="{StaticResource LerpConverter}" Mode="OneWay"
+                                                  UpdateSourceTrigger="PropertyChanged">
+                                        <Binding Path="ActualWidth"
+                                                 RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Border}" />
+                                        <Binding Path="Progress" />
+                                    </MultiBinding>
+
+                                </Border.Width>
+                            </Border>
+
+                            <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" TextWrapping="Wrap" TextAlignment="Center">
+                                <TextBlock.MaxWidth>
+                                    <MultiBinding Converter="{StaticResource TextBlockTextWidthConverter}">
+                                        <Binding Path="DataContext.MinButtonSize" ElementName="window" />
+                                        <Binding Path="DataContext.ButtonGap" ElementName="window" />
+                                    </MultiBinding>
+                                </TextBlock.MaxWidth>
+                            </TextBlock>
+                        </Grid>
                     </Border>
 
 
                 </DataTemplate>
             </ListView.ItemTemplate>
-
-
-
-
         </ListView>
 
-        <StackPanel Orientation="Vertical" Grid.ColumnSpan="4">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Min Button Size: "/>
-                <Slider Value="{Binding MinButtonSize}" 
-                        Minimum="50" Maximum="200" Width="100" TickFrequency="1" TickPlacement="BottomRight"
-                        ValueChanged="ButtonSizeChanged"/>
-                <TextBlock Text="{Binding MinButtonSize}"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Button gap: "/>
-                <Slider Value="{Binding ButtonGap}" 
-                        Minimum="0" Maximum="20" Width="100" TickFrequency="1" TickPlacement="BottomRight"
-                        ValueChanged="ButtonGapChanged"/>
-                <TextBlock Text="{Binding ButtonGap}"/>
-            </StackPanel>
 
-        </StackPanel>
+        <Grid Grid.Column="0" Grid.Row="2"
+              Visibility="{Binding SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-        <!--UniformGrid Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="4" Grid.RowSpan="3"  Columns="4" VerticalAlignment="Top">
-            <UniformGrid.Resources>
-                <Style TargetType="Button">
-                    <Setter Property="Height" Value="{Binding RelativeSource={RelativeSource Self}, Path=ActualWidth}" />
-                    <Setter Property="Margin" Value="6" />
-                </Style>
-            </UniformGrid.Resources>
+            <TextBlock Grid.Column="0" Grid.Row="0" Text="Min Button Size: " />
+            <Slider Grid.Column="1" Grid.Row="0" Margin="0 5 0 0" Value="{Binding MinButtonSize}"
+                    Minimum="50" Maximum="200" Width="100" ValueChanged="ButtonSizeChanged" />
+            <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding MinButtonSize}" />
 
-            <Button Content="Button"/>
-            <Button Content="Button"/>
-            <Button Content="Button"/>
-            <Button Content="Button"/>
-            <Button Content="Button"/>
-            <Button Content="Button"/>
-        </UniformGrid-->
+            <TextBlock Grid.Column="0" Grid.Row="1" Text="Button gap: " />
+            <Slider Grid.Column="1" Grid.Row="1" Margin="0 5 0 0" Value="{Binding ButtonGap}"
+                    Minimum="0" Maximum="20" Width="100" ValueChanged="ButtonGapChanged" />
+            <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding ButtonGap}" />
+        </Grid>
 
+        <Grid Grid.Row="3" Grid.ColumnSpan="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" MouseDown="StopAllClicked" Padding="8 4" Background="#FFE8ABAB" Margin="4">
+                <TextBlock Text="Stop All" Foreground="#FF541E1E" FontWeight="SemiBold" FontSize="14" />
+            </Border>
+
+            <Border Grid.Column="2" MouseDown="SettingsClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4">
+                <TextBlock Text="" VerticalAlignment="Center" HorizontalAlignment="Center"
+                           FontSize="18" FontFamily="Segoe MDL2 Assets" />
+            </Border>
+
+            <Border Grid.Column="3" MouseDown="SettingsClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4">
+                <TextBlock Text="" VerticalAlignment="Center" HorizontalAlignment="Center"
+                           FontSize="18" FontFamily="Segoe MDL2 Assets" />
+            </Border>
+        </Grid>
     </Grid>
 </Window>

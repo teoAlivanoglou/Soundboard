@@ -4,19 +4,30 @@ using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Media;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+
+// ReSharper disable InconsistentNaming
 
 namespace Soundboard.ViewModels;
 
 public partial class SoundboardViewModel : ObservableObject
 {
     public ObservableCollection<Sound> SoundItems { get; set; }
+    public ObservableCollection<Sound> VisibleSoundItems { get; set; }
+    public ObservableCollection<CategoryFilter> Categories { get; set; }
     [ObservableProperty] public int columns = 4;
     [ObservableProperty] public int minButtonSize = 70;
     [ObservableProperty] public int buttonGap = 3;
+    [ObservableProperty] public bool settingsVisible = false;
+
+
+    public AudioPlayer audioPlayer { get; private set; }
 
 
     public SoundboardViewModel()
@@ -32,25 +43,57 @@ public partial class SoundboardViewModel : ObservableObject
             new Sound("Sound 7"),
             new Sound("Sound 8"),
             new Sound("Sound 9"),
-            new Sound("Sound 10"),
+            new Sound("Sound 104564564565464 564564 564565466545t 56456546342 2s vxcvsfsdfsdfgg"),
         ];
+
+        Categories = [];
+        VisibleSoundItems = [];
+
+        audioPlayer = new AudioPlayer();
     }
 
-    void ReadSounds(string filesystemUrl)
+    public void ReadSounds(string filesystemUrl)
     {
         // Open the filesystem url and create a structure of sounds
         // Use the folder of each sound as the category
+        SoundItems.Clear();
+
+        foreach (var file in Directory.EnumerateFiles(filesystemUrl, "*", SearchOption.AllDirectories))
+        {
+            var name = Path.GetFileNameWithoutExtension(file);
+            var category = Path.GetDirectoryName(Path.GetRelativePath(filesystemUrl, file));
+            var sound = new Sound(name, file, category);
+            SoundItems.Add(sound);
+            if (Categories.All(c => c.Category != category))
+                Categories.Add(new CategoryFilter(category));
+
+            VisibleSoundItems.Add(sound);
+        }
     }
 
     void CreatePlayerClass()
     {
-        // Create a class that will be able to play multiple sounds at once
-        // Also update the progress of each sound and whether it is playing
-        // The last one might be tricky. In that case I'll just approximate
     }
 
-    void PlaySound(Sound sound)
+    public void PlaySound(Sound? sound)
     {
-        // Add sound to the player class and start playing it
+        if (sound is null)
+            throw new ArgumentNullException(nameof(sound));
+
+        Debug.Assert(sound.FilePath != null, "sound.FilePath != null");
+        audioPlayer.Play(sound);
+
+    }
+
+    public void StopAllSounds()
+    {
+        audioPlayer.Abort();
+    }
+
+
+    public partial class CategoryFilter(string category) : ObservableObject
+    {
+        [ObservableProperty] public string category = category;
+        [ObservableProperty] public bool enabled = true;
     }
 }
