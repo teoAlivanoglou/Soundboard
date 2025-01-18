@@ -37,9 +37,21 @@ public partial class SoundboardViewModel : ObservableObject
         ];
     }
 
-    internal static void WindowResized(object sender, SizeChangedEventArgs e)
+    void ReadSounds(string filesystemUrl)
     {
-        var window = (MainWindow)sender;
-        var newWidth = window.ActualWidth;
+        // Open the filesystem url and create a structure of sounds
+        // Use the folder of each sound as the category
+    }
+
+    void CreatePlayerClass()
+    {
+        // Create a class that will be able to play multiple sounds at once
+        // Also update the progress of each sound and whether it is playing
+        // The last one might be tricky. In that case I'll just approximate
+    }
+
+    void PlaySound(Sound sound)
+    {
+        // Add sound to the player class and start playing it
     }
 }
