@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Media;
+using Soundboard.Models;
 
 namespace Soundboard
 {
@@ -34,7 +35,15 @@ namespace Soundboard
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return new SolidColorBrush(CategoryColors.GetColorForCategory((string)value));
+            switch (value)
+            {
+                case string s:
+                    return new SolidColorBrush(CategoryColors.GetColorForCategory(s));
+                case Sound sound:
+                    return new SolidColorBrush(CategoryColors.GetColorForCategory(sound.Category, sound.group));
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

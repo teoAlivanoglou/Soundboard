@@ -9,7 +9,7 @@ namespace Soundboard
 {
     public static class CategoryColors
     {
-        public static Dictionary<string, int> CategoriesColors { get; }
+        public static Dictionary<(string, int), int> CategoriesColors { get; }
         public static List<Color> Palette { get; }
 
         static CategoryColors()
@@ -50,20 +50,20 @@ namespace Soundboard
                 ColorFromHex("#CFD8DC")
             ];
 
-            CategoriesColors = new Dictionary<string, int>();
+            CategoriesColors = new Dictionary<(string, int), int>();
         }
 
-        public static Color GetColorForCategory(string category)
+        public static Color GetColorForCategory(string category, int group = 0)
         {
             if (string.IsNullOrWhiteSpace(category))
                 category = " ";
 
-            if (CategoriesColors.TryGetValue(category, out var categoriesColor))
+            if (CategoriesColors.TryGetValue((category, group), out var categoriesColor))
             {
                 return Palette[categoriesColor];
             }
             var color = Palette[CategoriesColors.Count % Palette.Count];
-            CategoriesColors.Add(category, CategoriesColors.Count);
+            CategoriesColors.Add((category, group), CategoriesColors.Count);
             return color;
         }
 

@@ -75,7 +75,7 @@
                                
                                HorizontalAlignment="Left" FlowDirection="LeftToRight" Orientation="Horizontal"
                                Width="{Binding ActualWidth, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                               IsItemsHost="True" SizeChanged="UniformGrid_SizeChanged" />
+                               IsItemsHost="True"/>
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
             <ListView.ItemContainerStyle>
@@ -88,7 +88,7 @@
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Border Background="{Binding Category, Converter={StaticResource CategoryColorConverter}}"
+                    <Border Background="{Binding ., Converter={StaticResource CategoryColorConverter}}"
                             Height="{Binding RelativeSource={RelativeSource Self}, Path=ActualWidth}"
                             Width="{Binding DataContext.ItemWidth, ElementName=window}"
                             Margin="{Binding DataContext.ButtonGap, Converter={StaticResource TestConverter}, ElementName=window}"
@@ -164,17 +164,25 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
             <Border Grid.Column="0" MouseDown="StopAllClicked" Padding="8 4" Background="#FFE8ABAB" Margin="4">
                 <TextBlock Text="Stop All" Foreground="#FF541E1E" FontWeight="SemiBold" FontSize="14" />
             </Border>
 
-            <Border Grid.Column="2" MouseDown="SettingsClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4">
-                <TextBlock Text="" VerticalAlignment="Center" HorizontalAlignment="Center"
+            <Border Grid.Column="4" MouseDown="BrowseFolderClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4">
+                <TextBlock Text="" VerticalAlignment="Center" HorizontalAlignment="Center"
                            FontSize="18" FontFamily="Segoe MDL2 Assets" />
             </Border>
 
-            <Border Grid.Column="3" MouseDown="SettingsClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4">
+            <Border Grid.Column="5" MouseDown="RefreshClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4">
+                <TextBlock Text="" VerticalAlignment="Center" HorizontalAlignment="Center"
+                           FontSize="18" FontFamily="Segoe MDL2 Assets" />
+            </Border>
+
+            <Border Grid.Column="6" MouseDown="SettingsClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4">
                 <TextBlock Text="" VerticalAlignment="Center" HorizontalAlignment="Center"
                            FontSize="18" FontFamily="Segoe MDL2 Assets" />
             </Border>

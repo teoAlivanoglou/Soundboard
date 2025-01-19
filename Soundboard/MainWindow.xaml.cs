@@ -34,26 +34,11 @@ namespace Soundboard
             InitializeComponent();
             DataContext = viewModel;
 
-            mainWindowStaticRef = this;
-
-
-            var dialog = new FolderBrowserDialog();
-            var res = dialog.ShowDialog();
-
-            viewModel.ReadSounds(res == System.Windows.Forms.DialogResult.OK
-                ? dialog.SelectedPath
-                : @"C:\Users\teoal\Documents\Audacity");
+            var folder = OpenFolder();
+            if (folder is not null)
+                viewModel.ReadSounds(folder);
 
             soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtons);
-        }
-
-        private void UniformGrid_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            if (sender is not WrapPanel wrapPanel) return;
-            if (wrapPanel.Children.Count == 0) return;
-
-            ListViewItem? element0 = wrapPanel.Children[0] as ListViewItem;
-            var templ = element0.Template;
         }
 
         private void WindowResized(object? sender, SizeChangedEventArgs? e)
@@ -119,13 +104,6 @@ namespace Soundboard
             viewModel.SettingsVisible = !viewModel.SettingsVisible;
         }
 
-        public static MainWindow mainWindowStaticRef;
-
-        public static void SetTitle(string s)
-        {
-            mainWindowStaticRef.Dispatcher.Invoke(() => mainWindowStaticRef.Title = s);
-        }
-
         private void TabButtonClick(object sender, MouseButtonEventArgs e)
         {
             var buttonClicked = sender as FrameworkElement;
@@ -145,11 +123,9 @@ namespace Soundboard
             else
             {
                 filter.Enabled = !filter.Enabled;
-                bool allEnabled = true;
+                var allEnabled = true;
                 for (var i = 1; i < viewModel.Categories.Count; i++)
                 {
-                    // if all are enabled set allEnabled to true,
-                    // if all are disabled set allEnabled to false
                     allEnabled &= viewModel.Categories[i].Enabled;
                 }
                 viewModel.Categories[0].Enabled = allEnabled;
@@ -162,24 +138,59 @@ namespace Soundboard
             }
         }
 
-        private childItem FindVisualChild<childItem>(DependencyObject obj)
-            where childItem : DependencyObject
+
+        private static TChildItem? FindVisualChild<TChildItem>(DependencyObject obj)
+            where TChildItem : DependencyObject
 
         {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            for (var i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
             {
-                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
-                if (child != null && child is childItem)
-                    return (childItem)child;
+                var child = VisualTreeHelper.GetChild(obj, i);
+                if (child is TChildItem item)
+                    return item;
                 else
                 {
-                    childItem childOfChild = FindVisualChild<childItem>(child);
+                    var childOfChild = FindVisualChild<TChildItem>(child);
                     if (childOfChild != null)
                         return childOfChild;
                 }
             }
 
             return null;
+        }
+
+        private void BrowseFolderClicked(object sender, MouseButtonEventArgs e)
+        {
+            var folder = OpenFolder();
+            if (folder is not null)
+                viewModel.ReadSounds(folder);
+        }
+
+        private void RefreshClicked(object sender, MouseButtonEventArgs e)
+        {
+            viewModel.RefreshSounds();
+        }
+
+
+        public string? OpenFolder()
+        {
+            try
+            {
+                var dialog = new FolderBrowserDialog();
+                var res = dialog.ShowDialog();
+
+
+                return res == System.Windows.Forms.DialogResult.OK
+                    ? dialog.SelectedPath
+                    : null;
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
         }
     }
 }
