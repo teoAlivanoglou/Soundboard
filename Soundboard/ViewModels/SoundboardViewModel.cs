@@ -24,8 +24,8 @@ public partial class SoundboardViewModel : ObservableObject
     [ObservableProperty] public int columns = 4;
     [ObservableProperty] public int minButtonSize = 70;
     [ObservableProperty] public int buttonGap = 3;
-    [ObservableProperty] public int idk = 0;
     [ObservableProperty] public bool settingsVisible = false;
+    [ObservableProperty] public int fadeInTime = 200;
 
 
     public AudioPlayer audioPlayer { get; private set; }
@@ -166,7 +166,7 @@ public partial class SoundboardViewModel : ObservableObject
             throw new ArgumentNullException(nameof(sound));
 
         Debug.Assert(sound.FilePath != null, "sound.FilePath != null");
-        audioPlayer.Play(sound);
+        audioPlayer.Play(sound, fadeInTime);
     }
 
     public void StopAllSounds()
