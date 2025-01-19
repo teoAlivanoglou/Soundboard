@@ -23,6 +23,7 @@ public partial class SoundboardViewModel : ObservableObject
     [ObservableProperty] public int columns = 4;
     [ObservableProperty] public int minButtonSize = 70;
     [ObservableProperty] public int buttonGap = 3;
+    [ObservableProperty] public int idk = 0;
     [ObservableProperty] public bool settingsVisible = false;
 
 
@@ -63,10 +64,14 @@ public partial class SoundboardViewModel : ObservableObject
         {
             var name = Path.GetFileNameWithoutExtension(file);
             var category = Path.GetDirectoryName(Path.GetRelativePath(filesystemUrl, file));
+            if (string.IsNullOrWhiteSpace(category))
+                category = "Unsorted";
             var sound = new Sound(name, file, category);
             SoundItems.Add(sound);
             if (Categories.All(c => c.Category != category))
                 Categories.Add(new CategoryFilter(category));
+
+            // TODO: Actually find a solution for the unsorted sounds
 
         }
     }

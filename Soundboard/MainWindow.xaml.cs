@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -15,6 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Soundboard.Models;
 using static Soundboard.ViewModels.SoundboardViewModel;
+using ListViewItem = System.Windows.Controls.ListViewItem;
 
 namespace Soundboard
 {
@@ -34,7 +36,13 @@ namespace Soundboard
 
             mainWindowStaticRef = this;
 
-            viewModel.ReadSounds("C:\\Users\\teoal\\Documents\\Audacity");
+
+            var dialog = new FolderBrowserDialog();
+            var res = dialog.ShowDialog();
+
+            viewModel.ReadSounds(res == System.Windows.Forms.DialogResult.OK
+                ? dialog.SelectedPath
+                : @"C:\Users\teoal\Documents\Audacity");
 
             soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtons);
         }
@@ -50,7 +58,7 @@ namespace Soundboard
 
         private void WindowResized(object? sender, SizeChangedEventArgs? e)
         {
-            var maxWidth = SoundboardButtons.ActualWidth - 10;
+            var maxWidth = SoundboardButtons.ActualWidth;
 
             if (soundboardButtonsScrollViewer is null)
             {
@@ -77,7 +85,7 @@ namespace Soundboard
             }
 
             viewModel.Columns = i - 1;
-            viewModel.ItemWidth = (int)(maxWidth / viewModel.Columns);
+            viewModel.ItemWidth = (int)(maxWidth / viewModel.Columns) - 2 * viewModel.ButtonGap - 1;
         }
 
         private void ButtonSizeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -137,6 +145,14 @@ namespace Soundboard
             else
             {
                 filter.Enabled = !filter.Enabled;
+                bool allEnabled = true;
+                for (var i = 1; i < viewModel.Categories.Count; i++)
+                {
+                    // if all are enabled set allEnabled to true,
+                    // if all are disabled set allEnabled to false
+                    allEnabled &= viewModel.Categories[i].Enabled;
+                }
+                viewModel.Categories[0].Enabled = allEnabled;
             }
 
             foreach (var sound in viewModel.SoundItems)

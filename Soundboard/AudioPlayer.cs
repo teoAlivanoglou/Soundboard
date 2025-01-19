@@ -25,12 +25,12 @@ public class AudioPlayer
         outputDevice.Init(audioFile);
         outputDevice.Play();
 
-        outputDevice.PlaybackStopped += (sender, args) =>
-        {
-            soundPlayerRefs[sound] = 0;
-            sound.Progress = 0;
-            sound.IsPlaying = false;
-        };
+        // outputDevice.PlaybackStopped += (sender, args) =>
+        // {
+        //     soundPlayerRefs[sound] = 0;
+        //     sound.Progress = 0;
+        //     sound.IsPlaying = false;
+        // };
 
         soundPlayerRefs.TryAdd(sound, 0);
 
@@ -71,6 +71,13 @@ public class AudioPlayer
             player.Stop();
             players.Remove(player);
             player.Dispose();
+        }
+
+        foreach (var sound in soundPlayerRefs.Keys)
+        {
+            sound.Progress = 0;
+            sound.IsPlaying = false;        
+            soundPlayerRefs[sound] = 0;
         }
 
         return Task.CompletedTask;

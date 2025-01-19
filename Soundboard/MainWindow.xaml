@@ -150,6 +150,12 @@
             <Slider Grid.Column="1" Grid.Row="1" Margin="0 5 0 0" Value="{Binding ButtonGap}"
                     Minimum="0" Maximum="20" Width="100" ValueChanged="ButtonGapChanged" />
             <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding ButtonGap}" />
+
+
+            <TextBlock Grid.Column="0" Grid.Row="2" Text="Button gap: " />
+            <Slider Grid.Column="1" Grid.Row="2" Margin="0 5 0 0" Value="{Binding Idk}"
+                    Minimum="0" Maximum="20" Width="100" ValueChanged="ButtonGapChanged" />
+            <TextBlock Grid.Column="2" Grid.Row="2" Text="{Binding Idk}" />
         </Grid>
 
         <Grid Grid.Row="3" Grid.ColumnSpan="4">
