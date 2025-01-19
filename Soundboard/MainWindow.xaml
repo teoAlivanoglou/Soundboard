@@ -43,7 +43,7 @@
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Border Padding="5 4" Margin="-4 0  -4 0"
+                    <Border Padding="9 4" Margin="-4 0  -4 0"
                             VerticalAlignment="Bottom"
                             Background="{Binding Path=Category, Converter={StaticResource CategoryColorConverter}}"
                             BorderThickness="3 3 3 0"
@@ -54,7 +54,9 @@
                                 <Binding Path="." RelativeSource="{RelativeSource Self}"/>
                             </MultiBinding>
                         </Border.BorderBrush>
-                        <TextBlock Text="{Binding Category, Converter={StaticResource NoCategoryConverter}}" />
+                        <TextBlock 
+                            Text="{Binding Category, Converter={StaticResource NoCategoryConverter}}" 
+                            FontSize="14"/>
                     </Border>
                 </DataTemplate>
             </ListView.ItemTemplate>
@@ -108,8 +110,11 @@
                                 </Border.Width>
                             </Border>
 
-                            <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       TextTrimming="CharacterEllipsis" TextWrapping="Wrap" TextAlignment="Center">
+                            <TextBlock Text="{Binding Name}" 
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" TextWrapping="Wrap" TextAlignment="Center"
+                                       FontSize="14"
+                                       Margin="4">
                                 <TextBlock.MaxWidth>
                                     <MultiBinding Converter="{StaticResource TextBlockTextWidthConverter}">
                                         <Binding Path="DataContext.MinButtonSize" ElementName="window" />
