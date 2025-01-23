@@ -29,6 +29,7 @@ public partial class SoundboardViewModel : ObservableObject
     [ObservableProperty] public int buttonGap = 3;
     [ObservableProperty] public bool settingsVisible = false;
     [ObservableProperty] public int fadeInTime = 200;
+    [ObservableProperty] public int maxFolderLevel = 0;
 
 
     public AudioPlayer audioPlayer { get; private set; }
@@ -55,6 +56,69 @@ public partial class SoundboardViewModel : ObservableObject
         audioPlayer = new AudioPlayer();
     }
 
+    public bool DirectoryContainsFiles(string path)
+    {
+        var items = Directory.EnumerateFiles(path);
+        using var en = items.GetEnumerator();
+        return !en.MoveNext();
+    }
+
+    public void ReadSoundsRecursive(string path, ref List<CategoryFilter> categories, ref List<Sound> sounds, int depth,
+        string categoryPrefix)
+    {
+        var category = Path.GetFileName(path);
+
+        if (!string.IsNullOrWhiteSpace(categoryPrefix))
+        {
+            category = Path.Combine(categoryPrefix, category);
+        }
+
+        categories.Add(new CategoryFilter(category + depth));
+
+        foreach (var file in Directory.EnumerateFiles(path))
+        {
+            if (!FileUtils.GetMimeFromFile(file).StartsWith("audio", StringComparison.OrdinalIgnoreCase)) continue;
+
+            var name = Path.GetFileNameWithoutExtension(file);
+            sounds.Add(new Sound(name, file, category) { topLevel = true });
+        }
+
+        foreach (var directory in Directory.EnumerateDirectories(path))
+        {
+            if (DirectoryContainsFiles(directory))
+            {
+                ReadSoundsRecursive(directory, ref categories, ref sounds, depth + 1, string.Empty);
+            }
+            else
+            {
+                ReadSoundsRecursive(directory, ref categories, ref sounds, depth + 1, category);
+            }
+        }
+    }
+
+    private void ReadSoundsRecursive2(FileTreeStructure fsStructure, ref List<Sound> tempSounds,
+        ref List<CategoryFilter> tempCategories, int maxDepth)
+    {
+        var category = fsStructure.Depth <= maxDepth
+            ? Path.GetRelativePath(fsStructure.RootPath, fsStructure.DirectoryPath)
+            : tempCategories[^1].Category;
+
+        tempCategories.Add(new CategoryFilter(category));
+
+        foreach (var file in fsStructure.Files)
+        {
+            if (!FileUtils.GetMimeFromFile(file.FullName)
+                    .StartsWith("audio", StringComparison.OrdinalIgnoreCase)) continue;
+            tempSounds.Add(new Sound(Path.GetFileNameWithoutExtension(file.Name), file.FullName, category));
+        }
+
+        foreach (var directory in fsStructure.Directories)
+        {
+            ReadSoundsRecursive2(directory, ref tempSounds, ref tempCategories, maxDepth);
+        }
+    }
+
+
     public void ReadSounds(string filesystemUrl)
     {
         lastChosenDirectory = filesystemUrl;
@@ -68,47 +132,74 @@ public partial class SoundboardViewModel : ObservableObject
         if (tempSounds == null) throw new ArgumentNullException(nameof(tempSounds));
 
         // TODO: Maybe have a 'levels' setting to determine how deep to go into the file tree
+        int depth = 0;
 
-        foreach (var file in Directory.EnumerateFiles(filesystemUrl, "*", SearchOption.AllDirectories))
+        var fsStructure = new FileTreeStructure(filesystemUrl);
+        ReadSoundsRecursive2(fsStructure, ref tempSounds, ref tempCategories, 2);
+
+
+        var category = Path.GetFileName(filesystemUrl);
+        tempCategories.Add(new CategoryFilter(category));
+
+        foreach (var file in Directory.EnumerateFiles(filesystemUrl))
         {
-            if (!FileUtils.GetMimeFromFile(file).StartsWith("audio")) continue;
+            if (!FileUtils.GetMimeFromFile(file).StartsWith("audio", StringComparison.OrdinalIgnoreCase)) continue;
 
             var name = Path.GetFileNameWithoutExtension(file);
-            var category = Path.GetDirectoryName(Path.GetRelativePath(filesystemUrl, file));
-
-            var topLevelSound = false;
-
-            if (string.IsNullOrWhiteSpace(category))
-            {
-                category = Path.GetFileName(filesystemUrl);
-                topLevelSound = true;
-            }
-
-            tempSounds.Add(new Sound(name, file, category) { topLevel = topLevelSound });
-            tempCategories.Add(new CategoryFilter(category));
+            tempSounds.Add(new Sound(name, file, category) { topLevel = true });
         }
 
-        CategoryColors.CategoriesColors.Clear();
-        SoundItems.Clear();
-        Categories.Clear();
-
-
-        // BUG: Handle folder with only subfolders... it's fucked
-        // V E R Y   I M P O R T A N T
-
-
-        foreach (var sound in tempSounds.OrderByDescending(s => s.topLevel).ThenBy(s => s.Category))
+        depth++;
+        foreach (var directory in Directory.EnumerateDirectories(filesystemUrl))
         {
-            sound.Categorize();
-
-            SoundItems.Add(sound);
+            category = Path.GetFileName(directory);
         }
 
-        
-        foreach (var categoryFilter in tempCategories.DistinctBy(c => c.Category.Split(Path.DirectorySeparatorChar)[0]))
-        {
-            Categories.Add(categoryFilter);
-        }
+
+        //
+        //
+        //
+        //
+        // foreach (var file in Directory.EnumerateFiles(filesystemUrl, "*", SearchOption.AllDirectories))
+        // {
+        //     if (!FileUtils.GetMimeFromFile(file).StartsWith("audio")) continue;
+        //
+        //     var name = Path.GetFileNameWithoutExtension(file);
+        //     var category = Path.GetDirectoryName(Path.GetRelativePath(filesystemUrl, file));
+        //
+        //     var topLevelSound = false;
+        //
+        //     if (string.IsNullOrWhiteSpace(category))
+        //     {
+        //         category = Path.GetFileName(filesystemUrl);
+        //         topLevelSound = true;
+        //     }
+        //
+        //     tempSounds.Add(new Sound(name, file, category) { topLevel = topLevelSound });
+        //     tempCategories.Add(new CategoryFilter(category));
+        // }
+        //
+        // CategoryColors.CategoriesColors.Clear();
+        // SoundItems.Clear();
+        // Categories.Clear();
+        //
+        //
+        // // BUG: Handle folder with only subfolders... it's fucked
+        // // V E R Y   I M P O R T A N T
+        //
+        //
+        // foreach (var sound in tempSounds.OrderByDescending(s => s.topLevel).ThenBy(s => s.Category))
+        // {
+        //     sound.Categorize();
+        //
+        //     SoundItems.Add(sound);
+        // }
+        //
+        //
+        // foreach (var categoryFilter in tempCategories.DistinctBy(c => c.Category.Split(Path.DirectorySeparatorChar)[0]))
+        // {
+        //     Categories.Add(categoryFilter);
+        // }
     }
 
 

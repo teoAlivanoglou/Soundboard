@@ -131,8 +131,8 @@
         </ListView>
 
 
-        <Grid Grid.Column="0" Grid.Row="2"
-            Visibility="{Binding SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+        <Grid Grid.Column="0" Grid.Row="2">
+            <!-- Visibility="{Binding SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}"> -->
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -163,6 +163,11 @@
             <Slider Grid.Column="1" Grid.Row="2" Margin="0 5 0 0" Value="{Binding FadeInTime}"
                     Minimum="0" Maximum="1000" Width="100" />
             <TextBlock Grid.Column="2" Grid.Row="2" Text="{Binding FadeInTime}" />
+
+            <TextBlock Grid.Column="0" Grid.Row="3" Text="Max Folder Level: " />
+            <Slider Grid.Column="1" Grid.Row="3" Margin="0 5 0 0" Value="{Binding MaxFolderLevel}"
+                    Minimum="0" Maximum="5" Width="100" />
+            <TextBlock Grid.Column="2" Grid.Row="3" Text="{Binding FadeInTime}" />
         </Grid>
 
         <Grid Grid.Row="3" Grid.ColumnSpan="4">
