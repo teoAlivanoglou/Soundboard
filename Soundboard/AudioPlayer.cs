@@ -13,25 +13,37 @@ public class AudioPlayer
     private static Dictionary<Sound, int> soundPlayerRefs = new();
     HashSet<WaveOutEvent> players = new();
 
+    private readonly IWavePlayer outputDevice;
+    private readonly MixingSampleProvider mixer;
+
     public AudioPlayer()
     {
+        outputDevice = new WaveOutEvent();
+        mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(44100, 2));
+        mixer.ReadFully = true;
+        outputDevice.Init(mixer);
+        outputDevice.Play();
+
     }
 
 
     public async Task Play(Sound sound, int fadeInTime = 200)
     {
-        await using var audioFile = new AudioFileReader(sound.FilePath);
 
+        await using var audioFile = new AudioFileReader(sound.FilePath);
+        
         var fade = new DelayFadeOutSampleProvider(audioFile, false);
 
         fade.BeginFadeIn(fadeInTime);
 
         var outputDevice = new WaveOutEvent();
 
+
         players.Add(outputDevice);
 
         outputDevice.Init(fade);
         outputDevice.Play();
+        var fmt = outputDevice.OutputWaveFormat;
 
         soundPlayerRefs.TryAdd(sound, 0);
 
