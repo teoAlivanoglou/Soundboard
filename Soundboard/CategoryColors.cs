@@ -55,16 +55,26 @@ namespace Soundboard
 
         public static Color GetColorForCategory(string category, int group = 0)
         {
-            if (string.IsNullOrWhiteSpace(category))
-                category = " ";
-
-            if (CategoriesColors.TryGetValue((category, group), out var categoriesColor))
+            try
             {
-                return Palette[categoriesColor];
+
+                if (string.IsNullOrWhiteSpace(category))
+                    category = " ";
+
+                if (CategoriesColors.TryGetValue((category, group), out var categoriesColor))
+                {
+                    return Palette[categoriesColor % (Palette.Count)];
+                }
+
+                var color = Palette[CategoriesColors.Count % (Palette.Count)];
+                CategoriesColors.Add((category, group), CategoriesColors.Count);
+                return color;
+
             }
-            var color = Palette[CategoriesColors.Count % Palette.Count];
-            CategoriesColors.Add((category, group), CategoriesColors.Count);
-            return color;
+            catch
+            {
+                throw new Exception("WTF");
+            }
         }
 
         public static Color ColorFromHex(string hexValue)

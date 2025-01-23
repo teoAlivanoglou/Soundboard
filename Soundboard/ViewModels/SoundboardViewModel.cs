@@ -12,6 +12,9 @@ using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using Soundboard.AudioEngine;
+using Soundboard.Utils;
+using Microsoft.VisualBasic.Devices;
 
 // ReSharper disable InconsistentNaming
 
@@ -35,16 +38,16 @@ public partial class SoundboardViewModel : ObservableObject
 
     public SoundboardViewModel()
     {
-        if (!File.Exists(Path.Combine("Resources", "warning.mp3")))
+        if (!File.Exists(Path.Combine("SoundboardResources", "warning.mp3")))
         {
             var bytes = Resources.ResourceManager.GetObject("Warning");
-            Directory.CreateDirectory("Resources");
-            File.WriteAllBytesAsync(Path.Combine("Resources", "warning.mp3"), (byte[])bytes!);
+            Directory.CreateDirectory("SoundboardResources");
+            File.WriteAllBytesAsync(Path.Combine("SoundboardResources", "warning.mp3"), (byte[])bytes!);
         }
 
         SoundItems =
         [
-            new Sound("Please Select a Folder", Path.Combine("Resources", "warning.mp3")),
+            new Sound("Please Select a Folder", Path.Combine("SoundboardResources", "warning.mp3")),
         ];
 
         Categories = [new CategoryFilter("All")];
@@ -68,6 +71,8 @@ public partial class SoundboardViewModel : ObservableObject
 
         foreach (var file in Directory.EnumerateFiles(filesystemUrl, "*", SearchOption.AllDirectories))
         {
+            if (!FileUtils.GetMimeFromFile(file).StartsWith("audio")) continue;
+
             var name = Path.GetFileNameWithoutExtension(file);
             var category = Path.GetDirectoryName(Path.GetRelativePath(filesystemUrl, file));
 
@@ -87,6 +92,11 @@ public partial class SoundboardViewModel : ObservableObject
         SoundItems.Clear();
         Categories.Clear();
 
+
+        // BUG: Handle folder with only subfolders... it's fucked
+        // V E R Y   I M P O R T A N T
+
+
         foreach (var sound in tempSounds.OrderByDescending(s => s.topLevel).ThenBy(s => s.Category))
         {
             sound.Categorize();
@@ -94,7 +104,8 @@ public partial class SoundboardViewModel : ObservableObject
             SoundItems.Add(sound);
         }
 
-        foreach (var categoryFilter in tempCategories.DistinctBy(c => c.Category.Split('\\')[0]))
+        
+        foreach (var categoryFilter in tempCategories.DistinctBy(c => c.Category.Split(Path.DirectorySeparatorChar)[0]))
         {
             Categories.Add(categoryFilter);
         }
@@ -103,6 +114,8 @@ public partial class SoundboardViewModel : ObservableObject
 
     public void RefreshSounds()
     {
+        ReadSounds(lastChosenDirectory);
+        return;
         Sound.ResetGroups();
 
         var tempCategories = new List<CategoryFilter>(10) { new("All") };
@@ -115,6 +128,8 @@ public partial class SoundboardViewModel : ObservableObject
 
         foreach (var file in Directory.EnumerateFiles(lastChosenDirectory, "*", SearchOption.AllDirectories))
         {
+            if (!FileUtils.GetMimeFromFile(file).StartsWith("audio")) continue;
+
             var name = Path.GetFileNameWithoutExtension(file);
             var category = Path.GetDirectoryName(Path.GetRelativePath(lastChosenDirectory, file));
 
@@ -136,7 +151,7 @@ public partial class SoundboardViewModel : ObservableObject
         Categories.Clear();
 
 
-        foreach (var categoryFilter in tempCategories.DistinctBy(c => c.Category.Split('\\')[0]))
+        foreach (var categoryFilter in tempCategories.DistinctBy(c => c.Category.Split(Path.DirectorySeparatorChar)[0]))
         {
             var cached = categoriesCopy.Find(c => c.Category == categoryFilter.Category);
 
@@ -166,12 +181,24 @@ public partial class SoundboardViewModel : ObservableObject
             throw new ArgumentNullException(nameof(sound));
 
         Debug.Assert(sound.FilePath != null, "sound.FilePath != null");
-        audioPlayer.Play(sound, fadeInTime);
+        // audioPlayer.Play(sound, fadeInTime);
+        AudioPlaybackEngine.Instance.PlaySound(sound);
+    }
+
+
+    public void StopSound(Sound? sound)
+    {
+        if (sound is null)
+            throw new ArgumentNullException(nameof(sound));
+
+        Debug.Assert(sound.FilePath != null, "sound.FilePath != null");
+        // audioPlayer.Play(sound, fadeInTime);
+        AudioPlaybackEngine.Instance.StopSound(sound);
     }
 
     public void StopAllSounds()
     {
-        audioPlayer.Abort();
+        AudioPlaybackEngine.Instance.StopAllSounds();
     }
 
 

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Soundboard"
         xmlns:VM="clr-namespace:Soundboard.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="402"
+        Title="Soundboard - ΜΑΧΗ FM 99.8 - 1.0 alpha" Height="450" Width="402"
         d:DataContext="{d:DesignInstance Type=VM:SoundboardViewModel, IsDesignTimeCreatable=True}"
         SizeChanged="WindowResized">
     <Window.Resources>

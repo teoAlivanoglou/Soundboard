@@ -88,7 +88,14 @@ namespace Soundboard
             var buttonClicked = sender as FrameworkElement;
             var sound = buttonClicked.DataContext as Sound;
 
-            viewModel.PlaySound(sound);
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                viewModel.PlaySound(sound);
+            }
+            else if (e.ChangedButton == MouseButton.Right)
+            {
+                viewModel.StopSound(sound);
+            }
         }
 
         private void StopAllClicked(object sender, MouseButtonEventArgs e)
