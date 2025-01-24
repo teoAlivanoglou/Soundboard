@@ -8,8 +8,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Markup;
 using System.Windows.Media;
 using Soundboard.Models;
+using Soundboard.Utils;
 
 namespace Soundboard
 {
@@ -19,7 +21,7 @@ namespace Soundboard
         {
             if (value is int i)
                 return new Thickness(i);
-                // return new Thickness(i - 2, i - 2, i - 2, i - 2);
+            // return new Thickness(i - 2, i - 2, i - 2, i - 2);
 
             return null;
         }
@@ -40,7 +42,7 @@ namespace Soundboard
                 case string s:
                     return new SolidColorBrush(CategoryColors.GetColorForCategory(s));
                 case Sound sound:
-                    return new SolidColorBrush(CategoryColors.GetColorForCategory(sound.Category, sound.group));
+                    return new SolidColorBrush(CategoryColors.GetColorForCategory(sound.Category, sound.Group));
                 default:
                     throw new NotImplementedException();
             }
@@ -74,6 +76,7 @@ namespace Soundboard
             throw new NotImplementedException();
         }
     }
+
     class NoCategoryConverter : IValueConverter
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -175,6 +178,76 @@ namespace Soundboard
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
             return new object[] { 1, 2, 3 };
+        }
+    }
+
+
+    [ValueConversion(typeof(Enum), typeof(IEnumerable<ValueDescription>))]
+    public class EnumToCollectionConverter : MarkupExtension, IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return EnumHelper.GetAllValuesAndDescriptions(value.GetType());
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return null;
+        }
+
+        public override object ProvideValue(IServiceProvider serviceProvider)
+        {
+            return this;
+        }
+    }
+
+
+    public class LogScaleConverter : IValueConverter
+    {
+        private double ExpScale(double inputValue, double midValue, double maxValue)
+        {
+            double returnValue = 0;
+            if (inputValue < 0 || inputValue > 1)
+                throw new ArgumentOutOfRangeException("Input value must be between 0 and 1.0");
+            if (midValue <= 0 || midValue >= maxValue)
+                throw new ArgumentOutOfRangeException("MidValue must be greater than 0 and less than MaxValue");
+            // returnValue = A + B * Math.Exp(C * inputValue);
+            double M = maxValue / midValue;
+            double C = Math.Log(Math.Pow(M - 1, 2));
+            double B = maxValue / (Math.Exp(C) - 1);
+            double A = -1 * B;
+            returnValue = A + B * Math.Exp(C * inputValue);
+            return returnValue;
+        }
+
+        private static double min = 0;
+        private static double mid = 100;
+        private static double max = 500;
+
+        private double A;
+        private double C;
+        private double B;
+
+        public LogScaleConverter()
+        {
+            A = (min * max - mid * mid) / (min - 2 * mid + max);
+            B = (mid - min) * (mid - min) / (min - 2 * mid + max);
+            C = 2 * Math.Log((max - mid) / (mid - min));
+        }
+
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var t = (double)value;
+
+            return Math.Log((t - A) / B) / C;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var t = (double)value;
+
+            return (int)(A + B * Math.Exp(C * t));
         }
     }
 }

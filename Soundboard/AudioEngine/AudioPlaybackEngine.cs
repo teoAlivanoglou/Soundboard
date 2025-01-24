@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using NAudio.CoreAudioApi;
 using NAudio.Dsp;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using Soundboard.Models;
+using Soundboard.Utils;
 
 // ReSharper disable UseObjectOrCollectionInitializer
 
@@ -24,9 +28,22 @@ namespace Soundboard.AudioEngine
 
         private CancellationTokenSource _cancellationTokenSource;
 
-        public AudioPlaybackEngine(int sampleRate = 44100, int channelCount = 2)
+        private AudioPlaybackEngine(AudioDriverSettings audioDriverSettings)
+            : this((int)audioDriverSettings.SampleRate, 2, audioDriverSettings.DriverType, (int)audioDriverSettings.Latency)
         {
-            _outputDevice = new WaveOutEvent();
+        }
+
+        public AudioPlaybackEngine(int sampleRate = (int)SampleRate.R48000, int channelCount = 2,
+            DriverType outputType = DriverType.Wasapi, int latency = 20)
+        {
+            _outputDevice = outputType switch
+            {
+                DriverType.WaveOutEvent => new WaveOutEvent() { DesiredLatency = latency },
+                DriverType.Wasapi => new WasapiOut(AudioClientShareMode.Shared, true, latency),
+                DriverType.DirectSound => new DirectSoundOut(latency),
+                _ => throw new ArgumentOutOfRangeException(nameof(outputType), outputType, null)
+            };
+
             _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channelCount));
             _mixer.ReadFully = true;
 
@@ -42,27 +59,31 @@ namespace Soundboard.AudioEngine
             _ = UpdateTimers(_cancellationTokenSource.Token);
         }
 
-        public void PlaySound(Sound sound)
+        public void PlaySound(Sound sound, int fadeDuration = 0)
         {
-            // var provider = ConvertToRightChannelCount(new CachedSoundSampleProvider(sound));
             var provider = ConvertToRightChannelCount(new AutoDisposeFileReader(new AudioFileReader(sound.FilePath)));
             if (!_soundsAndSampleProviders.TryAdd(sound, [provider]))
             {
                 _soundsAndSampleProviders[sound].Add(provider);
             }
 
-            AddMixerInput(provider);
+            fadeDuration = Math.Min(fadeDuration, (int)sound.duration.TotalMilliseconds / 2);
+            provider.SetFadeIn(fadeDuration);
+            provider.FadeEnding(TimeSpan.FromMilliseconds(fadeDuration), sound.Duration);
+
             _soundsLastPlayed[sound] = DateTime.UtcNow;
             sound.IsPlaying = true;
+
+            AddMixerInput(provider);
         }
 
         private void AddMixerInput(ISampleProvider input)
         {
-            if (input.WaveFormat.SampleRate == 44100)
+            if (input.WaveFormat.SampleRate == _outputDevice.OutputWaveFormat.SampleRate)
                 _mixer.AddMixerInput(input);
         }
 
-        private ISampleProvider ConvertToRightChannelCount(ISampleProvider input)
+        private DelayFadeOutSampleProvider ConvertToRightChannelCount(ISampleProvider input)
         {
             ISampleProvider result;
             if (input.WaveFormat.Channels == _mixer.WaveFormat.Channels)
@@ -83,7 +104,7 @@ namespace Soundboard.AudioEngine
                 result = new WdlResamplingSampleProvider(result, _mixer.WaveFormat.SampleRate);
             }
 
-            return result;
+            return new DelayFadeOutSampleProvider(result);
         }
 
         public void StopSound(Sound sound)
@@ -150,9 +171,35 @@ namespace Soundboard.AudioEngine
 
         public void Dispose()
         {
+            _cancellationTokenSource.Cancel();
             _outputDevice.Dispose();
         }
 
-        public static readonly AudioPlaybackEngine Instance = new AudioPlaybackEngine(44100, 2);
+        private static AudioPlaybackEngine? _instance = null;
+
+
+        public static AudioPlaybackEngine Instance
+        {
+            get
+            {
+                if (_instance is null)
+                    Initialize();
+
+                Debug.Assert(_instance != null, nameof(_instance) + " != null");
+
+                return _instance;
+            }
+        }
+
+        public static void Initialize(int sampleRate = (int)SampleRate.R48000, int channelCount = 2,
+            DriverType outputType = DriverType.Wasapi, int latency = 20)
+        {
+            _instance = new AudioPlaybackEngine(sampleRate, channelCount, outputType, latency);
+        }
+
+        public static void Initialize(AudioDriverSettings audioDriverSettings)
+        {
+            _instance = new AudioPlaybackEngine(audioDriverSettings);
+        }
     }
 }

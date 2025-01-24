@@ -199,5 +199,10 @@ namespace Soundboard
             }
             
         }
+
+        private void ResetAudioDriverButtonClicked(object sender, RoutedEventArgs e)
+        {
+            viewModel.ResetAudioDriver();
+        }
     }
 }

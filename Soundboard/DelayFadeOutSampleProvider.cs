@@ -1,6 +1,7 @@
 ﻿// Define other methods and classes here
 using NAudio.Wave;
 
+namespace UNUSED;
 /// <summary>
 /// Sample Provider to allow fading in and out
 /// </summary>

@@ -40,14 +40,14 @@ public class FileTreeStructure
             Directories.Add(new FileTreeStructure(directory, this, Depth+1));
         }
 
-        if (Parent?.Files.Count == 0)
-        {
-            Text = Path.Combine(Parent.Text, Text);
-            Parent.Parent.Directories = Parent.Directories;
-
-            Parent = Parent.Parent;
-            
-        }
+        // if (Parent?.Files.Count == 0)
+        // {
+        //     Text = Path.Combine(Parent.Text, Text);
+        //     Parent.Parent.Directories = Parent.Directories;
+        //
+        //     Parent = Parent.Parent;
+        //     
+        // }
 
     }
 }

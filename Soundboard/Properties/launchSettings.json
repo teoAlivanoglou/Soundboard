@@ -1,0 +1,23 @@
+{
+  "profiles": {
+    "Soundboard": {
+      "commandName": "Project"
+    },
+    "Soundboard_Debug": {
+      "commandName": "Project",
+      "commandLineArgs": "-d"
+    },
+    "Soundboard_Debug_Wasapi": {
+      "commandName": "Project",
+      "commandLineArgs": "-do wasapi"
+    },
+    "Soundboard_Debug_Waveoutevent": {
+      "commandName": "Project",
+      "commandLineArgs": "-do waveoutevent"
+    },
+    "Soundboard_Debug_DirectSound": {
+      "commandName": "Project",
+      "commandLineArgs": "-do directsound"
+    }
+  }
+}
