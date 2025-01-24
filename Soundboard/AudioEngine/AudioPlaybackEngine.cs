@@ -29,7 +29,8 @@ namespace Soundboard.AudioEngine
         private CancellationTokenSource _cancellationTokenSource;
 
         private AudioPlaybackEngine(AudioDriverSettings audioDriverSettings)
-            : this((int)audioDriverSettings.SampleRate, 2, audioDriverSettings.DriverType, (int)audioDriverSettings.Latency)
+            : this((int)audioDriverSettings.SampleRate, 2, audioDriverSettings.DriverType,
+                (int)audioDriverSettings.Latency)
         {
         }
 
@@ -61,20 +62,43 @@ namespace Soundboard.AudioEngine
 
         public void PlaySound(Sound sound, int fadeDuration = 0)
         {
-            var provider = ConvertToRightChannelCount(new AutoDisposeFileReader(new AudioFileReader(sound.FilePath)));
-            if (!_soundsAndSampleProviders.TryAdd(sound, [provider]))
+            if ((sound.AudioData != null && sound.AudioData.Any()) || (sound.ByteData != null && sound.ByteData.Any()))
             {
-                _soundsAndSampleProviders[sound].Add(provider);
+                var provider =
+                    ConvertToRightChannelCount(new CachedSoundSampleProvider(sound));
+                if (!_soundsAndSampleProviders.TryAdd(sound, [provider]))
+                {
+                    _soundsAndSampleProviders[sound].Add(provider);
+                }
+
+                fadeDuration = Math.Min(fadeDuration, (int)sound.duration.TotalMilliseconds / 2);
+                provider.SetFadeIn(fadeDuration);
+                provider.FadeEnding(TimeSpan.FromMilliseconds(fadeDuration), sound.Duration);
+
+                _soundsLastPlayed[sound] = DateTime.UtcNow;
+                sound.IsPlaying = true;
+
+                AddMixerInput(provider);
             }
 
-            fadeDuration = Math.Min(fadeDuration, (int)sound.duration.TotalMilliseconds / 2);
-            provider.SetFadeIn(fadeDuration);
-            provider.FadeEnding(TimeSpan.FromMilliseconds(fadeDuration), sound.Duration);
+            else
+            {
+                var provider =
+                    ConvertToRightChannelCount(new AutoDisposeFileReader(new AudioFileReader(sound.FilePath)));
+                if (!_soundsAndSampleProviders.TryAdd(sound, [provider]))
+                {
+                    _soundsAndSampleProviders[sound].Add(provider);
+                }
 
-            _soundsLastPlayed[sound] = DateTime.UtcNow;
-            sound.IsPlaying = true;
+                fadeDuration = Math.Min(fadeDuration, (int)sound.duration.TotalMilliseconds / 2);
+                provider.SetFadeIn(fadeDuration);
+                provider.FadeEnding(TimeSpan.FromMilliseconds(fadeDuration), sound.Duration);
 
-            AddMixerInput(provider);
+                _soundsLastPlayed[sound] = DateTime.UtcNow;
+                sound.IsPlaying = true;
+
+                AddMixerInput(provider);
+            }
         }
 
         private void AddMixerInput(ISampleProvider input)

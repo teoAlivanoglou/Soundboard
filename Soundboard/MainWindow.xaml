@@ -94,8 +94,8 @@
                 <DataTemplate>
                     <Border Background="{Binding ., Converter={StaticResource CategoryColorConverter}}"
                             Height="{Binding RelativeSource={RelativeSource Self}, Path=ActualWidth}"
-                            Width="{Binding DataContext.ItemWidth, ElementName=window}"
-                            Margin="{Binding DataContext.ButtonGap, Converter={StaticResource TestConverter}, ElementName=window}"
+                            Width="{Binding DataContext.ApplicationSettings.ItemWidth, ElementName=window}"
+                            Margin="{Binding DataContext.ApplicationSettings.ButtonGap, Converter={StaticResource TestConverter}, ElementName=window}"
                             MouseDown="SoundButtonClicked"
                         Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
 
@@ -119,8 +119,8 @@
                                        Margin="4">
                                 <TextBlock.MaxWidth>
                                     <MultiBinding Converter="{StaticResource TextBlockTextWidthConverter}">
-                                        <Binding Path="DataContext.MinButtonSize" ElementName="window" />
-                                        <Binding Path="DataContext.ButtonGap" ElementName="window" />
+                                        <Binding Path="DataContext.ApplicationSettings.MinButtonSize" ElementName="window" />
+                                        <Binding Path="DataContext.ApplicationSettings.ButtonGap" ElementName="window" />
                                     </MultiBinding>
                                 </TextBlock.MaxWidth>
                             </TextBlock>
@@ -152,24 +152,24 @@
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Column="0" Grid.Row="0" Text="Min Button Size: " />
-            <Slider Grid.Column="1" Grid.Row="0" Margin="0 5 0 0" Value="{Binding MinButtonSize}"
+            <Slider Grid.Column="1" Grid.Row="0" Margin="0 5 0 0" Value="{Binding ApplicationSettings.MinButtonSize}"
                     Minimum="50" Maximum="200" ValueChanged="ButtonSizeChanged" />
-            <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding MinButtonSize}" />
+            <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding ApplicationSettings.MinButtonSize}" />
 
             <TextBlock Grid.Column="0" Grid.Row="1" Text="Button gap: " />
-            <Slider Grid.Column="1" Grid.Row="1" Margin="0 5 0 0" Value="{Binding ButtonGap}"
+            <Slider Grid.Column="1" Grid.Row="1" Margin="0 5 0 0" Value="{Binding ApplicationSettings.ButtonGap}"
                     Minimum="0" Maximum="20" ValueChanged="ButtonGapChanged" />
-            <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding ButtonGap}" />
+            <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding ApplicationSettings.ButtonGap}" />
 
             <TextBlock Grid.Column="0" Grid.Row="2" Text="Fade In Time: " />
-            <Slider Grid.Column="1" Grid.Row="2" Margin="0 5 0 0" Value="{Binding FadeInTime}"
+            <Slider Grid.Column="1" Grid.Row="2" Margin="0 5 0 0" Value="{Binding ApplicationSettings.FadeInTime}"
                     Minimum="0" Maximum="1000"/>
-            <TextBlock Grid.Column="2" Grid.Row="2" Text="{Binding FadeInTime}" />
+            <TextBlock Grid.Column="2" Grid.Row="2" Text="{Binding ApplicationSettings.FadeInTime}" />
 
             <TextBlock Grid.Column="0" Grid.Row="3" Text="Max Folder Level: " />
-            <Slider Grid.Column="1" Grid.Row="3" Margin="0 5 0 0" Value="{Binding MaxFolderLevel}"
+            <Slider Grid.Column="1" Grid.Row="3" Margin="0 5 0 0" Value="{Binding ApplicationSettings.MaxFolderLevel}"
                     Minimum="0" Maximum="5" />
-            <TextBlock Grid.Column="2" Grid.Row="3" Text="{Binding MaxFolderLevel}" />
+            <TextBlock Grid.Column="2" Grid.Row="3" Text="{Binding ApplicationSettings.MaxFolderLevel}" />
 
 
             <TextBlock Grid.Column="0" Grid.Row="4" Text="Audio driver: " />

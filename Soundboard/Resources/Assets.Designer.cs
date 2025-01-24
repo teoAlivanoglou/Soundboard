@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Soundboard {
+namespace Soundboard.Resources {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace Soundboard {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    internal class Assets {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources() {
+        internal Assets() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace Soundboard {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Soundboard.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Soundboard.Resources.Assets", typeof(Assets).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,12 +61,11 @@ namespace Soundboard {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
         /// </summary>
-        internal static byte[] Warning {
+        internal static System.IO.UnmanagedMemoryStream Warning {
             get {
-                object obj = ResourceManager.GetObject("Warning", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetStream("Warning", resourceCulture);
             }
         }
     }

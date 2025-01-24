@@ -16,6 +16,8 @@ using Soundboard.AudioEngine;
 using Soundboard.Utils;
 using Microsoft.VisualBasic.Devices;
 using NAudio.Wave;
+using Soundboard.Resources;
+using Soundboard.Settings;
 
 // ReSharper disable InconsistentNaming
 
@@ -26,13 +28,9 @@ public partial class SoundboardViewModel : ObservableObject
     public ObservableCollection<Sound> SoundItems { get; set; }
     public ObservableCollection<CategoryFilter> Categories { get; set; }
     [ObservableProperty] public int columns = 4;
-    [ObservableProperty] public int minButtonSize = 70;
-    [ObservableProperty] public int buttonGap = 3;
     [ObservableProperty] public bool settingsVisible = false;
     [ObservableProperty] public bool settingsButtonVisible = false;
-    [ObservableProperty] public int fadeInTime = 200;
-    [ObservableProperty] public int maxFolderLevel = 2;
-    [ObservableProperty] public int itemWidth = 70;
+
 
     private string lastChosenDirectory = string.Empty;
 
@@ -40,6 +38,7 @@ public partial class SoundboardViewModel : ObservableObject
     // [ObservableProperty] public SampleRate audioSampleRate = SampleRate.R44100;
 
     [ObservableProperty] public AudioDriverSettings audioDriverSettings = new();
+    [ObservableProperty] public ApplicationSettings applicationSettings = new();
 
     // ReSharper enable InconsistentNaming
 
@@ -56,7 +55,8 @@ public partial class SoundboardViewModel : ObservableObject
 
         SoundItems =
         [
-            new Sound("Please Select a Folder", Path.Combine("SoundboardResources", "warning.mp3")),
+            // new Sound("Please Select a Folder", Path.Combine("SoundboardResources", "warning.mp3")),
+            new Sound("Please Select a Folder", Assets.ResourceManager.GetStream("Warning")),
         ];
 
         Categories = [new CategoryFilter("All")];
@@ -174,7 +174,7 @@ public partial class SoundboardViewModel : ObservableObject
         if (tempSounds == null) throw new ArgumentNullException(nameof(tempSounds));
 
         var fsStructure = new FileTreeStructure(filesystemUrl);
-        ReadSoundsRecursive2(fsStructure, ref tempSounds, ref tempCategories, MaxFolderLevel);
+        ReadSoundsRecursive2(fsStructure, ref tempSounds, ref tempCategories, applicationSettings.MaxFolderLevel);
 
         tempCategories = tempCategories
             .GroupBy(c => c.Category)
@@ -210,9 +210,9 @@ public partial class SoundboardViewModel : ObservableObject
         if (sound is null)
             throw new ArgumentNullException(nameof(sound));
 
-        Debug.Assert(sound.FilePath != null, "sound.FilePath != null");
+        // Debug.Assert(sound.FilePath != null, "sound.FilePath != null");
 
-        AudioPlaybackEngine.Instance.PlaySound(sound, fadeInTime);
+        AudioPlaybackEngine.Instance.PlaySound(sound, applicationSettings.fadeInTime);
     }
 
 
@@ -221,7 +221,7 @@ public partial class SoundboardViewModel : ObservableObject
         if (sound is null)
             throw new ArgumentNullException(nameof(sound));
 
-        Debug.Assert(sound.FilePath != null, "sound.FilePath != null");
+        // Debug.Assert(sound.FilePath != null, "sound.FilePath != null");
         AudioPlaybackEngine.Instance.StopSound(sound);
     }
 

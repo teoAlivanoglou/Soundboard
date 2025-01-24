@@ -75,13 +75,13 @@ namespace Soundboard
 
             int i = 1;
 
-            while (i * viewModel.MinButtonSize < maxWidth)
+            while (i * viewModel.ApplicationSettings.MinButtonSize < maxWidth)
             {
                 i++;
             }
 
             viewModel.Columns = i - 1;
-            viewModel.ItemWidth = (int)(maxWidth / viewModel.Columns) - 2 * viewModel.ButtonGap - 1;
+            viewModel.ApplicationSettings.ItemWidth = (int)(maxWidth / viewModel.Columns) - 2 * viewModel.ApplicationSettings.ButtonGap - 1;
         }
 
         private void ButtonSizeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

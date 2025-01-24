@@ -26,15 +26,48 @@ namespace Soundboard.Models
         public bool topLevel { get; set; } = false;
         public string? FilePath;
 
-        public float[] AudioData { get; private set; }
+        public float[]? AudioData { get; private set; }
+        public byte[]? ByteData { get; private set; }
         public WaveFormat WaveFormat { get; private set; }
 
 
         private static readonly Dictionary<string, int> categoryGroups = new Dictionary<string, int>();
         private static readonly List<string> categoryIndexGroups = [];
 
-        /// <inheritdoc/>
-        public Sound(string name, string? filePath = null, string? category = null, bool cache = false, int group = 0)
+
+        public Sound(string name, System.IO.Stream memoryStream, string? category = null, bool cache = true,
+            int group = 0)
+        {
+            this.name = name;
+            this.category = category;
+            this.Group = group;
+
+            var settings = new MediaFoundationReader.MediaFoundationReaderSettings
+            {
+                RequestFloatOutput = true
+            };
+
+            using var audioFileReader = new StreamMediaFoundationReader(memoryStream, settings);
+            var sampleProvider = audioFileReader.ToSampleProvider();
+
+            WaveFormat = sampleProvider.WaveFormat;
+            var wholeFile = new List<float>((int)(audioFileReader.Length / 4));
+            var readBuffer = new float[sampleProvider.WaveFormat.SampleRate * sampleProvider.WaveFormat.Channels];
+            int samplesRead;
+            while ((samplesRead = sampleProvider.Read(readBuffer, 0, readBuffer.Length)) > 0)
+            {
+                wholeFile.AddRange(readBuffer.Take(samplesRead));
+            }
+
+            AudioData = wholeFile.ToArray();
+            
+            duration = TimeSpan.FromSeconds(
+                sampleProvider.WaveFormat.ExtraSize + (audioFileReader.Length / 4.0)
+                / (double)(sampleProvider.WaveFormat.Channels * sampleProvider.WaveFormat.SampleRate));
+        }
+
+
+        public Sound(string name, string? filePath, string? category = null, bool cache = false, int group = 0)
         {
             this.name = name;
             this.category = category;
@@ -43,7 +76,7 @@ namespace Soundboard.Models
 
             using var audioFileReader = new AudioFileReader(filePath);
 
-            if (cache)
+            if (!cache)
             {
                 WaveFormat = audioFileReader.WaveFormat;
                 var wholeFile = new List<float>((int)(audioFileReader.Length / 4));
