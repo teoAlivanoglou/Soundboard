@@ -18,6 +18,17 @@ using Soundboard.Models;
 using static Soundboard.ViewModels.SoundboardViewModel;
 using ListViewItem = System.Windows.Controls.ListViewItem;
 
+
+// TODO: Massive refactoring needed, split shit up boy!
+// TODO: Add settings system. Probably file next to exe, or resource or even embedded resource!
+// TODO: Cleanup xaml files, extract styles etc.
+// TODO: Actually get v1.0 out
+// TODO: Maybe get the source code of the libs used and integrate them into my code in order to reduce size by removing redundancies.
+//      -- I can either import them as separate projects to get separate DLLS just copy the code I need into my project for a monolithic application
+//      -- Negligibly faster compilation vs negligibly better program performance and smaller size
+//      -- We'll see
+
+
 namespace Soundboard
 {
     /// <summary>
@@ -198,6 +209,11 @@ namespace Soundboard
                 throw;
             }
             
+        }
+
+        private void ResetAudioDriverButtonClicked(object sender, RoutedEventArgs e)
+        {
+            viewModel.ResetAudioDriver();
         }
     }
 }

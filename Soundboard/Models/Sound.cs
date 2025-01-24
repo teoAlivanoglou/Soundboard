@@ -22,7 +22,7 @@ namespace Soundboard.Models
         [ObservableProperty] public bool isPlaying = false;
         [ObservableProperty] public bool isVisible = true;
 
-        public int group { get; private set; }
+        public int Group { get; set; }
         public bool topLevel { get; set; } = false;
         public string? FilePath;
 
@@ -38,7 +38,7 @@ namespace Soundboard.Models
         {
             this.name = name;
             this.category = category;
-            this.group = group;
+            this.Group = group;
             FilePath = filePath;
 
             using var audioFileReader = new AudioFileReader(filePath);
@@ -76,14 +76,27 @@ namespace Soundboard.Models
 
 
             if (categoryIndexGroups.Contains(Category))
-                group = categoryIndexGroups.FindIndex(q => q == Category) + 1;
+                Group = categoryIndexGroups.FindIndex(q => q == Category) + 1;
             else
             {
                 categoryIndexGroups.Add(Category);
-                group = categoryIndexGroups.Count;
+                Group = categoryIndexGroups.Count;
             }
             Category = Category?.Split(Path.DirectorySeparatorChar)[0];
 
+        }
+
+        public static int GetGroupIndex(string fsStructureDirectoryPath, bool add = false)
+        {
+            if (categoryIndexGroups.Contains(fsStructureDirectoryPath))
+                return categoryIndexGroups.FindIndex(q => q == fsStructureDirectoryPath);
+            else if (add)
+            {
+                categoryIndexGroups.Add(fsStructureDirectoryPath);
+                return categoryIndexGroups.Count-1;
+            }
+
+            return 0;
         }
     }
 }

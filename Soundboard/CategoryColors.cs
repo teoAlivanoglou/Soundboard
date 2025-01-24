@@ -58,7 +58,7 @@ namespace Soundboard
             try
             {
 
-                if (string.IsNullOrWhiteSpace(category))
+                if (string.IsNullOrWhiteSpace(category) || category == ".")
                     category = " ";
 
                 if (CategoriesColors.TryGetValue((category, group), out var categoriesColor))

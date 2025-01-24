@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Soundboard"
         xmlns:VM="clr-namespace:Soundboard.ViewModels"
+        xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=System.ComponentModel.TypeConverter"
         mc:Ignorable="d"
         Title="Soundboard - ΜΑΧΗ FM 99.8 - 1.0 alpha" Height="450" Width="402"
         d:DataContext="{d:DesignInstance Type=VM:SoundboardViewModel, IsDesignTimeCreatable=True}"
@@ -19,6 +20,7 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <local:EnabledBrushConverter x:Key="EnabledBrushConverter" />
         <local:NoCategoryConverter x:Key="NoCategoryConverter" />
+        <local:LogScaleConverter x:Key="LogScaleConverter" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -131,11 +133,11 @@
         </ListView>
 
 
-        <Grid Grid.Column="0" Grid.Row="2">
-            <!-- Visibility="{Binding SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}"> -->
+        <Grid Grid.Column="0" Grid.Row="2" 
+            Visibility="{Binding SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
@@ -151,23 +153,48 @@
 
             <TextBlock Grid.Column="0" Grid.Row="0" Text="Min Button Size: " />
             <Slider Grid.Column="1" Grid.Row="0" Margin="0 5 0 0" Value="{Binding MinButtonSize}"
-                    Minimum="50" Maximum="200" Width="100" ValueChanged="ButtonSizeChanged" />
+                    Minimum="50" Maximum="200" ValueChanged="ButtonSizeChanged" />
             <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding MinButtonSize}" />
 
             <TextBlock Grid.Column="0" Grid.Row="1" Text="Button gap: " />
             <Slider Grid.Column="1" Grid.Row="1" Margin="0 5 0 0" Value="{Binding ButtonGap}"
-                    Minimum="0" Maximum="20" Width="100" ValueChanged="ButtonGapChanged" />
+                    Minimum="0" Maximum="20" ValueChanged="ButtonGapChanged" />
             <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding ButtonGap}" />
 
             <TextBlock Grid.Column="0" Grid.Row="2" Text="Fade In Time: " />
             <Slider Grid.Column="1" Grid.Row="2" Margin="0 5 0 0" Value="{Binding FadeInTime}"
-                    Minimum="0" Maximum="1000" Width="100" />
+                    Minimum="0" Maximum="1000"/>
             <TextBlock Grid.Column="2" Grid.Row="2" Text="{Binding FadeInTime}" />
 
             <TextBlock Grid.Column="0" Grid.Row="3" Text="Max Folder Level: " />
             <Slider Grid.Column="1" Grid.Row="3" Margin="0 5 0 0" Value="{Binding MaxFolderLevel}"
-                    Minimum="0" Maximum="5" Width="100" />
-            <TextBlock Grid.Column="2" Grid.Row="3" Text="{Binding FadeInTime}" />
+                    Minimum="0" Maximum="5" />
+            <TextBlock Grid.Column="2" Grid.Row="3" Text="{Binding MaxFolderLevel}" />
+
+
+            <TextBlock Grid.Column="0" Grid.Row="4" Text="Audio driver: " />
+            <ComboBox Grid.Column="1" Grid.Row="4" 
+                      ItemsSource="{Binding AudioDriverSettings.DriverType, Converter={local:EnumToCollectionConverter}, Mode=OneTime}"
+                      SelectedValuePath="Value"
+                      DisplayMemberPath="Description"
+                      SelectedValue="{Binding AudioDriverSettings.DriverType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <Button Grid.Column="2" Grid.Row="4" Grid.RowSpan="2" Content="Reset Audio Driver" Margin="5" Click="ResetAudioDriverButtonClicked"/>
+
+
+            <TextBlock Grid.Column="0" Grid.Row="5" Text="Sample rate: " />
+            <ComboBox Grid.Column="1" Grid.Row="5" 
+                      ItemsSource="{Binding AudioDriverSettings.SampleRate, Converter={local:EnumToCollectionConverter}, Mode=OneTime}"
+                      SelectedValuePath="Value"
+                      DisplayMemberPath="Description"
+                      SelectedValue="{Binding AudioDriverSettings.SampleRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <TextBlock Grid.Column="0" Grid.Row="6" Text="Latency: " />
+            <Slider Grid.Column="1" Grid.Row="6" Margin="0 5 0 0" Value="{Binding AudioDriverSettings.Latency, Converter={StaticResource LogScaleConverter}}"
+                    Minimum="0" Maximum="1" IsMoveToPointEnabled="True"/>
+            <TextBlock Grid.Column="2" Grid.Row="6" Text="{Binding AudioDriverSettings.Latency}" />
+
+
+
         </Grid>
 
         <Grid Grid.Row="3" Grid.ColumnSpan="4">
@@ -194,7 +221,7 @@
                            FontSize="18" FontFamily="Segoe MDL2 Assets" />
             </Border>
 
-            <Border Grid.Column="6" MouseDown="SettingsClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4">
+            <Border Grid.Column="6" MouseDown="SettingsClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4" Visibility="{Binding SettingsButtonVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock Text="" VerticalAlignment="Center" HorizontalAlignment="Center"
                            FontSize="18" FontFamily="Segoe MDL2 Assets" />
             </Border>
