@@ -52,7 +52,7 @@
                             BorderThickness="3 3 3 0"
                             MouseDown="TabButtonClick">
                         <Border.BorderBrush>
-                            <MultiBinding Converter="{StaticResource EnabledBrushConverter}">
+                            <MultiBinding Converter="{StaticResource EnabledBrushConverter}" ConverterParameter="{StaticResource EnabledBrushColor}">
                                 <Binding Path="Enabled" />
                                 <Binding Path="." RelativeSource="{RelativeSource Self}" />
                             </MultiBinding>
@@ -65,9 +65,6 @@
             </ListView.ItemTemplate>
         </ListView>
 
-        <StackPanel Grid.Row="0">
-
-        </StackPanel>
 
         <ListView x:Name="SoundboardButtons" Grid.Row="1"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -99,7 +96,7 @@
                             Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
 
                         <Grid>
-                            <Border Background="#FF64FF64" HorizontalAlignment="Left">
+                            <Border Background="{StaticResource ProgressButtonFillColor}" HorizontalAlignment="Left">
                                 <Border.Width>
                                     <MultiBinding Converter="{StaticResource LerpConverter}" Mode="OneWay"
                                                   UpdateSourceTrigger="PropertyChanged">
@@ -112,11 +109,10 @@
                             </Border>
 
                             <TextBlock Text="{Binding Name}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"
                                        TextTrimming="CharacterEllipsis" TextWrapping="Wrap" TextAlignment="Center"
                                        FontSize="14"
-                                       Margin="4"
-                                       >
+                                       Margin="4">
                                 <TextBlock.MaxWidth>
                                     <MultiBinding Converter="{StaticResource TextBlockTextWidthConverter}">
                                         <Binding Path="DataContext.ApplicationUiSettings.MinButtonSize"
@@ -135,9 +131,9 @@
         </ListView>
 
 
-        <Border Grid.Column="0" Grid.Row="2"
-            Visibility="{Binding  SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-            <Grid x:Name="SettingsGrid" DataContext="{x:Static settings:ApplicationSettingsManager.Settings}">
+        <Border Grid.Column="0" Grid.Row="2">
+            <!-- Visibility="{Binding  SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}"> -->
+            <Grid x:Name="SettingsGrid" DataContext="{x:Static settings:ApplicationSettingsManager.Settings}" Margin="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -155,23 +151,23 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Column="0" Grid.Row="0" Text="Min Button Size: " />
-                <Slider Grid.Column="1" Grid.Row="0" Margin="0 5 0 0" Value="{Binding ApplicationUiSettings.MinButtonSize}"
+                <Slider Grid.Column="1" Grid.Row="0" Value="{Binding ApplicationUiSettings.MinButtonSize}"
                         Minimum="50" Maximum="200" ValueChanged="ButtonSizeChanged" />
                 <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding ApplicationUiSettings.MinButtonSize}" />
 
                 <TextBlock Grid.Column="0" Grid.Row="1" Text="Button gap: " />
-                <Slider Grid.Column="1" Grid.Row="1" Margin="0 5 0 0" Value="{Binding ApplicationUiSettings.ButtonGap}"
+                <Slider Grid.Column="1" Grid.Row="1" Value="{Binding ApplicationUiSettings.ButtonGap}"
                         Minimum="0" Maximum="20" ValueChanged="ButtonGapChanged" />
                 <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding ApplicationUiSettings.ButtonGap}" />
 
                 <TextBlock Grid.Column="0" Grid.Row="2" Text="Max Folder Level: " />
-                <Slider Grid.Column="1" Grid.Row="2" Margin="0 5 0 0"
+                <Slider Grid.Column="1" Grid.Row="2"
                         Value="{Binding ApplicationUiSettings.MaxFolderLevel}"
                         Minimum="0" Maximum="5" />
                 <TextBlock Grid.Column="2" Grid.Row="2" Text="{Binding ApplicationUiSettings.MaxFolderLevel}" />
 
                 <TextBlock Grid.Column="0" Grid.Row="3" Text="Fade In Time: " />
-                <Slider Grid.Column="1" Grid.Row="3" Margin="0 5 0 0" Value="{Binding AudioPlayerSettings.FadeInTime}"
+                <Slider Grid.Column="1" Grid.Row="3" Value="{Binding AudioPlayerSettings.FadeInTime}"
                         Minimum="0" Maximum="1000" />
                 <TextBlock Grid.Column="2" Grid.Row="3" Text="{Binding AudioPlayerSettings.FadeInTime}" />
 
@@ -194,7 +190,7 @@
                           SelectedValue="{Binding AudioPlayerSettings.SampleRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                 <TextBlock Grid.Column="0" Grid.Row="6" Text="Latency: " />
-                <Slider Grid.Column="1" Grid.Row="6" Margin="0 5 0 0"
+                <Slider Grid.Column="1" Grid.Row="6"
                         Value="{Binding AudioPlayerSettings.Latency, Converter={StaticResource LogScaleConverter}}"
                         Minimum="0" Maximum="1" IsMoveToPointEnabled="True" />
                 <TextBlock Grid.Column="2" Grid.Row="6" Text="{Binding AudioPlayerSettings.Latency}" />
@@ -202,6 +198,9 @@
         </Border>
 
         <Grid Grid.Row="3" Grid.ColumnSpan="4">
+            <Grid.Resources>
+                <Style TargetType="Border" BasedOn="{StaticResource FlatButtonStyle}"/>
+            </Grid.Resources>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="*" />
@@ -211,24 +210,25 @@
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
-            <Border Grid.Column="0" MouseDown="StopAllClicked" Padding="8 4" Background="#FFE8ABAB" Margin="4">
-                <TextBlock Text="Stop All" Foreground="#FF541E1E" FontWeight="SemiBold" FontSize="14" />
+            <Border Grid.Column="0" MouseDown="StopAllClicked" Background="{StaticResource RedButtonBackground}">
+                <TextBlock Text="Stop All" Foreground="{StaticResource RedButtonForeground}" FontWeight="SemiBold" FontSize="14" />
             </Border>
 
-            <Border Grid.Column="4" MouseDown="BrowseFolderClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4">
-                <TextBlock Text="" VerticalAlignment="Center" HorizontalAlignment="Center"
-                           FontSize="18" FontFamily="Segoe MDL2 Assets" />
+            <Border Grid.Column="4" MouseDown="BrowseFolderClicked" >
+                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" />
             </Border>
 
-            <Border Grid.Column="5" MouseDown="RefreshClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4">
-                <TextBlock Text="" VerticalAlignment="Center" HorizontalAlignment="Center"
-                           FontSize="18" FontFamily="Segoe MDL2 Assets" />
+            <Border Grid.Column="5" MouseDown="RefreshClicked" >
+                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" />
             </Border>
 
-            <Border Grid.Column="6" MouseDown="SettingsClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4"
+            <Border Grid.Column="6" MouseDown="SettingsClicked" 
                     Visibility="{Binding SettingsButtonVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-                <TextBlock Text="" VerticalAlignment="Center" HorizontalAlignment="Center"
-                           FontSize="18" FontFamily="Segoe MDL2 Assets" />
+                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" />
+            </Border>
+
+            <Border Grid.Column="6" MouseDown="SettingsClicked">
+                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" />
             </Border>
         </Grid>
     </Grid>

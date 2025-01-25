@@ -56,9 +56,9 @@ namespace Soundboard
 
     class EnabledBrushConverter : IMultiValueConverter
     {
-        private Thickness enabledThickness = new Thickness(2, 2, 2, 0);
-        private Thickness disabledThickness = new Thickness(0);
-        private SolidColorBrush enabledBrush = new SolidColorBrush(Colors.Green);
+        private Thickness _enabledThickness = new Thickness(2, 2, 2, 0);
+        private Thickness _disabledThickness = new Thickness(0);
+        private SolidColorBrush? _enabledBrush;// = new SolidColorBrush(Colors.Green);
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
@@ -68,7 +68,17 @@ namespace Soundboard
 
             var tab = values[1] as Border;
 
-            return enabled ? enabledBrush : tab.Background;
+            if (_enabledBrush is null)
+            {
+                if (parameter is Brush)
+                    _enabledBrush = (SolidColorBrush)parameter;
+                else _enabledBrush = new SolidColorBrush(Colors.Green);
+            }
+
+            if (parameter is SolidColorBrush)
+                return enabled ? (Brush)parameter : tab.Background;
+
+            return enabled ? _enabledBrush : tab.Background;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
