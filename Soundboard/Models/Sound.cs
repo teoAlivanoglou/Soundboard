@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.DirectoryServices.ActiveDirectory;
 using System.IO;
 using System.Linq;
@@ -17,8 +18,9 @@ namespace Soundboard.Models
     {
         [ObservableProperty] public string? name;
         [ObservableProperty] public string? category;
+        [ObservableProperty] public string? fullCategory;
         [ObservableProperty] public double progress = 0; //Random.Shared.NextDouble();
-        [ObservableProperty] public TimeSpan duration = TimeSpan.MinValue; //Random.Shared.NextDouble();
+        [ObservableProperty] public TimeSpan duration; //Random.Shared.NextDouble();
         [ObservableProperty] public bool isPlaying = false;
         [ObservableProperty] public bool isVisible = true;
 
@@ -31,8 +33,8 @@ namespace Soundboard.Models
         public WaveFormat WaveFormat { get; private set; }
 
 
-        private static readonly Dictionary<string, int> categoryGroups = new Dictionary<string, int>();
-        private static readonly List<string> categoryIndexGroups = [];
+        private static readonly Dictionary<string, Dictionary<string, int>> categoryGroupsComplex = new Dictionary<string, Dictionary<string, int>>();
+
 
 
         public Sound(string name, Stream? memoryStream, string? category = null, bool cache = true,
@@ -40,6 +42,7 @@ namespace Soundboard.Models
         {
             this.name = name;
             this.category = category;
+            this.fullCategory = category;
             this.Group = group;
 
             var settings = new MediaFoundationReader.MediaFoundationReaderSettings
@@ -60,7 +63,7 @@ namespace Soundboard.Models
             }
 
             AudioData = wholeFile.ToArray();
-            
+
             duration = TimeSpan.FromSeconds(
                 sampleProvider.WaveFormat.ExtraSize + (audioFileReader.Length / 4.0)
                 / (double)(sampleProvider.WaveFormat.Channels * sampleProvider.WaveFormat.SampleRate));
@@ -71,6 +74,7 @@ namespace Soundboard.Models
         {
             this.name = name;
             this.category = category;
+            this.fullCategory = category;
             this.Group = group;
             FilePath = filePath;
 
@@ -93,43 +97,42 @@ namespace Soundboard.Models
             duration = TimeSpan.FromSeconds(
                 audioFileReader.WaveFormat.ExtraSize + (audioFileReader.Length / 4.0)
                 / (double)(audioFileReader.WaveFormat.Channels * audioFileReader.WaveFormat.SampleRate));
-
         }
 
         public static void ResetGroups()
         {
-            categoryIndexGroups.Clear();
+            categoryGroupsComplex.Clear();
         }
 
-        public void Categorize()
+
+
+        public static int GetGroupIndex(Sound sound)
         {
+            Debug.Assert(sound.Category != null, "sound.Category != null");
+            Debug.Assert(sound.FullCategory != null, "sound.FullCategory != null");
 
-            if (category is null) return;
-            if (!category.Contains(Path.DirectorySeparatorChar)) return;
 
-
-            if (categoryIndexGroups.Contains(Category))
-                Group = categoryIndexGroups.FindIndex(q => q == Category) + 1;
+            if (categoryGroupsComplex.ContainsKey(sound.Category))
+            {
+                if (categoryGroupsComplex[sound.Category].ContainsKey(sound.FullCategory))
+                {
+                    return categoryGroupsComplex[sound.Category][sound.FullCategory];
+                }
+                else
+                {
+                    var g = categoryGroupsComplex[sound.Category].Count;
+                    categoryGroupsComplex[sound.Category][sound.FullCategory] = g;
+                    return g;
+                }
+            }
             else
             {
-                categoryIndexGroups.Add(Category);
-                Group = categoryIndexGroups.Count;
-            }
-            Category = Category?.Split(Path.DirectorySeparatorChar)[0];
-
-        }
-
-        public static int GetGroupIndex(string fsStructureDirectoryPath, bool add = false)
-        {
-            if (categoryIndexGroups.Contains(fsStructureDirectoryPath))
-                return categoryIndexGroups.FindIndex(q => q == fsStructureDirectoryPath);
-            else if (add)
-            {
-                categoryIndexGroups.Add(fsStructureDirectoryPath);
-                return categoryIndexGroups.Count-1;
+                categoryGroupsComplex[sound.Category] = new Dictionary<string, int>();
+                categoryGroupsComplex[sound.Category][sound.FullCategory] = 0;
+                return 0;
             }
 
-            return 0;
+
         }
     }
 }

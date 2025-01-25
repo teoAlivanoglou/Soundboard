@@ -70,7 +70,7 @@ public class ApplicationSettingsManager
         return Settings;
     }
 
-    private static void SaveSettings()
+    public static void SaveSettings()
     {
         Settings._serializedSettings = Serializer.Serialize(Settings);
         using var writer = File.CreateText(SettingsPath);

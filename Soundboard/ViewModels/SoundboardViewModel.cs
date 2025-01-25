@@ -7,7 +7,6 @@ using Soundboard.Utils;
 using Soundboard.Resources;
 using Soundboard.Settings;
 
-// ReSharper disable InconsistentNaming
 
 namespace Soundboard.ViewModels;
 
@@ -16,16 +15,12 @@ public partial class SoundboardViewModel : ObservableObject
     public ObservableCollection<Sound> SoundItems { get; set; }
     public ObservableCollection<CategoryFilter> Categories { get; set; }
 
-    // [ObservableProperty] public int columns = 4;
+    // ReSharper disable InconsistentNaming
     [ObservableProperty] public bool settingsVisible = false;
     [ObservableProperty] public bool settingsButtonVisible = false;
-
-    private string lastChosenDirectory = string.Empty;
-
-    // [ObservableProperty] public AudioPlayerSettings audioPlayerSettings = ApplicationSettingsManager.Settings.AudioPlayerSettings;
-    // [ObservableProperty] public ApplicationUiSettings applicationUiSettings = ApplicationSettingsManager.Settings.ApplicationUiSettings;
     // ReSharper enable InconsistentNaming
 
+    private string lastChosenDirectory = string.Empty;
 
     public SoundboardViewModel()
     {
@@ -59,57 +54,15 @@ public partial class SoundboardViewModel : ObservableObject
         return !en.MoveNext();
     }
 
-    // public void ReadSoundsRecursive(string path, ref List<CategoryFilter> categories, ref List<Sound> sounds, int depth,
-    //     string categoryPrefix)
-    // {
-    //     var category = Path.GetFileName(path);
-    //
-    //     if (!string.IsNullOrWhiteSpace(categoryPrefix))
-    //     {
-    //         category = Path.Combine(categoryPrefix, category);
-    //     }
-    //
-    //     categories.Add(new CategoryFilter(category + depth));
-    //
-    //     foreach (var file in Directory.EnumerateFiles(path))
-    //     {
-    //         if (!FileUtils.GetMimeFromFile(file).StartsWith("audio", StringComparison.OrdinalIgnoreCase)) continue;
-    //
-    //         var name = Path.GetFileNameWithoutExtension(file);
-    //         sounds.Add(new Sound(name, file, category) { topLevel = true });
-    //     }
-    //
-    //     foreach (var directory in Directory.EnumerateDirectories(path))
-    //     {
-    //         if (DirectoryContainsFiles(directory))
-    //         {
-    //             ReadSoundsRecursive(directory, ref categories, ref sounds, depth + 1, string.Empty);
-    //         }
-    //         else
-    //         {
-    //             ReadSoundsRecursive(directory, ref categories, ref sounds, depth + 1, category);
-    //         }
-    //     }
-    // }
-
-
     private int group = 0;
     private static string[] validExtensions = new[] { ".mp3", ".wav", ".ogg" };
 
-    private void ReadSoundsRecursive2(FileTreeStructure fsStructure, ref List<Sound> tempSounds,
+    private void ReadSoundsRecursive(FileTreeStructure fsStructure, ref List<Sound> tempSounds,
         ref List<CategoryFilter> tempCategories, int maxDepth)
     {
-        string category;
-        if (fsStructure.Depth <= maxDepth)
-        {
-            category = Path.GetRelativePath(fsStructure.RootPath, fsStructure.DirectoryPath);
-            group = Sound.GetGroupIndex(fsStructure.DirectoryPath, fsStructure.Files.Count > 0);
-        }
-        else
-        {
-            category = tempCategories[^1].Category;
-            group = Sound.GetGroupIndex(fsStructure.DirectoryPath, fsStructure.Files.Count > 0);
-        }
+        var category = fsStructure.Depth <= maxDepth 
+            ? Path.GetRelativePath(fsStructure.RootPath, fsStructure.DirectoryPath) 
+            : tempCategories[^1].Category;
 
         tempCategories.Add(new CategoryFilter(category, fsStructure.Files.Count));
 
@@ -124,14 +77,19 @@ public partial class SoundboardViewModel : ObservableObject
             {
                 mimeType = validExtensions.Contains(file.Extension) ? "audio" : ".";
             }
+
             if (!mimeType.StartsWith("audio", StringComparison.OrdinalIgnoreCase)) continue;
-            tempSounds.Add(
-                new Sound(Path.GetFileNameWithoutExtension(file.Name), file.FullName, category, group: group));
+            var sound = new Sound(Path.GetFileNameWithoutExtension(file.Name), file.FullName, category)
+            {
+                FullCategory = Path.GetRelativePath(fsStructure.RootPath, fsStructure.DirectoryPath)
+            };
+            sound.Group = Sound.GetGroupIndex(sound);
+            tempSounds.Add(sound);
         }
 
         foreach (var directory in fsStructure.Directories)
         {
-            ReadSoundsRecursive2(directory, ref tempSounds, ref tempCategories, maxDepth);
+            ReadSoundsRecursive(directory, ref tempSounds, ref tempCategories, maxDepth);
         }
     }
 
@@ -150,7 +108,8 @@ public partial class SoundboardViewModel : ObservableObject
         if (tempSounds == null) throw new ArgumentNullException(nameof(tempSounds));
 
         var fsStructure = new FileTreeStructure(filesystemUrl);
-        ReadSoundsRecursive2(fsStructure, ref tempSounds, ref tempCategories, ApplicationSettingsManager.Settings.ApplicationUiSettings.MaxFolderLevel);
+        ReadSoundsRecursive(fsStructure, ref tempSounds, ref tempCategories,
+            ApplicationSettingsManager.Settings.ApplicationUiSettings.MaxFolderLevel);
 
         tempCategories = tempCategories
             .GroupBy(c => c.Category)
@@ -159,8 +118,6 @@ public partial class SoundboardViewModel : ObservableObject
             .ToList();
 
         tempCategories[0].ChildrenCount = tempCategories.Sum(c => c.ChildrenCount) - 1;
-
-        // TODO: FUCKING FIX THIS COLOR SHIT OR I WILL LOSE MY SHIT
 
         CategoryColors.CategoriesColors.Clear();
         SoundItems.Clear();
@@ -186,9 +143,13 @@ public partial class SoundboardViewModel : ObservableObject
 
     public void PlaySound(Sound? sound)
     {
+        var p = CategoryColors.Palette;
+        var c = CategoryColors.CategoriesColors;
+
         if (sound is null)
             throw new ArgumentNullException(nameof(sound));
-        AudioPlaybackEngine.Instance.PlaySound(sound, ApplicationSettingsManager.Settings.AudioPlayerSettings.FadeInTime);
+        AudioPlaybackEngine.Instance.PlaySound(sound,
+            ApplicationSettingsManager.Settings.AudioPlayerSettings.FadeInTime);
     }
 
 
@@ -199,12 +160,11 @@ public partial class SoundboardViewModel : ObservableObject
         AudioPlaybackEngine.Instance.StopSound(sound);
     }
 
+
     public void StopAllSounds()
     {
         AudioPlaybackEngine.Instance.StopAllSounds();
     }
-
-
 
 
     public void ResetAudioDriver()
@@ -212,5 +172,15 @@ public partial class SoundboardViewModel : ObservableObject
         AudioPlaybackEngine.Instance.StopAllSounds();
         AudioPlaybackEngine.Instance.Dispose();
         AudioPlaybackEngine.Initialize();
+    }
+
+    public void ToggleSettings()
+    {
+        SettingsVisible = !SettingsVisible;
+
+        if (!SettingsVisible)
+        {
+            ApplicationSettingsManager.SaveSettings();
+        }
     }
 }

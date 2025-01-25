@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using Soundboard.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
@@ -114,7 +115,7 @@ namespace Soundboard
             if (!e.RightButton.HasFlag(MouseButtonState.Pressed))
                 return;
 
-            viewModel.SettingsVisible = !viewModel.SettingsVisible;
+            viewModel.ToggleSettings();
         }
 
         private void TabButtonClick(object sender, MouseButtonEventArgs e)
@@ -209,5 +210,11 @@ namespace Soundboard
         {
             viewModel.ResetAudioDriver();
         }
+
+        private void WindowClosing(object? sender, CancelEventArgs e)
+        {
+            ApplicationSettingsManager.SaveSettings();
+        }
+
     }
 }
