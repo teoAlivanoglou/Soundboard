@@ -119,6 +119,7 @@ public partial class SoundboardViewModel : ObservableObject
 
         tempCategories[0].ChildrenCount = tempCategories.Sum(c => c.ChildrenCount) - 1;
 
+
         CategoryColors.CategoriesColors.Clear();
         SoundItems.Clear();
         Categories.Clear();
