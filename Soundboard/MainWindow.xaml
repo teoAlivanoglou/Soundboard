@@ -9,7 +9,8 @@
         mc:Ignorable="d"
         Title="Soundboard - ΜΑΧΗ FM 99.8 - 1.0 alpha" Height="450" Width="402"
         d:DataContext="{d:DesignInstance Type=VM:SoundboardViewModel, IsDesignTimeCreatable=True}"
-        SizeChanged="WindowResized">
+        SizeChanged="WindowResized"
+        Closing="WindowClosing">
     <Window.Resources>
         <local:TestConverter x:Key="TestConverter" />
         <local:MultiTestConverter x:Key="MultiTestConverter" />
@@ -47,7 +48,7 @@
                 <DataTemplate>
                     <Border Padding="9 4" Margin="-4 0  -4 0"
                             VerticalAlignment="Bottom"
-                            Background="{Binding Path=Category, Converter={StaticResource CategoryColorConverter}}"
+                            Background="{Binding Path= Category, Converter={StaticResource CategoryColorConverter}}"
                             BorderThickness="3 3 3 0"
                             MouseDown="TabButtonClick">
                         <Border.BorderBrush>

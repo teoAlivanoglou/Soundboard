@@ -16,6 +16,14 @@ namespace Soundboard
         {
             Palette =
             [
+                // ColorFromHex("#FFFFFF"),
+                // ColorFromHex("#fffe51"),
+                // ColorFromHex("#77f9fd"),
+                // ColorFromHex("#78f94a"),
+                // ColorFromHex("#e943f8"),
+                // ColorFromHex("#e93f1f"),
+                // ColorFromHex("#0014f6"),
+                // ColorFromHex("#000000"),
                 ColorFromHex("#CAC8D6"),
                 ColorFromHex("#FAEDCB"),
                 ColorFromHex("#C9E4DE"),
@@ -79,9 +87,6 @@ namespace Soundboard
 
         public static Color ColorFromHex(string hexValue)
         {
-            // uint number2;
-            // uint.TryParse(hexValue.TrimStart('#'), System.Globalization.NumberStyles.HexNumber, null, out number2);
-
             return uint.TryParse(hexValue.TrimStart('#'), System.Globalization.NumberStyles.HexNumber, null, out var num) 
                 ? Color.FromRgb((byte)((num >> 16) & 0xFF), (byte)((num >> 8) & 0xFF), (byte)(num & 0xFF)) 
                 : Colors.Magenta;

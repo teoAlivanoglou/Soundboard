@@ -13,6 +13,9 @@ public class FileTreeStructure
     public string DirectoryPath { get; set; }
     public string RootPath { get; set; }
 
+    public bool IsDirectory { get; set; }
+    public bool IsFile { get; set; }
+
 
     public FileTreeStructure(string path) : this(path, null, 0)
     {
@@ -40,6 +43,17 @@ public class FileTreeStructure
         foreach (var directory in Directory.EnumerateDirectories(path))
         {
             Directories.Add(new FileTreeStructure(directory, this, Depth + 1));
+        }
+
+        if (Files.Count == 0 && Directories.Count == 0)
+        {
+            IsDirectory = false;
+            IsFile = true;
+        }
+        else
+        {
+            IsDirectory = true;
+            IsFile = false;
         }
     }
 }
