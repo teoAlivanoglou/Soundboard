@@ -29,7 +29,9 @@ public class FileTreeStructure
         RootPath = Parent?.RootPath ?? path;
 
         Text = Path.GetFileName(path);
-
+        
+        if (string.IsNullOrWhiteSpace(path)) return;
+        
         foreach (var file in Directory.EnumerateFiles(path))
         {
             Files.Add(new FileInfo(file));
@@ -37,17 +39,7 @@ public class FileTreeStructure
 
         foreach (var directory in Directory.EnumerateDirectories(path))
         {
-            Directories.Add(new FileTreeStructure(directory, this, Depth+1));
+            Directories.Add(new FileTreeStructure(directory, this, Depth + 1));
         }
-
-        // if (Parent?.Files.Count == 0)
-        // {
-        //     Text = Path.Combine(Parent.Text, Text);
-        //     Parent.Parent.Directories = Parent.Directories;
-        //
-        //     Parent = Parent.Parent;
-        //     
-        // }
-
     }
 }

@@ -1,18 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Diagnostics;
 using NAudio.CoreAudioApi;
-using NAudio.Dsp;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using Soundboard.Models;
-using Soundboard.Utils;
+using Soundboard.Settings;
 
 // ReSharper disable UseObjectOrCollectionInitializer
 
@@ -28,24 +19,20 @@ namespace Soundboard.AudioEngine
 
         private CancellationTokenSource _cancellationTokenSource;
 
-        private AudioPlaybackEngine(AudioDriverSettings audioDriverSettings)
-            : this((int)audioDriverSettings.SampleRate, 2, audioDriverSettings.DriverType,
-                (int)audioDriverSettings.Latency)
-        {
-        }
 
-        public AudioPlaybackEngine(int sampleRate = (int)SampleRate.R48000, int channelCount = 2,
-            DriverType outputType = DriverType.Wasapi, int latency = 20)
+        public AudioPlaybackEngine()
         {
-            _outputDevice = outputType switch
+            var audioSettings = ApplicationSettingsManager.Settings.AudioPlayerSettings;
+
+            _outputDevice = audioSettings.DriverType switch
             {
-                DriverType.WaveOutEvent => new WaveOutEvent() { DesiredLatency = latency },
-                DriverType.Wasapi => new WasapiOut(AudioClientShareMode.Shared, true, latency),
-                DriverType.DirectSound => new DirectSoundOut(latency),
-                _ => throw new ArgumentOutOfRangeException(nameof(outputType), outputType, null)
+                DriverType.WaveOutEvent => new WaveOutEvent() { DesiredLatency = (int)audioSettings.Latency },
+                DriverType.Wasapi => new WasapiOut(AudioClientShareMode.Shared, true, (int)audioSettings.Latency),
+                DriverType.DirectSound => new DirectSoundOut((int)audioSettings.Latency),
+                _ => throw new ArgumentOutOfRangeException(nameof(audioSettings.DriverType), audioSettings.DriverType, null)
             };
 
-            _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channelCount));
+            _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)audioSettings.SampleRate, 2));
             _mixer.ReadFully = true;
 
             _mixer.MixerInputEnded += MixerOnMixerInputEnded;
@@ -215,15 +202,9 @@ namespace Soundboard.AudioEngine
             }
         }
 
-        public static void Initialize(int sampleRate = (int)SampleRate.R48000, int channelCount = 2,
-            DriverType outputType = DriverType.Wasapi, int latency = 20)
+        public static void Initialize()
         {
-            _instance = new AudioPlaybackEngine(sampleRate, channelCount, outputType, latency);
-        }
-
-        public static void Initialize(AudioDriverSettings audioDriverSettings)
-        {
-            _instance = new AudioPlaybackEngine(audioDriverSettings);
+            _instance = new AudioPlaybackEngine();
         }
     }
 }

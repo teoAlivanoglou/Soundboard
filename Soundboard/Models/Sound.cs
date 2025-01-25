@@ -35,7 +35,7 @@ namespace Soundboard.Models
         private static readonly List<string> categoryIndexGroups = [];
 
 
-        public Sound(string name, System.IO.Stream memoryStream, string? category = null, bool cache = true,
+        public Sound(string name, Stream? memoryStream, string? category = null, bool cache = true,
             int group = 0)
         {
             this.name = name;

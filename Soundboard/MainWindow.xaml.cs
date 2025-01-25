@@ -1,22 +1,13 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Soundboard.ViewModels;
-using System.Media;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Soundboard.Models;
+using Soundboard.Settings;
 using static Soundboard.ViewModels.SoundboardViewModel;
-using ListViewItem = System.Windows.Controls.ListViewItem;
 
 
 // TODO: Massive refactoring needed, split shit up boy!
@@ -50,6 +41,8 @@ namespace Soundboard
                 viewModel.ReadSounds(folder);
 
             soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtons);
+
+            var settings = ApplicationSettingsManager.Settings;
         }
 
         private void WindowResized(object? sender, SizeChangedEventArgs? e)
@@ -73,15 +66,17 @@ namespace Soundboard
                     : 0;
             }
 
-            int i = 1;
+            var i = 1;
 
-            while (i * viewModel.ApplicationSettings.MinButtonSize < maxWidth)
+            while (i * ApplicationSettingsManager.Settings.ApplicationUiSettings.MinButtonSize < maxWidth)
             {
                 i++;
             }
 
-            viewModel.Columns = i - 1;
-            viewModel.ApplicationSettings.ItemWidth = (int)(maxWidth / viewModel.Columns) - 2 * viewModel.ApplicationSettings.ButtonGap - 1;
+            ApplicationSettingsManager.Settings.ApplicationUiSettings.ItemWidth =
+                (int)(maxWidth / (i - 1))
+                - 2 * ApplicationSettingsManager.Settings.ApplicationUiSettings.ButtonGap
+                - 1;
         }
 
         private void ButtonSizeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -146,6 +141,7 @@ namespace Soundboard
                 {
                     allEnabled &= viewModel.Categories[i].Enabled;
                 }
+
                 viewModel.Categories[0].Enabled = allEnabled;
             }
 
@@ -201,14 +197,12 @@ namespace Soundboard
                 return res == System.Windows.Forms.DialogResult.OK
                     ? dialog.SelectedPath
                     : null;
-
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 throw;
             }
-            
         }
 
         private void ResetAudioDriverButtonClicked(object sender, RoutedEventArgs e)

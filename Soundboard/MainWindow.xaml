@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Soundboard"
         xmlns:VM="clr-namespace:Soundboard.ViewModels"
-        xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=System.ComponentModel.TypeConverter"
+        xmlns:settings="clr-namespace:Soundboard.Settings"
         mc:Ignorable="d"
         Title="Soundboard - ΜΑΧΗ FM 99.8 - 1.0 alpha" Height="450" Width="402"
         d:DataContext="{d:DesignInstance Type=VM:SoundboardViewModel, IsDesignTimeCreatable=True}"
@@ -53,12 +53,12 @@
                         <Border.BorderBrush>
                             <MultiBinding Converter="{StaticResource EnabledBrushConverter}">
                                 <Binding Path="Enabled" />
-                                <Binding Path="." RelativeSource="{RelativeSource Self}"/>
+                                <Binding Path="." RelativeSource="{RelativeSource Self}" />
                             </MultiBinding>
                         </Border.BorderBrush>
-                        <TextBlock 
-                            Text="{Binding Category, Converter={StaticResource NoCategoryConverter}}" 
-                            FontSize="14"/>
+                        <TextBlock
+                            Text="{Binding Category, Converter={StaticResource NoCategoryConverter}}"
+                            FontSize="14" />
                     </Border>
                 </DataTemplate>
             </ListView.ItemTemplate>
@@ -70,34 +70,32 @@
 
         <ListView x:Name="SoundboardButtons" Grid.Row="1"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                  ItemsSource="{Binding SoundItems}" >
+                  ItemsSource="{Binding SoundItems}">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <!-- <UniformGrid VerticalAlignment="Top" Columns="{Binding Columns}" HorizontalAlignment="Stretch" -->
-                    <!--              IsItemsHost="True" SizeChanged="UniformGrid_SizeChanged" /> -->
-                    <WrapPanel VerticalAlignment="Top" 
-                               
+                    <WrapPanel VerticalAlignment="Top"
+
                                HorizontalAlignment="Left" FlowDirection="LeftToRight" Orientation="Horizontal"
                                Width="{Binding ActualWidth, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                               IsItemsHost="True"/>
+                               IsItemsHost="True" />
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                     <Setter Property="Focusable" Value="False" />
-                    <Setter Property="Margin" Value="-1"/>
-                    <Setter Property="Padding" Value="0"/>
-</Style>
+                    <Setter Property="Margin" Value="-1" />
+                    <Setter Property="Padding" Value="0" />
+                </Style>
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Border Background="{Binding ., Converter={StaticResource CategoryColorConverter}}"
                             Height="{Binding RelativeSource={RelativeSource Self}, Path=ActualWidth}"
-                            Width="{Binding DataContext.ApplicationSettings.ItemWidth, ElementName=window}"
-                            Margin="{Binding DataContext.ApplicationSettings.ButtonGap, Converter={StaticResource TestConverter}, ElementName=window}"
+                            Width="{Binding DataContext.ApplicationUiSettings.ItemWidth, ElementName=SettingsGrid}"
+                            Margin="{Binding DataContext.ApplicationUiSettings.ButtonGap, Converter={StaticResource TestConverter}, ElementName=SettingsGrid}"
                             MouseDown="SoundButtonClicked"
-                        Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                            Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
 
                         <Grid>
                             <Border Background="#FF64FF64" HorizontalAlignment="Left">
@@ -112,15 +110,18 @@
                                 </Border.Width>
                             </Border>
 
-                            <TextBlock Text="{Binding Name}" 
+                            <TextBlock Text="{Binding Name}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"
                                        TextTrimming="CharacterEllipsis" TextWrapping="Wrap" TextAlignment="Center"
                                        FontSize="14"
-                                       Margin="4">
+                                       Margin="4"
+                                       >
                                 <TextBlock.MaxWidth>
                                     <MultiBinding Converter="{StaticResource TextBlockTextWidthConverter}">
-                                        <Binding Path="DataContext.ApplicationSettings.MinButtonSize" ElementName="window" />
-                                        <Binding Path="DataContext.ApplicationSettings.ButtonGap" ElementName="window" />
+                                        <Binding Path="DataContext.ApplicationUiSettings.MinButtonSize"
+                                                 ElementName="SettingsGrid" />
+                                        <Binding Path="DataContext.ApplicationUiSettings.ButtonGap"
+                                                 ElementName="SettingsGrid" />
                                     </MultiBinding>
                                 </TextBlock.MaxWidth>
                             </TextBlock>
@@ -133,69 +134,71 @@
         </ListView>
 
 
-        <Grid Grid.Column="0" Grid.Row="2" 
-            Visibility="{Binding SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+        <Border Grid.Column="0" Grid.Row="2"
+            Visibility="{Binding  SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid x:Name="SettingsGrid" DataContext="{x:Static settings:ApplicationSettingsManager.Settings}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <TextBlock Grid.Column="0" Grid.Row="0" Text="Min Button Size: " />
-            <Slider Grid.Column="1" Grid.Row="0" Margin="0 5 0 0" Value="{Binding ApplicationSettings.MinButtonSize}"
-                    Minimum="50" Maximum="200" ValueChanged="ButtonSizeChanged" />
-            <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding ApplicationSettings.MinButtonSize}" />
+                <TextBlock Grid.Column="0" Grid.Row="0" Text="Min Button Size: " />
+                <Slider Grid.Column="1" Grid.Row="0" Margin="0 5 0 0" Value="{Binding ApplicationUiSettings.MinButtonSize}"
+                        Minimum="50" Maximum="200" ValueChanged="ButtonSizeChanged" />
+                <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding ApplicationUiSettings.MinButtonSize}" />
 
-            <TextBlock Grid.Column="0" Grid.Row="1" Text="Button gap: " />
-            <Slider Grid.Column="1" Grid.Row="1" Margin="0 5 0 0" Value="{Binding ApplicationSettings.ButtonGap}"
-                    Minimum="0" Maximum="20" ValueChanged="ButtonGapChanged" />
-            <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding ApplicationSettings.ButtonGap}" />
+                <TextBlock Grid.Column="0" Grid.Row="1" Text="Button gap: " />
+                <Slider Grid.Column="1" Grid.Row="1" Margin="0 5 0 0" Value="{Binding ApplicationUiSettings.ButtonGap}"
+                        Minimum="0" Maximum="20" ValueChanged="ButtonGapChanged" />
+                <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding ApplicationUiSettings.ButtonGap}" />
 
-            <TextBlock Grid.Column="0" Grid.Row="2" Text="Fade In Time: " />
-            <Slider Grid.Column="1" Grid.Row="2" Margin="0 5 0 0" Value="{Binding ApplicationSettings.FadeInTime}"
-                    Minimum="0" Maximum="1000"/>
-            <TextBlock Grid.Column="2" Grid.Row="2" Text="{Binding ApplicationSettings.FadeInTime}" />
+                <TextBlock Grid.Column="0" Grid.Row="2" Text="Max Folder Level: " />
+                <Slider Grid.Column="1" Grid.Row="2" Margin="0 5 0 0"
+                        Value="{Binding ApplicationUiSettings.MaxFolderLevel}"
+                        Minimum="0" Maximum="5" />
+                <TextBlock Grid.Column="2" Grid.Row="2" Text="{Binding ApplicationUiSettings.MaxFolderLevel}" />
 
-            <TextBlock Grid.Column="0" Grid.Row="3" Text="Max Folder Level: " />
-            <Slider Grid.Column="1" Grid.Row="3" Margin="0 5 0 0" Value="{Binding ApplicationSettings.MaxFolderLevel}"
-                    Minimum="0" Maximum="5" />
-            <TextBlock Grid.Column="2" Grid.Row="3" Text="{Binding ApplicationSettings.MaxFolderLevel}" />
-
-
-            <TextBlock Grid.Column="0" Grid.Row="4" Text="Audio driver: " />
-            <ComboBox Grid.Column="1" Grid.Row="4" 
-                      ItemsSource="{Binding AudioDriverSettings.DriverType, Converter={local:EnumToCollectionConverter}, Mode=OneTime}"
-                      SelectedValuePath="Value"
-                      DisplayMemberPath="Description"
-                      SelectedValue="{Binding AudioDriverSettings.DriverType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <Button Grid.Column="2" Grid.Row="4" Grid.RowSpan="2" Content="Reset Audio Driver" Margin="5" Click="ResetAudioDriverButtonClicked"/>
+                <TextBlock Grid.Column="0" Grid.Row="3" Text="Fade In Time: " />
+                <Slider Grid.Column="1" Grid.Row="3" Margin="0 5 0 0" Value="{Binding AudioPlayerSettings.FadeInTime}"
+                        Minimum="0" Maximum="1000" />
+                <TextBlock Grid.Column="2" Grid.Row="3" Text="{Binding AudioPlayerSettings.FadeInTime}" />
 
 
-            <TextBlock Grid.Column="0" Grid.Row="5" Text="Sample rate: " />
-            <ComboBox Grid.Column="1" Grid.Row="5" 
-                      ItemsSource="{Binding AudioDriverSettings.SampleRate, Converter={local:EnumToCollectionConverter}, Mode=OneTime}"
-                      SelectedValuePath="Value"
-                      DisplayMemberPath="Description"
-                      SelectedValue="{Binding AudioDriverSettings.SampleRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-
-            <TextBlock Grid.Column="0" Grid.Row="6" Text="Latency: " />
-            <Slider Grid.Column="1" Grid.Row="6" Margin="0 5 0 0" Value="{Binding AudioDriverSettings.Latency, Converter={StaticResource LogScaleConverter}}"
-                    Minimum="0" Maximum="1" IsMoveToPointEnabled="True"/>
-            <TextBlock Grid.Column="2" Grid.Row="6" Text="{Binding AudioDriverSettings.Latency}" />
+                <TextBlock Grid.Column="0" Grid.Row="4" Text="Audio driver: " />
+                <ComboBox Grid.Column="1" Grid.Row="4"
+                          ItemsSource="{Binding AudioPlayerSettings.DriverType, Converter={local:EnumToCollectionConverter}, Mode=OneTime}"
+                          SelectedValuePath="Value"
+                          DisplayMemberPath="Description"
+                          SelectedValue="{Binding AudioPlayerSettings.DriverType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Grid.Column="2" Grid.Row="4" Grid.RowSpan="2" Content="Reset Audio Driver" Margin="5"
+                        Click="ResetAudioDriverButtonClicked" />
 
 
+                <TextBlock Grid.Column="0" Grid.Row="5" Text="Sample rate: " />
+                <ComboBox Grid.Column="1" Grid.Row="5"
+                          ItemsSource="{Binding AudioPlayerSettings.SampleRate, Converter={local:EnumToCollectionConverter}, Mode=OneTime}"
+                          SelectedValuePath="Value"
+                          DisplayMemberPath="Description"
+                          SelectedValue="{Binding AudioPlayerSettings.SampleRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-        </Grid>
+                <TextBlock Grid.Column="0" Grid.Row="6" Text="Latency: " />
+                <Slider Grid.Column="1" Grid.Row="6" Margin="0 5 0 0"
+                        Value="{Binding AudioPlayerSettings.Latency, Converter={StaticResource LogScaleConverter}}"
+                        Minimum="0" Maximum="1" IsMoveToPointEnabled="True" />
+                <TextBlock Grid.Column="2" Grid.Row="6" Text="{Binding AudioPlayerSettings.Latency}" />
+            </Grid>
+        </Border>
 
         <Grid Grid.Row="3" Grid.ColumnSpan="4">
             <Grid.ColumnDefinitions>
@@ -221,7 +224,8 @@
                            FontSize="18" FontFamily="Segoe MDL2 Assets" />
             </Border>
 
-            <Border Grid.Column="6" MouseDown="SettingsClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4" Visibility="{Binding SettingsButtonVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Border Grid.Column="6" MouseDown="SettingsClicked" Padding="8 4" Background="#FFCAC8D6" Margin="4"
+                    Visibility="{Binding SettingsButtonVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock Text="" VerticalAlignment="Center" HorizontalAlignment="Center"
                            FontSize="18" FontFamily="Segoe MDL2 Assets" />
             </Border>
