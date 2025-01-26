@@ -32,10 +32,12 @@
         </Grid.RowDefinitions>
 
 
-        <ListView ItemsSource="{Binding Categories}" Padding="5 0 5 -3" BorderThickness="0">
+        <ListView ItemsSource="{Binding Categories}" Margin="5 0 5 -3" BorderThickness="0"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <StackPanel IsItemsHost="True" Orientation="Horizontal" />
+                    <WrapPanel IsItemsHost="True" Orientation="Horizontal"
+                               MaxWidth="{Binding Path=ActualWidth,RelativeSource={RelativeSource AncestorType=ListView}}" />
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
             <ListView.ItemContainerStyle>
@@ -46,13 +48,14 @@
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Border Padding="9 4" Margin="-4 0  -4 0"
+                    <Border Padding="9 4" Margin="-4 0  -4 -7"
                             VerticalAlignment="Bottom"
                             Background="{Binding Path= Category, Converter={StaticResource CategoryColorConverter}}"
-                            BorderThickness="3 3 3 0"
+                            BorderThickness="3 3 3 3"
                             MouseDown="TabButtonClick">
                         <Border.BorderBrush>
-                            <MultiBinding Converter="{StaticResource EnabledBrushConverter}" ConverterParameter="{StaticResource EnabledBrushColor}">
+                            <MultiBinding Converter="{StaticResource EnabledBrushConverter}"
+                                          ConverterParameter="{StaticResource EnabledBrushColor}">
                                 <Binding Path="Enabled" />
                                 <Binding Path="." RelativeSource="{RelativeSource Self}" />
                             </MultiBinding>
@@ -131,9 +134,10 @@
         </ListView>
 
 
-        <Border Grid.Column="0" Grid.Row="2">
-            <!-- Visibility="{Binding  SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}"> -->
-            <Grid x:Name="SettingsGrid" DataContext="{x:Static settings:ApplicationSettingsManager.Settings}" Margin="4">
+        <Border Grid.Column="0" Grid.Row="2"
+                Visibility="{Binding  SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid x:Name="SettingsGrid" DataContext="{x:Static settings:ApplicationSettingsManager.Settings}"
+                  Margin="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -199,7 +203,7 @@
 
         <Grid Grid.Row="3" Grid.ColumnSpan="4">
             <Grid.Resources>
-                <Style TargetType="Border" BasedOn="{StaticResource FlatButtonStyle}"/>
+                <Style TargetType="Border" BasedOn="{StaticResource FlatButtonStyle}" />
             </Grid.Resources>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
@@ -211,18 +215,19 @@
                 <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
             <Border Grid.Column="0" MouseDown="StopAllClicked" Background="{StaticResource RedButtonBackground}">
-                <TextBlock Text="Stop All" Foreground="{StaticResource RedButtonForeground}" FontWeight="SemiBold" FontSize="14" />
+                <TextBlock Text="Stop All" Foreground="{StaticResource RedButtonForeground}" FontWeight="SemiBold"
+                           FontSize="14" />
             </Border>
 
-            <Border Grid.Column="4" MouseDown="BrowseFolderClicked" >
+            <Border Grid.Column="4" MouseDown="BrowseFolderClicked">
                 <TextBlock Text="" FontFamily="Segoe MDL2 Assets" />
             </Border>
 
-            <Border Grid.Column="5" MouseDown="RefreshClicked" >
+            <Border Grid.Column="5" MouseDown="RefreshClicked">
                 <TextBlock Text="" FontFamily="Segoe MDL2 Assets" />
             </Border>
 
-            <Border Grid.Column="6" MouseDown="SettingsClicked" 
+            <Border Grid.Column="6" MouseDown="SettingsClicked"
                     Visibility="{Binding SettingsButtonVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock Text="" FontFamily="Segoe MDL2 Assets" />
             </Border>

@@ -12,7 +12,6 @@ using static Soundboard.ViewModels.SoundboardViewModel;
 
 
 // TODO: Massive refactoring needed, split shit up boy!
-// TODO: Add settings system. Probably file next to exe, or resource or even embedded resource!
 // TODO: Cleanup xaml files, extract styles etc.
 // TODO: Actually get v1.0 out
 // TODO: Maybe get the source code of the libs used and integrate them into my code in order to reduce size by removing redundancies.
