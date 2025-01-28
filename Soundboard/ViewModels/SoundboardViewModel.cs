@@ -22,6 +22,8 @@ public partial class SoundboardViewModel : ObservableObject
 
     private string lastChosenDirectory = string.Empty;
 
+    [ObservableProperty] private ApplicationSettingsManager settings = ApplicationSettingsManager.Settings;
+
     public SoundboardViewModel()
     {
         SoundItems =
