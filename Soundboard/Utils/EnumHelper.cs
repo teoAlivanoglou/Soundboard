@@ -13,10 +13,7 @@ public static class EnumHelper
         if (attributes.Any())
             return (attributes.First() as DescriptionAttribute)?.Description;
 
-        // If no description is found, the least we can do is replace underscores with spaces
-        // You can add your own custom default formatting logic here
-        var ti = CultureInfo.CurrentCulture.TextInfo;
-        return ti.ToTitleCase(ti.ToLower(value.ToString().Replace("_", " ")));
+        return value.ToString();
     }
 
     public static IEnumerable<ValueDescription> GetAllValuesAndDescriptions(Type t)
