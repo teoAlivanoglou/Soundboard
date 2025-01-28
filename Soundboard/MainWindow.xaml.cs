@@ -43,10 +43,10 @@ namespace Soundboard
 
             soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtonsPanel);
 
-            var settings = ApplicationSettingsManager.Settings;
-
-            File.WriteAllBytes("WHAAAAAT.bin",
-                GenerateCode(@"H:\Projects\C#\Soundboard\Soundboard\UI\MaskColorEffect.fx", ""));
+            // var settings = ApplicationSettingsManager.Settings;
+            //
+            // File.WriteAllBytes("WHAAAAAT.bin",
+            //     GenerateCode(@"H:\Projects\C#\Soundboard\Soundboard\UI\MaskColorEffect.fx", ""));
         }
 
         private void WindowResized(object? sender, SizeChangedEventArgs? e)
@@ -82,6 +82,12 @@ namespace Soundboard
                 - 2 * ApplicationSettingsManager.Settings.ApplicationUiSettings.ButtonGap
                 - 1;
 
+            if (e is not null)
+            {
+                ApplicationSettingsManager.Settings.ApplicationUiSettings.WindowWidth = (int)e.NewSize.Width;
+                ApplicationSettingsManager.Settings.ApplicationUiSettings.WindowHeight = (int)e.NewSize.Height;
+            }
+
         }
 
         private void ButtonSizeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -116,8 +122,8 @@ namespace Soundboard
 
         private void SettingsClicked(object sender, MouseButtonEventArgs e)
         {
-            if (!e.RightButton.HasFlag(MouseButtonState.Pressed))
-                return;
+            // if (!e.RightButton.HasFlag(MouseButtonState.Pressed))
+            //     return;
 
             viewModel.ToggleSettings();
         }

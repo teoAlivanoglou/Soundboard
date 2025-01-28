@@ -3,22 +3,26 @@ using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Text.Json;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Soundboard.AudioEngine;
+using Soundboard.Utils;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using YamlDotNet.Serialization.TypeInspectors;
 
 namespace Soundboard.Settings;
 
-public class ApplicationSettingsManager
+public partial class ApplicationSettingsManager : ObservableObject
 {
     public AudioPlayerSettings AudioPlayerSettings { get; private set; } = new();
     public ApplicationUiSettings ApplicationUiSettings { get; private set; } = new();
+
+    [ObservableProperty] public bool _showApplicationPlayerSettings = false;
 
     private string _serializedSettings = string.Empty;
 
     private ApplicationSettingsManager()
     {
-
     }
 
     public static string SettingsPath { get; private set; } = Path.Join(
@@ -36,7 +40,9 @@ public class ApplicationSettingsManager
         .WithEnumNamingConvention(NullNamingConvention.Instance)
         .WithTypeConverter(new EnumConverter<SampleRate>(SerializedToken.Value, true))
         .WithTypeConverter(new EnumConverter<DriverType>(SerializedToken.Key, true))
-        .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults)
+        .IgnoreFields()
+        .WithTypeInspector(inner => new IgnoreNamedPropertyInspector(inner, [nameof(ShowApplicationPlayerSettings)],
+            StringComparison.Ordinal))
         .Build();
 
     private static IDeserializer Deserializer { get; set; } = new DeserializerBuilder()
@@ -50,13 +56,13 @@ public class ApplicationSettingsManager
     static ApplicationSettingsManager()
     {
         Settings = File.Exists(SettingsPath) ? LoadSettings() : CreateSettings();
-
+        Settings.ShowApplicationPlayerSettings = false;
     }
 
     private static ApplicationSettingsManager LoadSettings()
     {
         using var reader = File.OpenText(SettingsPath);
-        
+
         var text = reader.ReadToEnd();
         Settings = Deserializer.Deserialize<ApplicationSettingsManager>(text);
         return Settings;

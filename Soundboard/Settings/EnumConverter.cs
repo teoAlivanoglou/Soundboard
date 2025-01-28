@@ -32,23 +32,6 @@ public class EnumConverter<T>(SerializedToken serializedToken, bool comment) : I
         var enumValue = Enum.Parse(type, ((Scalar)parser.Current!).Value);
         parser.MoveNext();
 
-        // var t = enumValue.GetType();
-        //
-        // switch (_serializedToken)
-        // {
-        //     case SerializedToken.Key:
-        //         var ev = Enum.Parse<T>(enumValue.ToString()!);
-        //
-        //         return ev;
-        //         break;
-        //     case SerializedToken.Value:
-        //         var e = (T)enumValue;
-        //         return e;
-        //         break;
-        //     default:
-        //         throw new ArgumentOutOfRangeException();
-        // }
-
         return enumValue;
     }
     

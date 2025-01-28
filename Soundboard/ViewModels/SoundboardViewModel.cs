@@ -49,6 +49,7 @@ public partial class SoundboardViewModel : ObservableObject
         if (options?.Debug is true)
         {
             SettingsButtonVisible = true;
+            ApplicationSettingsManager.Settings.ShowApplicationPlayerSettings = true;
         }
 
         AudioPlaybackEngine.Initialize();
@@ -71,7 +72,8 @@ public partial class SoundboardViewModel : ObservableObject
             ? Path.GetRelativePath(fsStructure.RootPath, fsStructure.DirectoryPath)
             : tempCategories[^1].Category;
 
-        tempCategories.Add(new CategoryFilter(category, fsStructure.Files.Count));
+
+        var filesAdded = 0;
 
         foreach (var file in fsStructure.Files)
         {
@@ -85,7 +87,12 @@ public partial class SoundboardViewModel : ObservableObject
                 mimeType = validExtensions.Contains(file.Extension) ? "audio" : ".";
             }
 
-            if (!mimeType.StartsWith("audio", StringComparison.OrdinalIgnoreCase)) continue;
+            if (!mimeType.StartsWith("audio", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+            filesAdded++;
+
             var sound = new Sound(Path.GetFileNameWithoutExtension(file.Name), file.FullName, category)
             {
                 FullCategory = Path.GetRelativePath(fsStructure.RootPath, fsStructure.DirectoryPath)
@@ -93,6 +100,9 @@ public partial class SoundboardViewModel : ObservableObject
             sound.Group = Sound.GetGroupIndex(sound);
             tempSounds.Add(sound);
         }
+
+        tempCategories.Add(new CategoryFilter(category, filesAdded));
+
 
         foreach (var directory in fsStructure.Directories)
         {
