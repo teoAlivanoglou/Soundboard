@@ -58,7 +58,7 @@ namespace Soundboard.AudioEngine
                     _soundsAndSampleProviders[sound].Add(provider);
                 }
 
-                fadeDuration = Math.Min(fadeDuration, (int)sound.duration.TotalMilliseconds / 2);
+                fadeDuration = Math.Min(fadeDuration, (int)sound.Duration.TotalMilliseconds / 2);
                 provider.SetFadeIn(fadeDuration);
                 provider.FadeEnding(TimeSpan.FromMilliseconds(fadeDuration), sound.Duration);
 
@@ -77,7 +77,7 @@ namespace Soundboard.AudioEngine
                     _soundsAndSampleProviders[sound].Add(provider);
                 }
 
-                fadeDuration = Math.Min(fadeDuration, (int)sound.duration.TotalMilliseconds / 2);
+                fadeDuration = Math.Min(fadeDuration, (int)sound.Duration.TotalMilliseconds / 2);
                 provider.SetFadeIn(fadeDuration);
                 provider.FadeEnding(TimeSpan.FromMilliseconds(fadeDuration), sound.Duration);
 
@@ -154,17 +154,17 @@ namespace Soundboard.AudioEngine
                 {
                     foreach (var (sound, beginTime) in _soundsLastPlayed)
                     {
-                        if (!sound.isPlaying) continue;
+                        if (!sound.IsPlaying) continue;
 
                         var elapsed = (DateTime.UtcNow - beginTime);
-                        if (elapsed <= sound.duration)
+                        if (elapsed <= sound.Duration)
                         {
-                            sound.Progress = elapsed.TotalMilliseconds / sound.duration.TotalMilliseconds;
+                            sound.Progress = elapsed.TotalMilliseconds / sound.Duration.TotalMilliseconds;
                         }
                         else
                         {
                             sound.Progress = 0;
-                            sound.isPlaying = false;
+                            sound.IsPlaying = false;
                         }
                     }
                 }

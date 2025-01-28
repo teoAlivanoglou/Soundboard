@@ -16,13 +16,13 @@ namespace Soundboard.Models
 {
     public partial class Sound : ObservableObject
     {
-        [ObservableProperty] public string? name;
-        [ObservableProperty] public string? category;
-        [ObservableProperty] public string? fullCategory;
-        [ObservableProperty] public double progress = 0; //Random.Shared.NextDouble();
-        [ObservableProperty] public TimeSpan duration; //Random.Shared.NextDouble();
-        [ObservableProperty] public bool isPlaying = false;
-        [ObservableProperty] public bool isVisible = true;
+        [ObservableProperty] private string? name;
+        [ObservableProperty] private string? category;
+        [ObservableProperty] private string? fullCategory;
+        [ObservableProperty] private double progress = 0; //Random.Shared.NextDouble();
+        [ObservableProperty] private TimeSpan duration; //Random.Shared.NextDouble();
+        [ObservableProperty] private bool isPlaying = false;
+        [ObservableProperty] private bool isVisible = true;
 
         public int Group { get; set; }
         public bool topLevel { get; set; } = false;

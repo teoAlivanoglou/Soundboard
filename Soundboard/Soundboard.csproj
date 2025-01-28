@@ -17,6 +17,25 @@
 
   <ItemGroup>
     <None Remove="Backup.zip" />
+    <None Remove="UI\button_mask.png" />
+    <None Remove="UI\MaskColorEffect.fx.ps" />
+    <None Remove="UI\ThresholdEffect.fx.ps" />
+    <None Remove="UI\ThresholdEffect2.fx.ps" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="UI\button_mask.png" />
+    <Resource Include="UI\MaskColorEffect.fx.ps">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MaskColorEffect.fx</DependentUpon>
+    </Resource>
+    <Resource Include="UI\ThresholdEffect.fx.ps">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ThresholdEffect.fx</DependentUpon>
+    </Resource>
+    <Resource Include="UI\ThresholdEffect2.fx.ps" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,5 +59,18 @@
       <LastGenOutput>Assets.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="UI\MaskColorEffect.fx">
+      <Generator>FXCompile</Generator>
+      <CustomToolNamespace></CustomToolNamespace>
+      <LastGenOutput>MaskColorEffect.fx.ps</LastGenOutput>
+    </None>
+    <None Update="UI\ThresholdEffect.fx">
+      <Generator>FXCompile</Generator>
+      <LastGenOutput>ThresholdEffect.fx.ps</LastGenOutput>
+    </None>
+  </ItemGroup>
+
 
 </Project>

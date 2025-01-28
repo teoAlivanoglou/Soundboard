@@ -10,11 +10,14 @@ namespace Soundboard
     public static class CategoryColors
     {
         public static Dictionary<(string, int), int> CategoriesColors { get; }
-        public static List<Color> Palette { get; }
+
+        // public static Dictionary<(string, int), int> CategoriesColorsSecondary { get; }
+        public static List<Color> PalettePrimary { get; }
+        public static List<Color> PaletteSecondary { get; }
 
         static CategoryColors()
         {
-            Palette =
+            PalettePrimary =
             [
                 // ColorFromHex("#FFFFFF"),
                 // ColorFromHex("#fffe51"),
@@ -58,26 +61,71 @@ namespace Soundboard
                 ColorFromHex("#CFD8DC")
             ];
 
+            PaletteSecondary =
+            [
+                ColorFromHex("#e2e1e9"),
+                ColorFromHex("#fcf5e3"),
+                ColorFromHex("#e2f1ed"),
+                // ColorFromHex("#ff0000"),
+                // ColorFromHex("#00ff00"),
+                // ColorFromHex("#0000ff"),
+
+                ColorFromHex("#e0edf7"),
+                ColorFromHex("#ece4f7"),
+                ColorFromHex("#f8e0ed"),
+                ColorFromHex("#faebdf"),
+                ColorFromHex("#ffe6ec"),
+                ColorFromHex("#e6dff3"),
+                ColorFromHex("#daedfc"),
+                ColorFromHex("#d5f1fd"),
+                ColorFromHex("#d5f4f8"),
+                ColorFromHex("#d5eeec"),
+                ColorFromHex("#ecf5e1"),
+                ColorFromHex("#f7f9de"),
+                ColorFromHex("#fffbdf"),
+                ColorFromHex("#fff5d5"),
+                ColorFromHex("#ffeed5"),
+                ColorFromHex("#ffe4da"),
+                ColorFromHex("#eae4e1"),
+                ColorFromHex("#fbdae6"),
+                ColorFromHex("#efdcf2"),
+                ColorFromHex("#e6dff3"),
+                ColorFromHex("#e0e2f3"),
+                ColorFromHex("#d5f1fd"),
+                ColorFromHex("#d5f4f8"),
+                ColorFromHex("#e1f2e2"),
+                ColorFromHex("#ecf5e1"),
+                ColorFromHex("#fffbdf"),
+                ColorFromHex("#ffeed5"),
+                ColorFromHex("#ffe4da"),
+                ColorFromHex("#e5eaec"),
+            ];
+
+
             CategoriesColors = new Dictionary<(string, int), int>();
+            // CategoriesColorsSecondary = new Dictionary<(string, int), int>();
         }
 
-        public static Color GetColorForCategory(string category, int group = 0)
+        public static Color GetColorForCategory(string category, int group = 0, bool overlay = false)
         {
             try
             {
-
                 if (string.IsNullOrWhiteSpace(category) || category == ".")
                     category = " ";
 
-                if (CategoriesColors.TryGetValue((category, group), out var categoriesColor))
+                if (CategoriesColors.TryGetValue((category, group), out var categoriesColorIndex))
                 {
-                    return Palette[categoriesColor % (Palette.Count)];
+                    var idx = categoriesColorIndex % (PalettePrimary.Count);
+                    return overlay
+                        ? PaletteSecondary[idx]
+                        : PalettePrimary[idx];
                 }
 
-                var color = Palette[CategoriesColors.Count % (Palette.Count)];
                 CategoriesColors.Add((category, group), CategoriesColors.Count);
-                return color;
 
+                return overlay
+                    ? PaletteSecondary[CategoriesColors.Count % (PalettePrimary.Count)]
+                    : PalettePrimary[CategoriesColors.Count % (PalettePrimary.Count)];
             }
             catch
             {
@@ -87,8 +135,9 @@ namespace Soundboard
 
         public static Color ColorFromHex(string hexValue)
         {
-            return uint.TryParse(hexValue.TrimStart('#'), System.Globalization.NumberStyles.HexNumber, null, out var num) 
-                ? Color.FromRgb((byte)((num >> 16) & 0xFF), (byte)((num >> 8) & 0xFF), (byte)(num & 0xFF)) 
+            return uint.TryParse(hexValue.TrimStart('#'), System.Globalization.NumberStyles.HexNumber, null,
+                out var num)
+                ? Color.FromRgb((byte)((num >> 16) & 0xFF), (byte)((num >> 8) & 0xFF), (byte)(num & 0xFF))
                 : Colors.Magenta;
         }
     }

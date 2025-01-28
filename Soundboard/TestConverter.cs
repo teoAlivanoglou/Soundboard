@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -35,17 +36,29 @@ namespace Soundboard
 
     class CategoryColorConverter : IValueConverter
     {
-        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? Convert(object value, Type targetType, object? parameter, CultureInfo culture)
         {
-            switch (value)
+
+            if (targetType == typeof(Brush) || targetType.IsSubclassOf(typeof(Brush)))
             {
-                case string s:
-                    return new SolidColorBrush(CategoryColors.GetColorForCategory(s));
-                case Sound sound:
-                    return new SolidColorBrush(CategoryColors.GetColorForCategory(sound.Category, sound.Group));
-                default:
-                    throw new NotImplementedException();
+                return value switch
+                {
+                    string s => new SolidColorBrush(CategoryColors.GetColorForCategory(s, overlay: parameter is not null)),
+                    Sound sound => new SolidColorBrush(CategoryColors.GetColorForCategory(sound.Category, sound.Group, overlay: parameter is not null)),
+                    _ => throw new NotImplementedException()
+                };
             }
+            else if (targetType == typeof(Color))
+            {
+                return value switch
+                {
+                    string s => CategoryColors.GetColorForCategory(s, overlay: parameter is not null),
+                    Sound sound => CategoryColors.GetColorForCategory(sound.Category, sound.Group, overlay: parameter is not null),
+                    _ => throw new NotImplementedException()
+                };
+            }
+
+            throw new NotImplementedException();
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -58,7 +71,7 @@ namespace Soundboard
     {
         private Thickness _enabledThickness = new Thickness(2, 2, 2, 0);
         private Thickness _disabledThickness = new Thickness(0);
-        private SolidColorBrush? _enabledBrush;// = new SolidColorBrush(Colors.Green);
+        private SolidColorBrush? _enabledBrush; // = new SolidColorBrush(Colors.Green);
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
@@ -258,6 +271,24 @@ namespace Soundboard
             var t = (double)value;
 
             return (int)(A + B * Math.Exp(C * t));
+        }
+    }
+
+    public class BoldForEnabledConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool b)
+            {
+                return b ? FontWeights.DemiBold : FontWeights.Normal;
+            }
+
+            throw new NotImplementedException();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }
