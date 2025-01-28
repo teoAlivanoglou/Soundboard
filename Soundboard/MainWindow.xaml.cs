@@ -45,7 +45,8 @@ namespace Soundboard
 
             var settings = ApplicationSettingsManager.Settings;
 
-            File.WriteAllBytes("WHAAAAAT.bin", GenerateCode(@"H:\Projects\C#\Soundboard\Soundboard\UI\MaskColorEffect.fx", ""));
+            File.WriteAllBytes("WHAAAAAT.bin",
+                GenerateCode(@"H:\Projects\C#\Soundboard\Soundboard\UI\MaskColorEffect.fx", ""));
         }
 
         private void WindowResized(object? sender, SizeChangedEventArgs? e)
@@ -80,6 +81,7 @@ namespace Soundboard
                 (int)(maxWidth / (i - 1))
                 - 2 * ApplicationSettingsManager.Settings.ApplicationUiSettings.ButtonGap
                 - 1;
+
         }
 
         private void ButtonSizeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -246,11 +248,9 @@ namespace Soundboard
             // var bbbb = File.ReadAllBytes(@"\\.\CON");
 
 
-
             var b = File.ReadAllBytes("temp.bin");
             File.Delete("temp.bin");
             return b;
-
         }
     }
 }

@@ -8,7 +8,9 @@
         xmlns:settings="clr-namespace:Soundboard.Settings"
         xmlns:ui="clr-namespace:Soundboard.UI"
         mc:Ignorable="d"
-        Title="Soundboard - ΜΑΧΗ FM 99.8 - 1.0 alpha" Height="450" Width="402"
+        Title="Soundboard - ΜΑΧΗ FM 99.8 - 1.0" 
+        Width="{Binding Settings.ApplicationUiSettings.WindowWidth, Mode=OneTime}" 
+        Height="{Binding Settings.ApplicationUiSettings.WindowHeight, Mode=OneTime}"
         d:DataContext="{d:DesignInstance Type=VM:SoundboardViewModel, IsDesignTimeCreatable=True}"
         SizeChanged="WindowResized"
         Closing="WindowClosing">
@@ -19,10 +21,6 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-
-        <!-- <Image Source="pack://application:,,,/UI/MaskColorEffect.fx.ps"></Image> -->
-
-        <!-- Top Tabs Panel -->
 
         <ListView x:Name="TopTabsPanel" Grid.Row="0"
                   ItemsSource="{Binding Categories}" Margin="5 0 5 -4" BorderThickness="0"
@@ -108,8 +106,6 @@
                         <!--     </DrawingBrush> -->
                         <!-- </Border.Background> -->
 
-                        <!-- Style="{DynamicResource SoundButtonsHoverStyle}"> -->
-                        <!-- Background="{Binding ., Converter={StaticResource CategoryColorConverter}}" -->
 
                         <Grid>
 
