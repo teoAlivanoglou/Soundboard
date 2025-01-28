@@ -6,23 +6,12 @@
         xmlns:local="clr-namespace:Soundboard"
         xmlns:VM="clr-namespace:Soundboard.ViewModels"
         xmlns:settings="clr-namespace:Soundboard.Settings"
+        xmlns:ui="clr-namespace:Soundboard.UI"
         mc:Ignorable="d"
         Title="Soundboard - ΜΑΧΗ FM 99.8 - 1.0 alpha" Height="450" Width="402"
         d:DataContext="{d:DesignInstance Type=VM:SoundboardViewModel, IsDesignTimeCreatable=True}"
         SizeChanged="WindowResized"
         Closing="WindowClosing">
-    <Window.Resources>
-        <local:TestConverter x:Key="TestConverter" />
-        <local:MultiTestConverter x:Key="MultiTestConverter" />
-        <local:MultByTenConverter x:Key="MultByTenConverter" />
-        <local:CategoryColorConverter x:Key="CategoryColorConverter" />
-        <local:TextBlockTextWidthConverter x:Key="TextBlockTextWidthConverter" />
-        <local:LerpConverter x:Key="LerpConverter" />
-        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <local:EnabledBrushConverter x:Key="EnabledBrushConverter" />
-        <local:NoCategoryConverter x:Key="NoCategoryConverter" />
-        <local:LogScaleConverter x:Key="LogScaleConverter" />
-    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -31,47 +20,42 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
+        <!-- <Image Source="pack://application:,,,/UI/MaskColorEffect.fx.ps"></Image> -->
 
-        <ListView ItemsSource="{Binding Categories}" Margin="5 0 5 -3" BorderThickness="0"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <!-- Top Tabs Panel -->
+
+        <ListView x:Name="TopTabsPanel" Grid.Row="0"
+                  ItemsSource="{Binding Categories}" Margin="5 0 5 -4" BorderThickness="0"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  ItemContainerStyle="{StaticResource NoHoverListViewItem}">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel IsItemsHost="True" Orientation="Horizontal"
                                MaxWidth="{Binding Path=ActualWidth,RelativeSource={RelativeSource AncestorType=ListView}}" />
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                    <Setter Property="Focusable" Value="False" />
-                </Style>
-            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Border Padding="9 4" Margin="-4 0  -4 -7"
-                            VerticalAlignment="Bottom"
-                            Background="{Binding Path= Category, Converter={StaticResource CategoryColorConverter}}"
-                            BorderThickness="3 3 3 3"
+                    <Border Background="{Binding Path= Category, Converter={StaticResource CategoryColorConverter}}"
+                            Style="{StaticResource TopTabsButtonStyle}"
+                            IsManipulationEnabled="{Binding Enabled}"
+                            Margin="1"
                             MouseDown="TabButtonClick">
-                        <Border.BorderBrush>
-                            <MultiBinding Converter="{StaticResource EnabledBrushConverter}"
-                                          ConverterParameter="{StaticResource EnabledBrushColor}">
-                                <Binding Path="Enabled" />
-                                <Binding Path="." RelativeSource="{RelativeSource Self}" />
-                            </MultiBinding>
-                        </Border.BorderBrush>
                         <TextBlock
-                            Text="{Binding Category, Converter={StaticResource NoCategoryConverter}}"
-                            FontSize="14" />
+                            Text="{Binding Category, Converter={StaticResource NoCategoryConverter}}" />
                     </Border>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
 
 
-        <ListView x:Name="SoundboardButtons" Grid.Row="1"
+        <!-- Soundboard Buttons Panel -->
+
+        <ListView x:Name="SoundboardButtonsPanel" Grid.Row="1"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                  ItemsSource="{Binding SoundItems}">
+                  ItemContainerStyle="{StaticResource NoHoverListViewItem}"
+                  ItemsSource="{Binding SoundItems}"
+                  Margin="0 2 0 0 ">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel VerticalAlignment="Top"
@@ -81,25 +65,57 @@
                                IsItemsHost="True" />
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                    <Setter Property="Focusable" Value="False" />
-                    <Setter Property="Margin" Value="-1" />
-                    <Setter Property="Padding" Value="0" />
-                </Style>
-            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Border Background="{Binding ., Converter={StaticResource CategoryColorConverter}}"
-                            Height="{Binding RelativeSource={RelativeSource Self}, Path=ActualWidth}"
-                            Width="{Binding DataContext.ApplicationUiSettings.ItemWidth, ElementName=SettingsGrid}"
-                            Margin="{Binding DataContext.ApplicationUiSettings.ButtonGap, Converter={StaticResource TestConverter}, ElementName=SettingsGrid}"
-                            MouseDown="SoundButtonClicked"
-                            Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <!-- Background="{Binding ., Converter={StaticResource CategoryColorConverter}}" -->
+
+                    <Border
+                        CornerRadius="8"
+                        Height="{Binding RelativeSource={RelativeSource Self}, Path=ActualWidth}"
+                        Width="{Binding DataContext.ApplicationUiSettings.ItemWidth, ElementName=SettingsGrid}"
+                        Margin="{Binding DataContext.ApplicationUiSettings.ButtonGap, Converter={StaticResource TestConverter}, ElementName=SettingsGrid}"
+                        MouseDown="SoundButtonClicked"
+                        Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                        Style="{StaticResource SoundButtonsHoverStyle}">
+                        <!-- <Border.Background> -->
+                        <!--     <DrawingBrush> -->
+                        <!--         <DrawingBrush.Drawing> -->
+                        <!--             <DrawingGroup> -->
+                        <!--                 <GeometryDrawing> -->
+                        <!--                     <GeometryDrawing.Geometry> -->
+                        <!--                         <RectangleGeometry Rect="0 0 1 1"/> -->
+                        <!--                     </GeometryDrawing.Geometry> -->
+                        <!--                     <GeometryDrawing.Brush> -->
+                        <!--                         <SolidColorBrush Color="{Binding ., Converter={StaticResource CategoryColorConverter}}"/> -->
+                        <!--                     </GeometryDrawing.Brush> -->
+                        <!--                 </GeometryDrawing> -->
+                        <!-- -->
+                        <!--                 <GeometryDrawing> -->
+                        <!--                     <GeometryDrawing.Geometry> -->
+                        <!--                         <RectangleGeometry Rect="0 0 1 1"/> -->
+                        <!--                     </GeometryDrawing.Geometry> -->
+                        <!--                     <GeometryDrawing.Brush> -->
+                        <!--                         <RadialGradientBrush ColorInterpolationMode="ScRgbLinearInterpolation" Center="0.5,0.5" GradientOrigin="0.5,0.5" MappingMode="RelativeToBoundingBox" RadiusX="1" RadiusY="1" SpreadMethod="Pad"> -->
+                        <!--                             <GradientStop Color="#ff000000" Offset="1"/> -->
+                        <!--                             <GradientStop Color="{Binding ., Converter={StaticResource CategoryColorConverter}}" Offset="0.52"/> -->
+                        <!--                             ~1~ <GradientStop Color="{Binding ., Converter={StaticResource CategoryColorConverter}, ConverterParameter='a'}" Offset="0.323"/> @1@ -->
+                        <!--                             ~1~ <GradientStop Color="White" Offset="0.16"/> @1@ -->
+                        <!--                         </RadialGradientBrush> -->
+                        <!--                     </GeometryDrawing.Brush> -->
+                        <!--                 </GeometryDrawing> -->
+                        <!--             </DrawingGroup> -->
+                        <!--         </DrawingBrush.Drawing> -->
+                        <!--     </DrawingBrush> -->
+                        <!-- </Border.Background> -->
+
+                        <!-- Style="{DynamicResource SoundButtonsHoverStyle}"> -->
+                        <!-- Background="{Binding ., Converter={StaticResource CategoryColorConverter}}" -->
 
                         <Grid>
-                            <Border Background="{StaticResource ProgressButtonFillColor}" HorizontalAlignment="Left">
+
+
+                            <Border Background="{StaticResource ProgressButtonFillColor}"
+                                    HorizontalAlignment="Left" CornerRadius="8">
                                 <Border.Width>
                                     <MultiBinding Converter="{StaticResource LerpConverter}" Mode="OneWay"
                                                   UpdateSourceTrigger="PropertyChanged">
@@ -109,6 +125,7 @@
                                     </MultiBinding>
 
                                 </Border.Width>
+
                             </Border>
 
                             <TextBlock Text="{Binding Name}"
@@ -127,14 +144,14 @@
                             </TextBlock>
                         </Grid>
                     </Border>
-
-
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
 
+        <!-- Settings Panel (almost always hidden) -->
 
-        <Border Grid.Column="0" Grid.Row="2"
+        <Border x:Name="SettingsPanel"
+                Grid.Row="2"
                 Visibility="{Binding  SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid x:Name="SettingsGrid" DataContext="{x:Static settings:ApplicationSettingsManager.Settings}"
                   Margin="4">
@@ -201,7 +218,11 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="3" Grid.ColumnSpan="4">
+
+        <!-- Footer Buttons Panel -->
+
+        <Grid x:Name="FooterButtonsPanel"
+              Grid.Row="3">
             <Grid.Resources>
                 <Style TargetType="Border" BasedOn="{StaticResource FlatButtonStyle}" />
             </Grid.Resources>
@@ -235,6 +256,7 @@
             <Border Grid.Column="6" MouseDown="SettingsClicked">
                 <TextBlock Text="" FontFamily="Segoe MDL2 Assets" />
             </Border>
+
         </Grid>
     </Grid>
 </Window>

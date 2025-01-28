@@ -9,6 +9,7 @@ using System.Windows.Media;
 using Soundboard.Models;
 using Soundboard.Settings;
 using static Soundboard.ViewModels.SoundboardViewModel;
+using System.IO;
 
 
 // TODO: Massive refactoring needed, split shit up boy!
@@ -40,18 +41,20 @@ namespace Soundboard
             if (folder is not null)
                 viewModel.ReadSounds(folder);
 
-            soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtons);
+            soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtonsPanel);
 
             var settings = ApplicationSettingsManager.Settings;
+
+            File.WriteAllBytes("WHAAAAAT.bin", GenerateCode(@"H:\Projects\C#\Soundboard\Soundboard\UI\MaskColorEffect.fx", ""));
         }
 
         private void WindowResized(object? sender, SizeChangedEventArgs? e)
         {
-            var maxWidth = SoundboardButtons.ActualWidth;
+            var maxWidth = SoundboardButtonsPanel.ActualWidth;
 
             if (soundboardButtonsScrollViewer is null)
             {
-                soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtons);
+                soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtonsPanel);
 
                 if (soundboardButtonsScrollViewer is not null)
 
@@ -124,7 +127,7 @@ namespace Soundboard
 
             Debug.Assert(filter != null, nameof(filter) + " != null");
 
-            if (string.IsNullOrWhiteSpace(filter.category) || filter.Category == "All")
+            if (string.IsNullOrWhiteSpace(filter.Category) || filter.Category == "All")
             {
                 filter.Enabled = !filter.Enabled;
                 foreach (var categoryFilter in viewModel.Categories)
@@ -215,5 +218,39 @@ namespace Soundboard
             ApplicationSettingsManager.SaveSettings();
         }
 
+
+        protected byte[] GenerateCode(string inputFileName, string inputFileContent)
+        {
+            string fxcPath = @"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe";
+
+            Process cmdProcess = new Process();
+
+            ProcessStartInfo cmdStartInfo = new ProcessStartInfo
+            {
+                FileName = fxcPath,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                RedirectStandardInput = false,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                // Arguments = $"/T ps_2_0 /Fo CON \"{inputFileName}\""
+                Arguments = $"/T ps_2_0 /Fo temp.bin \"{inputFileName}\""
+            };
+
+
+            cmdProcess.StartInfo = cmdStartInfo;
+            cmdProcess.Start();
+
+            cmdProcess.WaitForExit();
+
+            // var bbbb = File.ReadAllBytes(@"\\.\CON");
+
+
+
+            var b = File.ReadAllBytes("temp.bin");
+            File.Delete("temp.bin");
+            return b;
+
+        }
     }
 }

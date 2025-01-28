@@ -26,10 +26,15 @@ public partial class SoundboardViewModel : ObservableObject
     {
         SoundItems =
         [
-            new Sound("Please Select a Folder", Assets.ResourceManager.GetStream("Warning")),
+            new Sound("Please Select a Folder", Assets.ResourceManager.GetStream("Warning"), category: "Debug1"),
+            new Sound("Debug Sound", Assets.ResourceManager.GetStream("Warning"), category: "Debug2")
         ];
 
-        Categories = [new CategoryFilter("All")];
+
+        Categories = new ObservableCollection<CategoryFilter>(SoundItems.Select(s => new CategoryFilter(s.Category))
+            .DistinctBy(c => c.Category).Prepend(new CategoryFilter("All"))); // [new CategoryFilter("All")];
+        Categories[1].Enabled = false;
+
 
         var args = Environment.GetCommandLineArgs();
         var options = Options.Parse(args);
@@ -47,21 +52,21 @@ public partial class SoundboardViewModel : ObservableObject
         AudioPlaybackEngine.Initialize();
     }
 
-    public bool DirectoryContainsFiles(string path)
-    {
-        var items = Directory.EnumerateFiles(path);
-        using var en = items.GetEnumerator();
-        return !en.MoveNext();
-    }
+    // public bool DirectoryContainsFiles(string path)
+    // {
+    //     var items = Directory.EnumerateFiles(path);
+    //     using var en = items.GetEnumerator();
+    //     return !en.MoveNext();
+    // }
 
-    private int group = 0;
-    private static string[] validExtensions = new[] { ".mp3", ".wav", ".ogg" };
+    // private int group = 0;
+    private static readonly string[] validExtensions = [".mp3", ".wav", ".ogg"];
 
-    private void ReadSoundsRecursive(FileTreeStructure fsStructure, ref List<Sound> tempSounds,
+    private static void ReadSoundsRecursive(FileTreeStructure fsStructure, ref List<Sound> tempSounds,
         ref List<CategoryFilter> tempCategories, int maxDepth)
     {
-        var category = fsStructure.Depth <= maxDepth 
-            ? Path.GetRelativePath(fsStructure.RootPath, fsStructure.DirectoryPath) 
+        var category = fsStructure.Depth <= maxDepth
+            ? Path.GetRelativePath(fsStructure.RootPath, fsStructure.DirectoryPath)
             : tempCategories[^1].Category;
 
         tempCategories.Add(new CategoryFilter(category, fsStructure.Files.Count));
@@ -73,7 +78,7 @@ public partial class SoundboardViewModel : ObservableObject
             {
                 mimeType = FileUtils.GetMimeFromFile(file.FullName);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 mimeType = validExtensions.Contains(file.Extension) ? "audio" : ".";
             }
@@ -102,10 +107,7 @@ public partial class SoundboardViewModel : ObservableObject
         Sound.ResetGroups();
 
         var tempCategories = new List<CategoryFilter>(10) { new("All", 1) };
-        if (tempCategories == null) throw new ArgumentNullException(nameof(tempCategories));
-
         var tempSounds = new List<Sound>(16) { };
-        if (tempSounds == null) throw new ArgumentNullException(nameof(tempSounds));
 
         var fsStructure = new FileTreeStructure(filesystemUrl);
         ReadSoundsRecursive(fsStructure, ref tempSounds, ref tempCategories,
@@ -144,11 +146,10 @@ public partial class SoundboardViewModel : ObservableObject
 
     public void PlaySound(Sound? sound)
     {
-        var p = CategoryColors.Palette;
-        var c = CategoryColors.CategoriesColors;
+        // var p = CategoryColors.PalettePrimary;
+        // var c = CategoryColors.CategoriesColors;
+        ArgumentNullException.ThrowIfNull(sound);
 
-        if (sound is null)
-            throw new ArgumentNullException(nameof(sound));
         AudioPlaybackEngine.Instance.PlaySound(sound,
             ApplicationSettingsManager.Settings.AudioPlayerSettings.FadeInTime);
     }
@@ -156,8 +157,7 @@ public partial class SoundboardViewModel : ObservableObject
 
     public void StopSound(Sound? sound)
     {
-        if (sound is null)
-            throw new ArgumentNullException(nameof(sound));
+        ArgumentNullException.ThrowIfNull(sound);
         AudioPlaybackEngine.Instance.StopSound(sound);
     }
 

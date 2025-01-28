@@ -2,9 +2,9 @@
 
 namespace Soundboard.Models;
 
-public partial class CategoryFilter(string category, int childrenCount = 0) : ObservableObject
+public partial class CategoryFilter(string? category, int childrenCount = 0) : ObservableObject
 {
-    [ObservableProperty] public string category = category;
-    [ObservableProperty] public bool enabled = true;
-    [ObservableProperty] public int childrenCount = childrenCount;
+    [ObservableProperty] private string? category = category;
+    [ObservableProperty] private bool enabled = true;
+    [ObservableProperty] private int childrenCount = childrenCount;
 }
