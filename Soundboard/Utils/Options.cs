@@ -6,7 +6,7 @@ namespace Soundboard.Utils;
 public class Options
 {
     [Option('d', "debug", Required = false, HelpText = "Set debug mode.")]
-    public bool Debug { get; set; }
+    public bool Debug { get; set; } = false;
 
     [Option('o', "output", Required = false, HelpText = "Sets output device type.")]
     public DriverType? OutputType { get; set; }

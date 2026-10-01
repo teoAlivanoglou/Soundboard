@@ -254,7 +254,7 @@
                 <TextBlock Text="" FontFamily="Segoe MDL2 Assets" />
             </Border>
 
-            <Border Grid.Column="6" MouseDown="SettingsClicked">
+            <Border Grid.Column="6" MouseDown="SettingsClicked" Visibility="{Binding SettingsButtonVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock Text="" FontFamily="Segoe MDL2 Assets" />
             </Border>
 
