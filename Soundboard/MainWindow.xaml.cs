@@ -51,53 +51,11 @@ namespace Soundboard
 
         private void WindowResized(object? sender, SizeChangedEventArgs? e)
         {
-            var maxWidth = SoundboardButtonsPanel.ActualWidth;
-
-            if (soundboardButtonsScrollViewer is null)
-            {
-                soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtonsPanel);
-
-                if (soundboardButtonsScrollViewer is not null)
-
-                    maxWidth -= soundboardButtonsScrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible
-                        ? SystemParameters.VerticalScrollBarWidth
-                        : 0;
-            }
-            else
-            {
-                maxWidth -= soundboardButtonsScrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible
-                    ? SystemParameters.VerticalScrollBarWidth
-                    : 0;
-            }
-
-            var i = 1;
-
-            while (i * _settings.ApplicationUiSettings.MinButtonSize < maxWidth)
-            {
-                i++;
-            }
-
-            _settings.ApplicationUiSettings.ItemWidth =
-                (int)(maxWidth / (i - 1))
-                - 2 * _settings.ApplicationUiSettings.ButtonGap
-                - 1;
-
             if (e is not null)
             {
-                _settings.ApplicationUiSettings.WindowWidth = (int)e.NewSize.Width;
-                _settings.ApplicationUiSettings.WindowHeight = (int)e.NewSize.Height;
+               _settings.ApplicationUiSettings.WindowWidth = (int)e.NewSize.Width;
+               _settings.ApplicationUiSettings.WindowHeight = (int)e.NewSize.Height;
             }
-
-        }
-
-        private void ButtonSizeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            WindowResized(null, null);
-        }
-
-        private void ButtonGapChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            WindowResized(null, null);
         }
 
         private void SoundButtonClicked(object sender, MouseButtonEventArgs e)

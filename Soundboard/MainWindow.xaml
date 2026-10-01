@@ -51,18 +51,24 @@
 
         <ListView x:Name="SoundboardButtonsPanel" Grid.Row="1"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                  ItemContainerStyle="{StaticResource NoHoverListViewItem}"
                   ItemsSource="{Binding SoundItems}"
                   Margin="0 2 0 0 ">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource NoHoverListViewItem}">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                    <Setter Property="Visibility" Value="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                </Style>
+            </ListView.ItemContainerStyle>
+
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <WrapPanel VerticalAlignment="Top"
-
-                               HorizontalAlignment="Left" FlowDirection="LeftToRight" Orientation="Horizontal"
-                               Width="{Binding ActualWidth, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                               IsItemsHost="True" />
+                    <ui:AdaptiveWrapPanel 
+                        MinItemWidth="{Binding Settings.ApplicationUiSettings.MinButtonSize}"
+                        ItemGap="{Binding Settings.ApplicationUiSettings.ButtonGap}" />
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
+
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <!-- Background="{Binding ., Converter={StaticResource CategoryColorConverter}}" -->
@@ -70,8 +76,6 @@
                     <Border
                         CornerRadius="8"
                         Height="{Binding RelativeSource={RelativeSource Self}, Path=ActualWidth}"
-                        Width="{Binding DataContext.ApplicationUiSettings.ItemWidth, ElementName=SettingsGrid}"
-                        Margin="{Binding DataContext.ApplicationUiSettings.ButtonGap, Converter={StaticResource TestConverter}, ElementName=SettingsGrid}"
                         MouseDown="SoundButtonClicked"
                         Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
                         Style="{StaticResource SoundButtonsHoverStyle}">
@@ -125,19 +129,13 @@
                             </Border>
 
                             <TextBlock Text="{Binding Name}"
-                                       HorizontalAlignment="Center"
-                                       TextTrimming="CharacterEllipsis" TextWrapping="Wrap" TextAlignment="Center"
-                                       FontSize="14"
-                                       Margin="4">
-                                <TextBlock.MaxWidth>
-                                    <MultiBinding Converter="{StaticResource TextBlockTextWidthConverter}">
-                                        <Binding Path="DataContext.ApplicationUiSettings.MinButtonSize"
-                                                 ElementName="SettingsGrid" />
-                                        <Binding Path="DataContext.ApplicationUiSettings.ButtonGap"
-                                                 ElementName="SettingsGrid" />
-                                    </MultiBinding>
-                                </TextBlock.MaxWidth>
-                            </TextBlock>
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" 
+                               TextWrapping="Wrap" 
+                               TextAlignment="Center"
+                               FontSize="14"
+                               Margin="4" />
                         </Grid>
                     </Border>
                 </DataTemplate>
@@ -169,12 +167,12 @@
 
                 <TextBlock Grid.Column="0" Grid.Row="0" Text="Min Button Size: " />
                 <Slider Grid.Column="1" Grid.Row="0" Value="{Binding ApplicationUiSettings.MinButtonSize}"
-                        Minimum="50" Maximum="200" ValueChanged="ButtonSizeChanged" />
+                        Minimum="50" Maximum="200"/>
                 <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding ApplicationUiSettings.MinButtonSize}" />
 
                 <TextBlock Grid.Column="0" Grid.Row="1" Text="Button gap: " />
                 <Slider Grid.Column="1" Grid.Row="1" Value="{Binding ApplicationUiSettings.ButtonGap}"
-                        Minimum="0" Maximum="20" ValueChanged="ButtonGapChanged" />
+                        Minimum="0" Maximum="20"/>
                 <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding ApplicationUiSettings.ButtonGap}" />
 
                 <TextBlock Grid.Column="0" Grid.Row="2" Text="Max Folder Level: " />
