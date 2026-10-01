@@ -8,7 +8,7 @@
         xmlns:settings="clr-namespace:Soundboard.Settings"
         xmlns:ui="clr-namespace:Soundboard.UI"
         mc:Ignorable="d"
-        Title="Soundboard - ΜΑΧΗ FM 99.8 - 1.0"
+        Title="Soundboard"
         Width="{Binding Settings.ApplicationUiSettings.WindowWidth, Mode=OneTime}"
         Height="{Binding Settings.ApplicationUiSettings.WindowHeight, Mode=OneTime}"
         d:DataContext="{d:DesignInstance Type=VM:SoundboardViewModel, IsDesignTimeCreatable=True}"
