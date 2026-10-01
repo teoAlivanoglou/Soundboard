@@ -1,76 +1,91 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows7.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Controls\**" />
-    <EmbeddedResource Remove="Controls\**" />
-    <None Remove="Controls\**" />
-    <Page Remove="Controls\**" />
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="Controls\**" />
+		<EmbeddedResource Remove="Controls\**" />
+		<None Remove="Controls\**" />
+		<Page Remove="Controls\**" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Remove="Backup.zip" />
-    <None Remove="UI\button_mask.png" />
-    <None Remove="UI\MaskColorEffect.fx.ps" />
-    <None Remove="UI\ThresholdEffect.fx.ps" />
-    <None Remove="UI\ThresholdEffect2.fx.ps" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="Backup.zip" />
+		<None Remove="Native\sndfile.dll" />
+		<None Remove="UI\button_mask.png" />
+		<None Remove="UI\MaskColorEffect.fx.ps" />
+		<None Remove="UI\ThresholdEffect.fx.ps" />
+		<None Remove="UI\ThresholdEffect2.fx.ps" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Resource Include="UI\button_mask.png" />
-    <Resource Include="UI\MaskColorEffect.fx.ps">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>MaskColorEffect.fx</DependentUpon>
-    </Resource>
-    <Resource Include="UI\ThresholdEffect.fx.ps">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ThresholdEffect.fx</DependentUpon>
-    </Resource>
-    <Resource Include="UI\ThresholdEffect2.fx.ps" />
-  </ItemGroup>
+	<ItemGroup>
+		<Resource Include="UI\button_mask.png" />
+		<Resource Include="UI\MaskColorEffect.fx.ps">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>MaskColorEffect.fx</DependentUpon>
+		</Resource>
+		<Resource Include="UI\ThresholdEffect.fx.ps">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>ThresholdEffect.fx</DependentUpon>
+		</Resource>
+		<Resource Include="UI\ThresholdEffect2.fx.ps" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="YamlDotNet" Version="16.3.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="CommandLineParser" Version="2.9.1" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+		<PackageReference Include="NAudio" Version="3.1.0" />
+		<PackageReference Include="NAudio.SoundFile" Version="3.1.0" />
+		<PackageReference Include="YamlDotNet" Version="18.1.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Resources\Assets.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Assets.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Update="Resources\Assets.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Assets.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\Assets.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Assets.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Update="Resources\Assets.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Assets.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Update="UI\MaskColorEffect.fx">
-      <Generator>FXCompile</Generator>
-      <CustomToolNamespace></CustomToolNamespace>
-      <LastGenOutput>MaskColorEffect.fx.ps</LastGenOutput>
-    </None>
-    <None Update="UI\ThresholdEffect.fx">
-      <Generator>FXCompile</Generator>
-      <LastGenOutput>ThresholdEffect.fx.ps</LastGenOutput>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		
+		<None Update="UI\MaskColorEffect.fx">
+			<Generator>FXCompile</Generator>
+			<CustomToolNamespace></CustomToolNamespace>
+			<LastGenOutput>MaskColorEffect.fx.ps</LastGenOutput>
+		</None>
+		<None Update="UI\ThresholdEffect.fx">
+			<Generator>FXCompile</Generator>
+			<LastGenOutput>ThresholdEffect.fx.ps</LastGenOutput>
+		</None>
+	</ItemGroup>
+
+	
+	<ItemGroup>
+		<Content Include="Native\sndfile.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>sndfile.dll</TargetPath>
+		</Content>
+	</ItemGroup>
+
+
 
 
 </Project>

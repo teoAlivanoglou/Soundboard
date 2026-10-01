@@ -28,18 +28,19 @@ namespace Soundboard
     /// </summary>
     public partial class MainWindow : Window
     {
-        SoundboardViewModel viewModel = new SoundboardViewModel();
+        private readonly SoundboardViewModel _viewModel;
         ScrollViewer? soundboardButtonsScrollViewer;
 
 
-        public MainWindow()
+        public MainWindow(SoundboardViewModel viewModel)
         {
             InitializeComponent();
-            DataContext = viewModel;
+            _viewModel = viewModel;
+            DataContext = _viewModel;
 
             var folder = OpenFolder();
             if (folder is not null)
-                viewModel.ReadSounds(folder);
+                _viewModel.ReadSounds(folder);
 
             soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtonsPanel);
 
@@ -107,17 +108,17 @@ namespace Soundboard
 
             if (e.ChangedButton == MouseButton.Left)
             {
-                viewModel.PlaySound(sound);
+                _viewModel.PlaySound(sound);
             }
             else if (e.ChangedButton == MouseButton.Right)
             {
-                viewModel.StopSound(sound);
+                _viewModel.StopSound(sound);
             }
         }
 
         private void StopAllClicked(object sender, MouseButtonEventArgs e)
         {
-            viewModel.StopAllSounds();
+            _viewModel.StopAllSounds();
         }
 
         private void SettingsClicked(object sender, MouseButtonEventArgs e)
@@ -125,7 +126,7 @@ namespace Soundboard
             // if (!e.RightButton.HasFlag(MouseButtonState.Pressed))
             //     return;
 
-            viewModel.ToggleSettings();
+            _viewModel.ToggleSettings();
         }
 
         private void TabButtonClick(object sender, MouseButtonEventArgs e)
@@ -138,7 +139,7 @@ namespace Soundboard
             if (string.IsNullOrWhiteSpace(filter.Category) || filter.Category == "All")
             {
                 filter.Enabled = !filter.Enabled;
-                foreach (var categoryFilter in viewModel.Categories)
+                foreach (var categoryFilter in _viewModel.Categories)
                 {
                     if (categoryFilter.Category != "All")
                         categoryFilter.Enabled = filter.Enabled;
@@ -148,17 +149,17 @@ namespace Soundboard
             {
                 filter.Enabled = !filter.Enabled;
                 var allEnabled = true;
-                for (var i = 1; i < viewModel.Categories.Count; i++)
+                for (var i = 1; i < _viewModel.Categories.Count; i++)
                 {
-                    allEnabled &= viewModel.Categories[i].Enabled;
+                    allEnabled &= _viewModel.Categories[i].Enabled;
                 }
 
-                viewModel.Categories[0].Enabled = allEnabled;
+                _viewModel.Categories[0].Enabled = allEnabled;
             }
 
-            foreach (var sound in viewModel.SoundItems)
+            foreach (var sound in _viewModel.SoundItems)
             {
-                var enabled = viewModel.Categories.FirstOrDefault(c => c.Category == sound.Category)?.Enabled ?? true;
+                var enabled = _viewModel.Categories.FirstOrDefault(c => c.Category == sound.Category)?.Enabled ?? true;
                 sound.IsVisible = enabled;
             }
         }
@@ -188,12 +189,12 @@ namespace Soundboard
         {
             var folder = OpenFolder();
             if (folder is not null)
-                viewModel.ReadSounds(folder);
+                _viewModel.ReadSounds(folder);
         }
 
         private void RefreshClicked(object sender, MouseButtonEventArgs e)
         {
-            viewModel.RefreshSounds();
+            _viewModel.RefreshSounds();
         }
 
 
@@ -218,7 +219,7 @@ namespace Soundboard
 
         private void ResetAudioDriverButtonClicked(object sender, RoutedEventArgs e)
         {
-            viewModel.ResetAudioDriver();
+            _viewModel.ResetAudioDriver();
         }
 
         private void WindowClosing(object? sender, CancelEventArgs e)

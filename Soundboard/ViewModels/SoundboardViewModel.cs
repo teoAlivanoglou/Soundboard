@@ -12,6 +12,9 @@ namespace Soundboard.ViewModels;
 
 public partial class SoundboardViewModel : ObservableObject
 {
+
+    private readonly AudioPlaybackEngine _audioEngine;
+
     public ObservableCollection<Sound> SoundItems { get; set; }
     public ObservableCollection<CategoryFilter> Categories { get; set; }
 
@@ -24,8 +27,11 @@ public partial class SoundboardViewModel : ObservableObject
 
     [ObservableProperty] private ApplicationSettingsManager settings = ApplicationSettingsManager.Settings;
 
-    public SoundboardViewModel()
+
+    public SoundboardViewModel(AudioPlaybackEngine audioEngine)
     {
+        _audioEngine = audioEngine;
+    
         SoundItems =
         [
             new Sound("Please Select a Folder", Assets.ResourceManager.GetStream("Warning"), category: "Debug1"),
@@ -52,7 +58,6 @@ public partial class SoundboardViewModel : ObservableObject
             ApplicationSettingsManager.Settings.ShowApplicationPlayerSettings = true;
         }
 
-        AudioPlaybackEngine.Initialize();
     }
 
     // public bool DirectoryContainsFiles(string path)
@@ -162,7 +167,7 @@ public partial class SoundboardViewModel : ObservableObject
         // var c = CategoryColors.CategoriesColors;
         ArgumentNullException.ThrowIfNull(sound);
 
-        AudioPlaybackEngine.Instance.PlaySound(sound,
+        _audioEngine.PlaySound(sound,
             ApplicationSettingsManager.Settings.AudioPlayerSettings.FadeInTime);
     }
 
@@ -170,21 +175,21 @@ public partial class SoundboardViewModel : ObservableObject
     public void StopSound(Sound? sound)
     {
         ArgumentNullException.ThrowIfNull(sound);
-        AudioPlaybackEngine.Instance.StopSound(sound);
+        _audioEngine.StopSound(sound);
     }
 
 
     public void StopAllSounds()
     {
-        AudioPlaybackEngine.Instance.StopAllSounds();
+        _audioEngine.StopAllSounds();
     }
 
 
     public void ResetAudioDriver()
     {
-        AudioPlaybackEngine.Instance.StopAllSounds();
-        AudioPlaybackEngine.Instance.Dispose();
-        AudioPlaybackEngine.Initialize();
+        _audioEngine.StopAllSounds();
+        _audioEngine.Dispose();
+        _audioEngine.Reset();
     }
 
     public void ToggleSettings()

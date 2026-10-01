@@ -81,19 +81,15 @@ public class DelayFadeOutSampleProvider : ISampleProvider
     /// Reads samples from this sample provider
     /// </summary>
     /// <param name="buffer">Buffer to read into</param>
-    /// <param name="offset">Offset within buffer to write to</param>
-    /// <param name="count">Number of samples desired</param>
     /// <returns>Number of samples read</returns>
-    public int Read(float[] buffer, int offset, int count)
+    public int Read(Span<float> buffer)
     {
-        int sourceSamplesRead = source.Read(buffer, offset, count);
-
+        int sourceSamplesRead = source.Read(buffer);
         lock (lockObject)
         {
-            for (int i = offset; i < offset + sourceSamplesRead; i++)
+            for (int i = 0; i < sourceSamplesRead; i++)
             {
                 int samplePos = position + i;
-
                 if (fadeInSamples > 0)
                 {
                     if (samplePos < fadeInStart)
@@ -105,7 +101,6 @@ public class DelayFadeOutSampleProvider : ISampleProvider
                         buffer[i] *= (samplePos - fadeInStart) / (float)fadeInSamples;
                     }
                 }
-
                 if (fadeOutSamples > 0)
                 {
                     if (samplePos >= fadeOutStart && samplePos < (fadeOutStart + fadeOutSamples))

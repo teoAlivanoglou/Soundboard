@@ -21,6 +21,16 @@ public class IgnoreNamedPropertyInspector(
             .Where(p => !propertyNames.Contains(p.Name, new StringComparer(comparisonType) ));
         return properties;
     }
+
+    public override bool HasParseMethod(Type type)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override object? Parse(string value, Type expectedType)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 

@@ -6,11 +6,13 @@ namespace Soundboard.AudioEngine
     {
         private bool _isDisposed;
 
-        public int Read(float[] buffer, int offset, int count)
+
+        public int Read(Span<float> buffer)
         {
             if (_isDisposed)
                 return 0;
-            var read = reader.Read(buffer, offset, count);
+
+            var read = reader.Read(buffer);
             if (read != 0) return read;
             
             reader.Dispose();

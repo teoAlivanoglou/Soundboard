@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using NAudio.SoundFile;
 using NAudio.Wave;
 
 // ReSharper disable InconsistentNaming
@@ -57,7 +58,7 @@ namespace Soundboard.Models
             var wholeFile = new List<float>((int)(audioFileReader.Length / 4));
             var readBuffer = new float[sampleProvider.WaveFormat.SampleRate * sampleProvider.WaveFormat.Channels];
             int samplesRead;
-            while ((samplesRead = sampleProvider.Read(readBuffer, 0, readBuffer.Length)) > 0)
+            while ((samplesRead = sampleProvider.Read(readBuffer.AsSpan())) > 0)
             {
                 wholeFile.AddRange(readBuffer.Take(samplesRead));
             }
@@ -78,7 +79,8 @@ namespace Soundboard.Models
             this.Group = group;
             FilePath = filePath;
 
-            using var audioFileReader = new AudioFileReader(filePath);
+            //using var audioFileReader = new AudioFileReader(filePath);
+            using var audioFileReader = new SoundFileReader(filePath);
 
             if (!cache)
             {
@@ -86,7 +88,7 @@ namespace Soundboard.Models
                 var wholeFile = new List<float>((int)(audioFileReader.Length / 4));
                 var readBuffer = new float[audioFileReader.WaveFormat.SampleRate * audioFileReader.WaveFormat.Channels];
                 int samplesRead;
-                while ((samplesRead = audioFileReader.Read(readBuffer, 0, readBuffer.Length)) > 0)
+                while ((samplesRead = audioFileReader.Read(readBuffer.AsSpan())) > 0)
                 {
                     wholeFile.AddRange(readBuffer.Take(samplesRead));
                 }
