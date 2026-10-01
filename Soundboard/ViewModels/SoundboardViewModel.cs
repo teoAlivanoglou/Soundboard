@@ -6,6 +6,7 @@ using Soundboard.AudioEngine;
 using Soundboard.Utils;
 using Soundboard.Resources;
 using Soundboard.Settings;
+using Microsoft.Extensions.DependencyInjection;
 
 
 namespace Soundboard.ViewModels;
@@ -25,13 +26,18 @@ public partial class SoundboardViewModel : ObservableObject
 
     private string lastChosenDirectory = string.Empty;
 
-    [ObservableProperty] private ApplicationSettingsManager settings = ApplicationSettingsManager.Settings;
+    [ObservableProperty] public SettingsService _settings;
 
+    public SoundboardViewModel() : this(App.Host.Services.GetRequiredService<AudioPlaybackEngine>(),
+        App.Host.Services.GetRequiredService<SettingsService>())
+    {
+    }
 
-    public SoundboardViewModel(AudioPlaybackEngine audioEngine)
+    public SoundboardViewModel(AudioPlaybackEngine audioEngine, SettingsService settings)
     {
         _audioEngine = audioEngine;
-    
+        Settings = settings;
+
         SoundItems =
         [
             new Sound("Please Select a Folder", Assets.ResourceManager.GetStream("Warning"), category: "Debug1"),
@@ -49,13 +55,13 @@ public partial class SoundboardViewModel : ObservableObject
 
         if (options?.OutputType != null)
         {
-            ApplicationSettingsManager.Settings.AudioPlayerSettings.DriverType = options.OutputType.Value;
+            Settings.AudioPlayerSettings.DriverType = options.OutputType.Value;
         }
 
         if (options?.Debug is true)
         {
             SettingsButtonVisible = true;
-            ApplicationSettingsManager.Settings.ShowApplicationPlayerSettings = true;
+            Settings.SettingsPanelVisible = true;
         }
 
     }
@@ -128,7 +134,7 @@ public partial class SoundboardViewModel : ObservableObject
 
         var fsStructure = new FileTreeStructure(filesystemUrl);
         ReadSoundsRecursive(fsStructure, ref tempSounds, ref tempCategories,
-            ApplicationSettingsManager.Settings.ApplicationUiSettings.MaxFolderLevel);
+            Settings.ApplicationUiSettings.MaxFolderLevel);
 
         tempCategories = tempCategories
             .GroupBy(c => c.Category)
@@ -168,7 +174,7 @@ public partial class SoundboardViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(sound);
 
         _audioEngine.PlaySound(sound,
-            ApplicationSettingsManager.Settings.AudioPlayerSettings.FadeInTime);
+            Settings.AudioPlayerSettings.FadeInTime);
     }
 
 
@@ -198,7 +204,7 @@ public partial class SoundboardViewModel : ObservableObject
 
         if (!SettingsVisible)
         {
-            ApplicationSettingsManager.SaveSettings();
+            Settings.Save();
         }
     }
 }

@@ -15,13 +15,17 @@ namespace Soundboard.AudioEngine
         private  IWavePlayer _outputDevice;
         private  MixingSampleProvider _mixer;
 
+        private readonly SettingsService _settingsService;
         private readonly Dictionary<Sound, List<ISampleProvider>> _soundsAndSampleProviders = new();
         private readonly Dictionary<Sound, DateTime> _soundsLastPlayed = new();
         private CancellationTokenSource _cancellationTokenSource = new();
 
 
-        public AudioPlaybackEngine()
+
+        public AudioPlaybackEngine(SettingsService settingsService)
         {
+            _settingsService = settingsService;
+
             InitializeDriver();
 
             _ = UpdateTimers(_cancellationTokenSource.Token);
@@ -30,7 +34,7 @@ namespace Soundboard.AudioEngine
         [MemberNotNull(nameof(_outputDevice), nameof(_mixer), nameof(_soundsAndSampleProviders), nameof(_soundsLastPlayed), nameof(_cancellationTokenSource))]
         private void InitializeDriver()
         {
-            var audioSettings = ApplicationSettingsManager.Settings.AudioPlayerSettings;
+            var audioSettings = _settingsService.AudioPlayerSettings;
 
 
             _outputDevice = audioSettings.DriverType switch

@@ -29,25 +29,24 @@ namespace Soundboard
     public partial class MainWindow : Window
     {
         private readonly SoundboardViewModel _viewModel;
+        private readonly SettingsService _settings;
         ScrollViewer? soundboardButtonsScrollViewer;
 
 
-        public MainWindow(SoundboardViewModel viewModel)
+        public MainWindow(SoundboardViewModel viewModel, SettingsService settings)
         {
-            InitializeComponent();
             _viewModel = viewModel;
+            _settings = settings;
             DataContext = _viewModel;
+
+            InitializeComponent();
+
 
             var folder = OpenFolder();
             if (folder is not null)
                 _viewModel.ReadSounds(folder);
 
             soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtonsPanel);
-
-            // var settings = ApplicationSettingsManager.Settings;
-            //
-            // File.WriteAllBytes("WHAAAAAT.bin",
-            //     GenerateCode(@"H:\Projects\C#\Soundboard\Soundboard\UI\MaskColorEffect.fx", ""));
         }
 
         private void WindowResized(object? sender, SizeChangedEventArgs? e)
@@ -73,20 +72,20 @@ namespace Soundboard
 
             var i = 1;
 
-            while (i * ApplicationSettingsManager.Settings.ApplicationUiSettings.MinButtonSize < maxWidth)
+            while (i * _settings.ApplicationUiSettings.MinButtonSize < maxWidth)
             {
                 i++;
             }
 
-            ApplicationSettingsManager.Settings.ApplicationUiSettings.ItemWidth =
+            _settings.ApplicationUiSettings.ItemWidth =
                 (int)(maxWidth / (i - 1))
-                - 2 * ApplicationSettingsManager.Settings.ApplicationUiSettings.ButtonGap
+                - 2 * _settings.ApplicationUiSettings.ButtonGap
                 - 1;
 
             if (e is not null)
             {
-                ApplicationSettingsManager.Settings.ApplicationUiSettings.WindowWidth = (int)e.NewSize.Width;
-                ApplicationSettingsManager.Settings.ApplicationUiSettings.WindowHeight = (int)e.NewSize.Height;
+                _settings.ApplicationUiSettings.WindowWidth = (int)e.NewSize.Width;
+                _settings.ApplicationUiSettings.WindowHeight = (int)e.NewSize.Height;
             }
 
         }
@@ -224,7 +223,7 @@ namespace Soundboard
 
         private void WindowClosing(object? sender, CancelEventArgs e)
         {
-            ApplicationSettingsManager.SaveSettings();
+            _settings.Save();
         }
 
 

@@ -6,6 +6,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UseWPF>true</UseWPF>
+		<LangVersion>14.0</LangVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -65,7 +66,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		
+
 		<None Update="UI\MaskColorEffect.fx">
 			<Generator>FXCompile</Generator>
 			<CustomToolNamespace></CustomToolNamespace>
@@ -77,15 +78,12 @@
 		</None>
 	</ItemGroup>
 
-	
+
 	<ItemGroup>
 		<Content Include="Native\sndfile.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>sndfile.dll</TargetPath>
 		</Content>
 	</ItemGroup>
-
-
-
 
 </Project>

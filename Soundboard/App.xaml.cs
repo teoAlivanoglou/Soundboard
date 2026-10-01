@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Soundboard.AudioEngine;
+using Soundboard.Settings;
 using Soundboard.ViewModels;
 using System.Configuration;
 using System.Data;
@@ -23,6 +24,7 @@ namespace Soundboard
 
             var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(e.Args);
 
+            builder.Services.AddSingleton(SettingsService.Load());
             builder.Services.AddSingleton<AudioPlaybackEngine>();
             builder.Services.AddSingleton<SoundboardViewModel>();
             builder.Services.AddSingleton<MainWindow>();

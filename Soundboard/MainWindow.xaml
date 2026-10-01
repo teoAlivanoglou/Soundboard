@@ -11,7 +11,7 @@
         Title="Soundboard"
         Width="{Binding Settings.ApplicationUiSettings.WindowWidth, Mode=OneTime}"
         Height="{Binding Settings.ApplicationUiSettings.WindowHeight, Mode=OneTime}"
-        d:DataContext="{d:DesignInstance Type=VM:SoundboardViewModel, IsDesignTimeCreatable=True}"
+        d:DataContext="{d:DesignInstance Type=VM:SoundboardViewModel, IsDesignTimeCreatable=False}"
         SizeChanged="WindowResized"
         Closing="WindowClosing">
     <Grid>
@@ -149,7 +149,7 @@
         <Border x:Name="SettingsPanel"
                 Grid.Row="2"
                 Visibility="{Binding  SettingsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-            <Grid x:Name="SettingsGrid" DataContext="{x:Static settings:ApplicationSettingsManager.Settings}"
+            <Grid x:Name="SettingsGrid" DataContext="{Binding Settings}"
                   Margin="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
