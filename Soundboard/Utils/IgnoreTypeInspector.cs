@@ -9,7 +9,8 @@ public class IgnoreNamedPropertyInspector(
     StringComparison comparisonType)
     : TypeInspectorSkeleton
 {
-    private readonly ITypeInspector _innerTypeDescriptor = innerTypeDescriptor ?? throw new ArgumentNullException(nameof(innerTypeDescriptor));
+    private readonly ITypeInspector _innerTypeDescriptor =
+        innerTypeDescriptor ?? throw new ArgumentNullException(nameof(innerTypeDescriptor));
 
     public override string GetEnumName(Type enumType, string name) => _innerTypeDescriptor.GetEnumName(enumType, name);
 
@@ -18,7 +19,7 @@ public class IgnoreNamedPropertyInspector(
     public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
     {
         var properties = _innerTypeDescriptor.GetProperties(type, container)
-            .Where(p => !propertyNames.Contains(p.Name, new StringComparer(comparisonType) ));
+            .Where(p => !propertyNames.Contains(p.Name, new StringComparer(comparisonType)));
         return properties;
     }
 
@@ -32,7 +33,6 @@ public class IgnoreNamedPropertyInspector(
         throw new NotImplementedException();
     }
 }
-
 
 internal class StringComparer(StringComparison comparisonType) : IEqualityComparer<string>
 {

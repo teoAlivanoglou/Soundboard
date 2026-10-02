@@ -7,14 +7,13 @@ namespace Soundboard.UI;
 
 public class MaskColorLerpEffect : ShaderEffect
 {
-    private static PixelShader _pixelShader =
-        new PixelShader() { UriSource = MakePackUri("UI/MaskColorEffect.fx.ps") };
+    // private static readonly PixelShader _pixelShader = new PixelShader() { UriSource = MakePackUri("UI/MaskColorEffect.fx.ps") };
 
 
     public MaskColorLerpEffect()
     {
-        PixelShader = _pixelShader;
-        BlurEffect e;
+        PixelShader = new PixelShader { UriSource = MakePackUri("UI/MaskColorLerpEffect.fx.ps") };
+        // BlurEffect e;
         UpdateShaderValue(InputProperty);
         UpdateShaderValue(AdjustBlackProperty);
         UpdateShaderValue(AdjustWhiteProperty);
@@ -27,15 +26,15 @@ public class MaskColorLerpEffect : ShaderEffect
     // for the given resource. 
     public static Uri MakePackUri(string relativeFile)
     {
-        Assembly a = typeof(MaskColorLerpEffect).Assembly;
+        var a = typeof(MaskColorLerpEffect).Assembly;
 
         // Extract the short name.
-        string assemblyShortName = a.ToString().Split(',')[0];
+        var assemblyShortName = a.ToString().Split(',')[0];
 
-        string uriString = "pack://application:,,,/" +
-                           assemblyShortName +
-                           ";component/" +
-                           relativeFile;
+        var uriString = "pack://application:,,,/" +
+                        assemblyShortName +
+                        ";component/" +
+                        relativeFile;
 
         return new Uri(uriString);
     }
@@ -77,7 +76,7 @@ public class MaskColorLerpEffect : ShaderEffect
 
     public static readonly DependencyProperty ColorBlackProperty =
         DependencyProperty.Register(nameof(ColorBlack), typeof(Color), typeof(MaskColorLerpEffect),
-            new UIPropertyMetadata(Colors.Black,  PixelShaderConstantCallback(0)));
+            new UIPropertyMetadata(Colors.Black, PixelShaderConstantCallback(0)));
 
     // private static void OnShaderValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     // {
@@ -106,8 +105,6 @@ public class MaskColorLerpEffect : ShaderEffect
     public static readonly DependencyProperty ColorWhiteProperty =
         DependencyProperty.Register(nameof(ColorWhite), typeof(Color), typeof(MaskColorLerpEffect),
             new UIPropertyMetadata(Colors.White, PixelShaderConstantCallback(1)));
-
-
 
     #endregion
 
@@ -142,7 +139,7 @@ public class MaskColorLerpEffect : ShaderEffect
         get => (double)GetValue(AdjustWhiteProperty);
         set
         {
-            SetValue(AdjustWhiteProperty, value); 
+            SetValue(AdjustWhiteProperty, value);
             UpdateShaderValue(AdjustWhiteProperty);
         }
     }
@@ -167,18 +164,14 @@ public class MaskColorLerpEffect : ShaderEffect
 
     public static readonly DependencyProperty MaskProperty =
         DependencyProperty.Register(nameof(Mask), typeof(Brush), typeof(MaskColorLerpEffect),
-            new UIPropertyMetadata(default(Brush), PixelShaderSamplerCallback(1)));
+            new UIPropertyMetadata(null, PixelShaderSamplerCallback(1)));
 }
-
 
 public class ThresholdEffect : ShaderEffect
 {
-    private static PixelShader _pixelShader =
-        new PixelShader() { UriSource = MakePackUri("UI/ThresholdEffect2.fx.ps") };
-
     public ThresholdEffect()
     {
-        PixelShader = _pixelShader;
+        PixelShader = new PixelShader() { UriSource = MakePackUri("UI/ThresholdEffect2.fx.ps") };
 
         UpdateShaderValue(InputProperty);
         UpdateShaderValue(ThresholdProperty);
@@ -189,15 +182,15 @@ public class ThresholdEffect : ShaderEffect
     // for the given resource. 
     public static Uri MakePackUri(string relativeFile)
     {
-        Assembly a = typeof(ThresholdEffect).Assembly;
+        var a = typeof(ThresholdEffect).Assembly;
 
         // Extract the short name.
-        string assemblyShortName = a.ToString().Split(',')[0];
+        var assemblyShortName = a.ToString().Split(',')[0];
 
-        string uriString = "pack://application:,,,/" +
-                           assemblyShortName +
-                           ";component/" +
-                           relativeFile;
+        var uriString = "pack://application:,,,/" +
+                        assemblyShortName +
+                        ";component/" +
+                        relativeFile;
 
         return new Uri(uriString);
     }
@@ -208,12 +201,12 @@ public class ThresholdEffect : ShaderEffect
 
     public Brush Input
     {
-        get { return (Brush)GetValue(InputProperty); }
-        set { SetValue(InputProperty, value); }
+        get => (Brush)GetValue(InputProperty);
+        set => SetValue(InputProperty, value);
     }
 
     public static readonly DependencyProperty InputProperty =
-        ShaderEffect.RegisterPixelShaderSamplerProperty("Input", typeof(ThresholdEffect), 0);
+        RegisterPixelShaderSamplerProperty("Input", typeof(ThresholdEffect), 0);
 
     #endregion
 
@@ -223,12 +216,12 @@ public class ThresholdEffect : ShaderEffect
 
     public double Threshold
     {
-        get { return (double)GetValue(ThresholdProperty); }
-        set { SetValue(ThresholdProperty, value); }
+        get => (double)GetValue(ThresholdProperty);
+        set => SetValue(ThresholdProperty, value);
     }
 
     public static readonly DependencyProperty ThresholdProperty =
-        DependencyProperty.Register("Threshold", typeof(double), typeof(ThresholdEffect),
+        DependencyProperty.Register(nameof(Threshold), typeof(double), typeof(ThresholdEffect),
             new UIPropertyMetadata(0.5, PixelShaderConstantCallback(0)));
 
     #endregion
@@ -239,12 +232,12 @@ public class ThresholdEffect : ShaderEffect
 
     public Color BlankColor
     {
-        get { return (Color)GetValue(BlankColorProperty); }
-        set { SetValue(BlankColorProperty, value); }
+        get => (Color)GetValue(BlankColorProperty);
+        set => SetValue(BlankColorProperty, value);
     }
 
     public static readonly DependencyProperty BlankColorProperty =
-        DependencyProperty.Register("BlankColor", typeof(Color), typeof(ThresholdEffect),
+        DependencyProperty.Register(nameof(BlankColor), typeof(Color), typeof(ThresholdEffect),
             new UIPropertyMetadata(Colors.Transparent, PixelShaderConstantCallback(1)));
 
     #endregion

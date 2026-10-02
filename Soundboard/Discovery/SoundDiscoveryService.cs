@@ -1,36 +1,32 @@
 using NAudio.SoundFile;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System.Windows.Documents;
 
 namespace Soundboard.Discovery;
 
 public class SoundDiscoveryService
 {
-
     private static readonly HashSet<string> ValidExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".mp3", ".wav", ".ogg", ".flac"
     };
 
-
-    private static readonly EnumerationOptions SafeEnumOptions = new EnumerationOptions()
+    private static readonly EnumerationOptions SafeEnumOptions = new()
     {
         IgnoreInaccessible = true,
         AttributesToSkip = FileAttributes.ReparsePoint | FileAttributes.System,
         RecurseSubdirectories = false
     };
 
-    public DiscoveryResult DiscoverSounds(string rootPath, int maxDepth = 2, CancellationToken cancellationToken = default)
+    public DiscoveryResult DiscoverSounds(string rootPath, int maxDepth = 2,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath))
         {
             return new DiscoveryResult([], []);
         }
 
-        var rootDirName = Path.GetFileName(rootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        var rootDirName =
+            Path.GetFileName(rootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
         if (string.IsNullOrWhiteSpace(rootDirName))
         {
             rootDirName = "Root";
@@ -54,33 +50,34 @@ public class SoundDiscoveryService
             cancellationToken.ThrowIfCancellationRequested();
 
             var categoryBrush = ColorPalette.GetBrush(categoryIndex++);
-            var categoryModel = new CategoryModel(name: group.Key, soundCount: group.Count(), backgroundBrush: categoryBrush);
+            var categoryModel =
+                new CategoryModel(name: group.Key, soundCount: group.Count(), backgroundBrush: categoryBrush);
 
             categories.Add(categoryModel);
 
-            foreach (var rawSound in group)
-            {
-                var sound = new SoundModel(
+            allSounds.AddRange(group
+                .Select(rawSound => new SoundModel(
                     name: rawSound.Name,
                     filePath: rawSound.FilePath,
                     category: categoryModel,
                     subFolder: rawSound.SubFolder,
                     duration: rawSound.Duration,
                     audioData: rawSound.AudioData,
-                    waveFormat: rawSound.WaveFormat
-                );
-                allSounds.Add(sound);
-            }
+                    waveFormat: rawSound.WaveFormat)
+                )
+            );
         }
 
-        categories.Insert(0, new CategoryModel(name: "All", soundCount: allSounds.Count, backgroundBrush: ColorPalette.AllButtonBrush, isAll: true));
+        categories.Insert(0,
+            new CategoryModel(name: "All", soundCount: allSounds.Count, backgroundBrush: ColorPalette.AllButtonBrush,
+                isAll: true));
 
         return new DiscoveryResult(categories, allSounds);
     }
 
-    public Task<DiscoveryResult> DiscoverSoundsAsync(string rootPath, int maxDepth = 2, CancellationToken cancellationToken = default) =>
+    public Task<DiscoveryResult> DiscoverSoundsAsync(string rootPath, int maxDepth = 2,
+        CancellationToken cancellationToken = default) =>
         Task.Run(() => DiscoverSounds(rootPath, maxDepth, cancellationToken), cancellationToken);
-
 
 
     private void ScanDirectory(
@@ -123,7 +120,7 @@ public class SoundDiscoveryService
                 // Should be more accurate than using AudioFileReader.TotalTime
                 var duration = TimeSpan.FromSeconds(
                     waveFormat.ExtraSize +
-                    (reader.Length / sizeof(float)) / (double)(waveFormat.Channels * waveFormat.SampleRate));
+                    (int)reader.Length / sizeof(float) / (waveFormat.Channels * waveFormat.SampleRate));
 
                 var wholeFile = new List<float>((int)(reader.Length / sizeof(float)));
                 var readBuffer = new float[waveFormat.SampleRate * waveFormat.Channels]; // 1 second buffer
@@ -139,7 +136,7 @@ public class SoundDiscoveryService
                     CategoryName: currentCategoryName,
                     SubFolder: relativeFolder == "." ? "" : relativeFolder,
                     Duration: duration,
-                    AudioData: wholeFile.ToArray(),
+                    AudioData: [.. wholeFile],
                     WaveFormat: waveFormat
                 ));
             }
@@ -179,12 +176,12 @@ public class SoundDiscoveryService
 
 
     private record RawSoundRecord(
-            string Name,
-            string FilePath,
-            string CategoryName,
-            string SubFolder,
-            TimeSpan Duration,
-            float[] AudioData,
-            NAudio.Wave.WaveFormat WaveFormat
-        );
+        string Name,
+        string FilePath,
+        string CategoryName,
+        string SubFolder,
+        TimeSpan Duration,
+        float[] AudioData,
+        NAudio.Wave.WaveFormat WaveFormat
+    );
 }

@@ -1,79 +1,93 @@
-﻿using System;
-using NAudio.Wave;
+﻿using NAudio.Wave;
 
+namespace Soundboard.AudioEngine;
+
+//TODO: I'm 90% sure this is poopy and can be massively improved.
 /// <summary>
 /// Sample Provider to allow fading in and out
 /// </summary>
 public class DelayFadeOutSampleProvider : ISampleProvider
 {
+    private readonly Lock _lockObject = new();
+    private readonly ISampleProvider _source;
 
-    private readonly object lockObject = new object();
-    private readonly ISampleProvider source;
-
-    private int fadeInStart;
-    private int fadeInSamples;
-    private int fadeOutStart;
-    private int fadeOutSamples;
-
-    private int position;
+    private int _fadeInStart;
+    private int _fadeInSamples;
+    private int _fadeOutStart;
+    private int _fadeOutSamples;
+    private int _position;
 
     /// <summary>
     /// Creates a new FadeInOutSampleProvider
     /// </summary>
     /// <param name="source">The source stream with the audio to be faded in or out</param>
-    /// <param name="initiallySilent">If true, we start faded out</param>
     public DelayFadeOutSampleProvider(ISampleProvider source)
     {
-        this.source = source;
+        this._source = source;
     }
 
-    public void SetFadeIn(TimeSpan FadeInLength, TimeSpan FadeInStartPosition)
+    public void SetFadeIn(TimeSpan fadeInLength, TimeSpan fadeInStartPosition)
     {
-        lock (lockObject)
+        lock (_lockObject)
         {
-            fadeInStart = (int)(FadeInStartPosition.TotalSeconds * source.WaveFormat.SampleRate * source.WaveFormat.Channels); ;
-            fadeInSamples = (int)(FadeInLength.TotalSeconds * source.WaveFormat.SampleRate * source.WaveFormat.Channels);
+            _fadeInStart = (int)(fadeInStartPosition.TotalSeconds * _source.WaveFormat.SampleRate *
+                                 _source.WaveFormat.Channels);
+            _fadeInSamples = (int)(fadeInLength.TotalSeconds * _source.WaveFormat.SampleRate *
+                                   _source.WaveFormat.Channels);
         }
     }
 
-    public void SetFadeIn(TimeSpan FadeInLength)
+    public void SetFadeIn(TimeSpan fadeInLength)
     {
-        lock (lockObject)
+        lock (_lockObject)
         {
-            fadeInStart = 0;
-            fadeInSamples = (int)(FadeInLength.TotalSeconds * source.WaveFormat.SampleRate * source.WaveFormat.Channels);
+            _fadeInStart = 0;
+            _fadeInSamples = (int)(fadeInLength.TotalSeconds * _source.WaveFormat.SampleRate *
+                                   _source.WaveFormat.Channels);
         }
     }
 
     public void SetFadeIn(double fadeDurationInMilliseconds)
     {
-        lock (lockObject)
+        lock (_lockObject)
         {
-            fadeInStart = 0;
-            fadeInSamples = (int)((fadeDurationInMilliseconds * source.WaveFormat.SampleRate * source.WaveFormat.Channels) / 1000);
+            _fadeInStart = 0;
+            _fadeInSamples =
+                (int)((fadeDurationInMilliseconds * _source.WaveFormat.SampleRate * _source.WaveFormat.Channels) /
+                      1000);
         }
     }
 
     /// <summary>
     /// Requests that a fade-out begins (will start on the next call to Read)
     /// </summary>
+    /// <param name="fadeAfterMilliseconds">Time in milliseconds after which the fade-out should start</param>
     /// <param name="fadeDurationInMilliseconds">Duration of fade in milliseconds</param>
     public void SetFadeOut(double fadeAfterMilliseconds, double fadeDurationInMilliseconds)
     {
-        lock (lockObject)
+        lock (_lockObject)
         {
-            fadeOutStart = (int)((fadeAfterMilliseconds * source.WaveFormat.SampleRate * source.WaveFormat.Channels) / 1000);
-            fadeOutSamples = (int)((fadeDurationInMilliseconds * source.WaveFormat.SampleRate * source.WaveFormat.Channels) / 1000);
+            _fadeOutStart =
+                (int)((fadeAfterMilliseconds * _source.WaveFormat.SampleRate * _source.WaveFormat.Channels) / 1000);
+            _fadeOutSamples =
+                (int)((fadeDurationInMilliseconds * _source.WaveFormat.SampleRate * _source.WaveFormat.Channels) /
+                      1000);
         }
     }
-
-    public void FadeEnding(TimeSpan FadeOutLength, TimeSpan SourceLength)
+    /// <summary>
+    /// Sets the fade-out parameters for the end of the audio
+    /// </summary>
+    /// <param name="fadeOutLength">The length of the fade-out</param>
+    /// <param name="sourceLength">The length of the source audio</param>
+    public void FadeEnding(TimeSpan fadeOutLength, TimeSpan sourceLength)
     {
-        lock (lockObject)
+        lock (_lockObject)
         {
-            var wave = source as IWaveProvider;
-            fadeOutStart = (int)((SourceLength - FadeOutLength).TotalSeconds * source.WaveFormat.SampleRate * source.WaveFormat.Channels);
-            fadeOutSamples = (int)(FadeOutLength.TotalSeconds * source.WaveFormat.SampleRate * source.WaveFormat.Channels);
+            var wave = _source as IWaveProvider;
+            _fadeOutStart = (int)((sourceLength - fadeOutLength).TotalSeconds * _source.WaveFormat.SampleRate *
+                                  _source.WaveFormat.Channels);
+            _fadeOutSamples = (int)(fadeOutLength.TotalSeconds * _source.WaveFormat.SampleRate *
+                                    _source.WaveFormat.Channels);
         }
     }
 
@@ -84,45 +98,43 @@ public class DelayFadeOutSampleProvider : ISampleProvider
     /// <returns>Number of samples read</returns>
     public int Read(Span<float> buffer)
     {
-        int sourceSamplesRead = source.Read(buffer);
-        lock (lockObject)
+        var sourceSamplesRead = _source.Read(buffer);
+        lock (_lockObject)
         {
-            for (int i = 0; i < sourceSamplesRead; i++)
+            for (var i = 0; i < sourceSamplesRead; i++)
             {
-                int samplePos = position + i;
-                if (fadeInSamples > 0)
+                var samplePos = _position + i;
+                if (_fadeInSamples > 0)
                 {
-                    if (samplePos < fadeInStart)
+                    if (samplePos < _fadeInStart)
                     {
                         buffer[i] = 0;
                     }
-                    else if (samplePos >= fadeInStart && samplePos < (fadeInStart + fadeInSamples))
+                    else if (samplePos >= _fadeInStart && samplePos < (_fadeInStart + _fadeInSamples))
                     {
-                        buffer[i] *= (samplePos - fadeInStart) / (float)fadeInSamples;
+                        buffer[i] *= (samplePos - _fadeInStart) / (float)_fadeInSamples;
                     }
                 }
-                if (fadeOutSamples > 0)
+
+                if (_fadeOutSamples <= 0) continue;
+                if (samplePos >= _fadeOutStart && samplePos < (_fadeOutStart + _fadeOutSamples))
                 {
-                    if (samplePos >= fadeOutStart && samplePos < (fadeOutStart + fadeOutSamples))
-                    {
-                        buffer[i] *= (1 - ((samplePos - fadeOutStart) / (float)fadeOutSamples));
-                    }
-                    else if (samplePos >= fadeOutStart + fadeOutSamples)
-                    {
-                        buffer[i] = 0;
-                    }
+                    buffer[i] *= (1 - ((samplePos - _fadeOutStart) / (float)_fadeOutSamples));
+                }
+                else if (samplePos >= _fadeOutStart + _fadeOutSamples)
+                {
+                    buffer[i] = 0;
                 }
             }
-            position += sourceSamplesRead;
+
+            _position += sourceSamplesRead;
         }
+
         return sourceSamplesRead;
     }
 
     /// <summary>
     /// WaveFormat of this SampleProvider
     /// </summary>
-    public WaveFormat WaveFormat
-    {
-        get { return source.WaveFormat; }
-    }
+    public WaveFormat WaveFormat => _source.WaveFormat;
 }

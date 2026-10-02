@@ -14,22 +14,20 @@ namespace Soundboard.ViewModels;
 
 public partial class SoundboardViewModel : ObservableObject
 {
-
     private readonly AudioPlaybackEngine _audioEngine;
     private readonly SoundDiscoveryService _soundDiscoveryService;
 
-
     public ObservableCollection<SoundModel> SoundItems { get; set; } = [];
     public ObservableCollection<CategoryModel> Categories { get; set; } = [];
-
 
     [ObservableProperty] public partial bool SettingsVisible { get; set; } = false;
     [ObservableProperty] public partial bool SettingsButtonVisible { get; set; } = false;
     [ObservableProperty] public partial SettingsService Settings { get; set; }
 
-    private string lastChosenDirectory = string.Empty;
+    private string _lastChosenDirectory = string.Empty;
 
-    public SoundboardViewModel(AudioPlaybackEngine audioEngine, SoundDiscoveryService soundDiscoveryService, SettingsService settings)
+    public SoundboardViewModel(AudioPlaybackEngine audioEngine, SoundDiscoveryService soundDiscoveryService,
+        SettingsService settings)
     {
         _audioEngine = audioEngine;
         _soundDiscoveryService = soundDiscoveryService;
@@ -70,8 +68,8 @@ public partial class SoundboardViewModel : ObservableObject
 
     public void ReadSounds(string filesystemUrl)
     {
-        lastChosenDirectory = filesystemUrl;
-        if (string.IsNullOrWhiteSpace(lastChosenDirectory)) return;
+        _lastChosenDirectory = filesystemUrl;
+        if (string.IsNullOrWhiteSpace(_lastChosenDirectory)) return;
 
         var result = _soundDiscoveryService.DiscoverSounds(
             filesystemUrl,
@@ -98,8 +96,8 @@ public partial class SoundboardViewModel : ObservableObject
 
     public async Task ReadSoundsAsync(string filesystemUrl)
     {
-        lastChosenDirectory = filesystemUrl;
-        if (string.IsNullOrWhiteSpace(lastChosenDirectory)) return;
+        _lastChosenDirectory = filesystemUrl;
+        if (string.IsNullOrWhiteSpace(_lastChosenDirectory)) return;
 
         var result = await _soundDiscoveryService.DiscoverSoundsAsync(
             filesystemUrl,
@@ -125,7 +123,7 @@ public partial class SoundboardViewModel : ObservableObject
     }
 
 
-    public Task RefreshSoundsAsync() => ReadSoundsAsync(lastChosenDirectory);
+    public Task RefreshSoundsAsync() => ReadSoundsAsync(_lastChosenDirectory);
 
     public void UpdateSoundVisibility()
     {

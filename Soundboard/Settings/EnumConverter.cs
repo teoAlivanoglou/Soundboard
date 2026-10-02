@@ -15,7 +15,7 @@ public enum SerializedToken
     Value
 }
 
-
+// Not refactoring yet, I don't remember what the purpose is.
 public class EnumConverter<T>(SerializedToken serializedToken, bool comment) : IYamlTypeConverter
     where T : struct, Enum
 {
@@ -34,7 +34,7 @@ public class EnumConverter<T>(SerializedToken serializedToken, bool comment) : I
 
         return enumValue;
     }
-    
+
     public void WriteYaml(IEmitter emitter, object? value, Type type, ObjectSerializer serializer)
     {
         switch (_serializedToken)
@@ -45,11 +45,12 @@ public class EnumConverter<T>(SerializedToken serializedToken, bool comment) : I
                 break;
             case SerializedToken.Value:
                 emitter.Emit(new Scalar(((int)value!).ToString()));
-                emitter.Emit(new Comment($"{string.Join(", ", (Enum.GetValuesAsUnderlyingType(typeof(T)) as int[]).Select(i => $"{i}").ToArray())}", true));
+                emitter.Emit(new Comment(
+                    $"{string.Join(", ", (Enum.GetValuesAsUnderlyingType(typeof(T)) as int[]).Select(i => $"{i}").ToArray())}",
+                    true));
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        
     }
 }

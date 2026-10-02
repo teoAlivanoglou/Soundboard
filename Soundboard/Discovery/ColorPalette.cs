@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Media;
+﻿using System.Windows.Media;
 
 namespace Soundboard.Discovery;
 
 public static class ColorPalette
 {
     public static readonly Brush AllButtonBrush = new SolidColorBrush(ColorFromHex("#CAC8D6"));
+
     public static readonly List<Color> PrimaryColors =
     [
         ColorFromHex("#FAEDCB"), // Cream
@@ -25,6 +23,7 @@ public static class ColorPalette
         ColorFromHex("#FFE0B2"), // Apricot
         ColorFromHex("#D7CCC8"), // Warm Grey
     ];
+
     public static SolidColorBrush GetBrush(int index)
     {
         var color = PrimaryColors[index % PrimaryColors.Count];
@@ -33,12 +32,12 @@ public static class ColorPalette
         return brush;
     }
 
-    private static int nextIndex = 0;
-    public static SolidColorBrush GetBrush() => GetBrush(nextIndex++);
+    private static int _nextIndex = 0;
+    public static SolidColorBrush GetBrush() => GetBrush(_nextIndex++);
 
     private static Color ColorFromHex(string hexValue)
     {
-        return uint.TryParse(hexValue.TrimStart('#'), System.Globalization.NumberStyles.HexNumber, null, out uint num)
+        return uint.TryParse(hexValue.TrimStart('#'), System.Globalization.NumberStyles.HexNumber, null, out var num)
             ? Color.FromRgb(
                 (byte)((num >> 16) & 0xFF),
                 (byte)((num >> 8) & 0xFF),

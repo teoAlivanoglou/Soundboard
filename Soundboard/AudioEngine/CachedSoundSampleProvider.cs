@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Soundboard.AudioEngine;
 
-class CachedSoundSampleProvider(SoundModel cachedSound) : ISampleProvider
+internal class CachedSoundSampleProvider(SoundModel cachedSound) : ISampleProvider
 {
     private long _position;
     public SoundModel CachedSound { get; init; } = cachedSound;
@@ -16,7 +16,7 @@ class CachedSoundSampleProvider(SoundModel cachedSound) : ISampleProvider
 
         var availableSamples = CachedSound.AudioData.Length - _position;
         var samplesToCopy = Math.Min(availableSamples, buffer.Length);
-        
+
         CachedSound.AudioData.AsSpan((int)_position, (int)samplesToCopy).CopyTo(buffer);
         _position += samplesToCopy;
         return (int)samplesToCopy;

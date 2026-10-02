@@ -6,7 +6,6 @@ namespace Soundboard.AudioEngine
     {
         private bool _isDisposed;
 
-
         public int Read(Span<float> buffer)
         {
             if (_isDisposed)
@@ -14,7 +13,7 @@ namespace Soundboard.AudioEngine
 
             var read = reader.Read(buffer);
             if (read != 0) return read;
-            
+
             reader.Dispose();
             _isDisposed = true;
             return read;

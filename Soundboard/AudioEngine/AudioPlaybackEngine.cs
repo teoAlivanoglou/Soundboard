@@ -1,9 +1,7 @@
-using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using Soundboard.Discovery;
 using Soundboard.Settings;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 // ReSharper disable UseObjectOrCollectionInitializer
@@ -12,14 +10,13 @@ namespace Soundboard.AudioEngine
 {
     public class AudioPlaybackEngine : IDisposable
     {
-        private  IWavePlayer _outputDevice;
-        private  MixingSampleProvider _mixer;
+        private IWavePlayer _outputDevice;
+        private MixingSampleProvider _mixer;
 
         private readonly SettingsService _settingsService;
         private readonly Dictionary<SoundModel, List<ISampleProvider>> _soundsAndSampleProviders = new();
         private readonly Dictionary<SoundModel, DateTime> _soundsLastPlayed = new();
         private CancellationTokenSource _cancellationTokenSource = new();
-
 
 
         public AudioPlaybackEngine(SettingsService settingsService)
@@ -40,9 +37,11 @@ namespace Soundboard.AudioEngine
             _outputDevice = audioSettings.DriverType switch
             {
                 DriverType.WaveOutEvent => new WaveOut() { BufferMilliseconds = (int)audioSettings.Latency },
-                DriverType.Wasapi => (new WasapiPlayerBuilder()).WithSharedMode().WithLatency((int)audioSettings.Latency).Build(),
+                DriverType.Wasapi => (new WasapiPlayerBuilder()).WithSharedMode()
+                    .WithLatency((int)audioSettings.Latency).Build(),
                 DriverType.DirectSound => new DirectSoundOut((int)audioSettings.Latency),
-                _ => throw new ArgumentOutOfRangeException(nameof(audioSettings.DriverType), audioSettings.DriverType, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(audioSettings.DriverType), audioSettings.DriverType,
+                    null)
             };
 
             _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)audioSettings.SampleRate, 2));
@@ -56,7 +55,7 @@ namespace Soundboard.AudioEngine
 
         public void PlaySound(SoundModel sound, int fadeDuration = 0)
         {
-            if (sound.AudioData is { Length: > 0 }  /* also checks if not null */)
+            if (sound.AudioData is { Length: > 0 } /* also checks if not null */)
             {
                 var provider =
                     ConvertToRightChannelCount(new CachedSoundSampleProvider(sound));
@@ -198,8 +197,7 @@ namespace Soundboard.AudioEngine
             StopAllSounds();
             _soundsAndSampleProviders.Clear();
             _soundsLastPlayed.Clear();
-
-            _outputDevice?.Dispose();
+            _outputDevice.Dispose();
 
             if (_cancellationTokenSource.IsCancellationRequested)
             {
@@ -210,6 +208,5 @@ namespace Soundboard.AudioEngine
 
             InitializeDriver();
         }
-
     }
 }

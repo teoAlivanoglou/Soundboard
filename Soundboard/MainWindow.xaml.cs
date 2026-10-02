@@ -1,16 +1,15 @@
+using Soundboard.Discovery;
+using Soundboard.Settings;
+using Soundboard.ViewModels;
 using System.ComponentModel;
 using System.Diagnostics;
-using Soundboard.ViewModels;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
-using Soundboard.Settings;
-using static Soundboard.ViewModels.SoundboardViewModel;
-using System.IO;
-using Soundboard.Discovery;
-
+using MessageBox = System.Windows.MessageBox;
 
 // TODO: Massive refactoring needed, split shit up boy!
 // TODO: Cleanup xaml files, extract styles etc.
@@ -20,190 +19,189 @@ using Soundboard.Discovery;
 //      -- Negligibly faster compilation vs negligibly better program performance and smaller size
 //      -- We'll see
 
+namespace Soundboard;
 
-namespace Soundboard
+/// <summary>
+/// Interaction logic for MainWindow.xaml
+/// </summary>
+public partial class MainWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    private readonly SoundboardViewModel _viewModel;
+    private readonly SettingsService _settings;
+
+
+    public MainWindow(SoundboardViewModel viewModel, SettingsService settings)
     {
-        private readonly SoundboardViewModel _viewModel;
-        private readonly SettingsService _settings;
-        ScrollViewer? soundboardButtonsScrollViewer;
+        _viewModel = viewModel;
+        _settings = settings;
+        DataContext = _viewModel;
 
-        public MainWindow(SoundboardViewModel viewModel, SettingsService settings)
+        InitializeComponent();
+
+        var folder = OpenFolder();
+        if (folder is not null)
+            _ = _viewModel.ReadSoundsAsync(folder);
+
+        FindVisualChild<ScrollViewer>(SoundboardButtonsPanel);
+    }
+
+    private void WindowResized(object? sender, SizeChangedEventArgs? e)
+    {
+        if (e is null) return;
+            
+        _settings.ApplicationUiSettings.WindowWidth = (int)e.NewSize.Width;
+        _settings.ApplicationUiSettings.WindowHeight = (int)e.NewSize.Height;
+    }
+
+    private void SoundButtonClicked(object sender, MouseButtonEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not SoundModel sound)
+            return;
+
+        switch (e.ChangedButton)
         {
-            _viewModel = viewModel;
-            _settings = settings;
-            DataContext = _viewModel;
-
-            InitializeComponent();
-
-
-            var folder = OpenFolder();
-            if (folder is not null)
-                _viewModel.ReadSounds(folder);
-
-            soundboardButtonsScrollViewer = FindVisualChild<ScrollViewer>(SoundboardButtonsPanel);
+            case MouseButton.Left:
+                _viewModel.PlaySound(sound);
+                break;
+            case MouseButton.Right:
+                _viewModel.StopSound(sound);
+                break;
         }
+    }
 
-        private void WindowResized(object? sender, SizeChangedEventArgs? e)
+    private void StopAllClicked(object sender, MouseButtonEventArgs e)
+    {
+        _viewModel.StopAllSounds();
+    }
+
+    private void SettingsClicked(object sender, MouseButtonEventArgs e)
+    {
+        _viewModel.ToggleSettings();
+    }
+
+    private void TabButtonClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: CategoryModel filter })
+            return;
+
+        if (filter.IsAll)
         {
-            if (e is not null)
+            var newState = !filter.IsEnabled;
+            foreach (var cat in _viewModel.Categories)
             {
-               _settings.ApplicationUiSettings.WindowWidth = (int)e.NewSize.Width;
-               _settings.ApplicationUiSettings.WindowHeight = (int)e.NewSize.Height;
+                cat.IsEnabled = newState;
             }
         }
-
-        private void SoundButtonClicked(object sender, MouseButtonEventArgs e)
+        else
         {
-            if ((sender as FrameworkElement)?.DataContext is not SoundModel sound) return;
-
-            switch (e.ChangedButton)
-            {
-                case MouseButton.Left:
-                    _viewModel.PlaySound(sound);
-                    break;
-                case MouseButton.Right:
-                    _viewModel.StopSound(sound);
-                    break;
-            }
+            filter.IsEnabled = !filter.IsEnabled;
+            var allCategory = _viewModel.Categories.FirstOrDefault(c => c.IsAll);
+            allCategory?.IsEnabled = _viewModel
+                .Categories
+                .Where(c => !c.IsAll)
+                .All(c => c.IsEnabled);
         }
 
-        private void StopAllClicked(object sender, MouseButtonEventArgs e)
-        {
-            _viewModel.StopAllSounds();
-        }
+        _viewModel.UpdateSoundVisibility();
+    }
 
-        private void SettingsClicked(object sender, MouseButtonEventArgs e)
+    private static TChildItem? FindVisualChild<TChildItem>(DependencyObject obj) where TChildItem : DependencyObject
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
         {
-            _viewModel.ToggleSettings();
-        }
-
-        private void TabButtonClick(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is not FrameworkElement { DataContext: CategoryModel filter })
-                return;
-
-            if (filter.IsAll)
-            {
-                var newState = !filter.IsEnabled;
-                foreach (var cat in _viewModel.Categories)
-                {
-                    cat.IsEnabled = newState;
-                }
-            }
+            var child = VisualTreeHelper.GetChild(obj, i);
+            if (child is TChildItem item)
+                return item;
             else
             {
-                filter.IsEnabled = !filter.IsEnabled;
-                var allCategory = _viewModel.Categories.FirstOrDefault(c => c.IsAll);
-                if (allCategory != null)
-                {
-                    allCategory.IsEnabled = _viewModel.Categories
-                        .Where(c => !c.IsAll)
-                        .All(c => c.IsEnabled);
-                }
+                var childOfChild = FindVisualChild<TChildItem>(child);
+                if (childOfChild != null)
+                    return childOfChild;
             }
-
-            _viewModel.UpdateSoundVisibility();
         }
 
+        return null;
+    }
 
-        private static TChildItem? FindVisualChild<TChildItem>(DependencyObject obj)
-            where TChildItem : DependencyObject
-
-        {
-            for (var i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
-            {
-                var child = VisualTreeHelper.GetChild(obj, i);
-                if (child is TChildItem item)
-                    return item;
-                else
-                {
-                    var childOfChild = FindVisualChild<TChildItem>(child);
-                    if (childOfChild != null)
-                        return childOfChild;
-                }
-            }
-
-            return null;
-        }
-
-        private async void BrowseFolderClicked(object sender, MouseButtonEventArgs e)
+    private async void BrowseFolderClicked(object sender, MouseButtonEventArgs args)
+    {
+        try
         {
             var folder = OpenFolder();
             if (folder is not null)
                 await _viewModel.ReadSoundsAsync(folder);
         }
+        catch (Exception e)
+        {
+            MessageBox.Show(this, e.Message, nameof(e), MessageBoxButton.OK);
+        }
+    }
 
-        private async void RefreshClicked(object sender, MouseButtonEventArgs e)
+    private async void RefreshClicked(object sender, MouseButtonEventArgs args)
+    {
+        try
         {
             await _viewModel.RefreshSoundsAsync();
         }
-
-
-        public string? OpenFolder()
+        catch (Exception e)
         {
-            try
-            {
-                var dialog = new FolderBrowserDialog();
-                var res = dialog.ShowDialog();
-
-
-                return res == System.Windows.Forms.DialogResult.OK
-                    ? dialog.SelectedPath
-                    : null;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            MessageBox.Show(this, e.Message, nameof(e), MessageBoxButton.OK);
         }
+    }
 
-        private void ResetAudioDriverButtonClicked(object sender, RoutedEventArgs e)
+    public string? OpenFolder()
+    {
+        try
         {
-            _viewModel.ResetAudioDriver();
-        }
+            var dialog = new FolderBrowserDialog();
+            var res = dialog.ShowDialog();
 
-        private void WindowClosing(object? sender, CancelEventArgs e)
+            return res == System.Windows.Forms.DialogResult.OK ? dialog.SelectedPath : null;
+        }
+        catch (Exception e)
         {
-            _settings.Save();
+            MessageBox.Show(this, e.Message, nameof(e), MessageBoxButton.OK);
+            return null;
         }
+    }
 
+    private void ResetAudioDriverButtonClicked(object sender, RoutedEventArgs e)
+    {
+        _viewModel.ResetAudioDriver();
+    }
 
-        protected byte[] GenerateCode(string inputFileName, string inputFileContent)
+    private void WindowClosing(object? sender, CancelEventArgs e)
+    {
+        _settings.Save();
+    }
+
+    protected byte[] GenerateCode(string inputFileName, string inputFileContent)
+    {
+        const string fxcPath = @"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe";
+
+        var cmdProcess = new Process();
+
+        var cmdStartInfo = new ProcessStartInfo
         {
-            string fxcPath = @"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe";
+            FileName = fxcPath,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            RedirectStandardInput = false,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            // Arguments = $"/T ps_2_0 /Fo CON \"{inputFileName}\""
+            Arguments = $"/T ps_2_0 /Fo temp.bin \"{inputFileName}\"",
+        };
 
-            Process cmdProcess = new Process();
+        cmdProcess.StartInfo = cmdStartInfo;
+        cmdProcess.Start();
 
-            ProcessStartInfo cmdStartInfo = new ProcessStartInfo
-            {
-                FileName = fxcPath,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                RedirectStandardInput = false,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                // Arguments = $"/T ps_2_0 /Fo CON \"{inputFileName}\""
-                Arguments = $"/T ps_2_0 /Fo temp.bin \"{inputFileName}\""
-            };
+        cmdProcess.WaitForExit();
 
+        // var bbbb = File.ReadAllBytes(@"\\.\CON");
 
-            cmdProcess.StartInfo = cmdStartInfo;
-            cmdProcess.Start();
-
-            cmdProcess.WaitForExit();
-
-            // var bbbb = File.ReadAllBytes(@"\\.\CON");
-
-
-            var b = File.ReadAllBytes("temp.bin");
-            File.Delete("temp.bin");
-            return b;
-        }
+        var b = File.ReadAllBytes("temp.bin");
+        File.Delete("temp.bin");
+        return b;
     }
 }

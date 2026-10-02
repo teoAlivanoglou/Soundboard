@@ -1,6 +1,6 @@
-﻿// Define other methods and classes here
-using NAudio.Wave;
+﻿using NAudio.Wave;
 
+// TODO: Why UNUSED namespace when there are references to it?
 namespace UNUSED;
 /// <summary>
 /// Sample Provider to allow fading in and out

@@ -4,26 +4,26 @@ using Soundboard.AudioEngine;
 using Soundboard.Discovery;
 using Soundboard.Settings;
 using Soundboard.ViewModels;
-using System.Configuration;
-using System.Data;
-using System.Runtime.InteropServices;
 using System.Windows;
 
-namespace Soundboard
+namespace Soundboard;
+
+/// <summary>
+/// Interaction logic for App.xaml
+/// </summary>
+public partial class App : Application
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
+    public static IHost Host { get; private set; } = null!;
+    private MainWindow? _mainWindow;
+
+
+    protected override async void OnStartup(StartupEventArgs args)
     {
-
-        public static IHost Host { get; private set; } = null!;
-
-        protected override async void OnStartup(StartupEventArgs e)
+        try
         {
-            base.OnStartup(e);
+            base.OnStartup(args);
 
-            var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(e.Args);
+            var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(args.Args);
 
             builder.Services.AddSingleton(SettingsService.Load());
             builder.Services.AddSingleton<AudioPlaybackEngine>();
@@ -34,15 +34,33 @@ namespace Soundboard
             Host = builder.Build();
             await Host.StartAsync();
 
-            var mainWindow = Host.Services.GetRequiredService<MainWindow>();
-            mainWindow.Show();
+            _mainWindow = Host.Services.GetRequiredService<MainWindow>();
+            _mainWindow.Show();
         }
-
-        protected override async void OnExit(ExitEventArgs e)
+        catch (Exception e)
         {
-            await Host.StopAsync();
-            base.OnExit(e);
+            if (_mainWindow is null)
+            {
+                MessageBox.Show(e.Message, nameof(e), MessageBoxButton.OK);
+                Environment.Exit(1);
+            }
+
+            MessageBox.Show(_mainWindow, e.Message, nameof(e), MessageBoxButton.OK);
+            Environment.Exit(1);
         }
     }
 
+    protected override async void OnExit(ExitEventArgs args)
+    {
+        try
+        {
+            await Host.StopAsync();
+            base.OnExit(args);
+        }
+        catch (Exception e)
+        {
+            MessageBox.Show(_mainWindow!, e.Message, nameof(e), MessageBoxButton.OK);
+            Environment.Exit(1);
+        }
+    }
 }

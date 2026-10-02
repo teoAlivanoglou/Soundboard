@@ -1,9 +1,9 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 
 namespace Soundboard.UI;
 
+// TODO: Lots of duplicate code...
 public class AdaptiveWrapPanel : Panel
 {
     public static readonly DependencyProperty MinItemWidthProperty =
@@ -31,25 +31,23 @@ public class AdaptiveWrapPanel : Panel
         if (double.IsInfinity(availableSize.Width) || availableSize.Width <= 0)
             return base.MeasureOverride(availableSize);
 
-        double width = availableSize.Width;
-        int columns = Math.Max(1, (int)(width / (MinItemWidth + (2 * ItemGap))));
+        var width = availableSize.Width;
+        var columns = Math.Max(1, (int)(width / (MinItemWidth + (2 * ItemGap))));
 
-        // Flexbox math: stretch item width evenly across all columns
-        double itemWidth = Math.Max(1, (width - (columns * 2 * ItemGap)) / columns);
-        double itemHeight = itemWidth;
+        // Stretch item width evenly across all columns
+        var itemWidth = Math.Max(1, (width - (columns * 2 * ItemGap)) / columns);
+        var itemHeight = itemWidth;
 
-        int visibleCount = 0;
+        var visibleCount = 0;
         foreach (UIElement child in InternalChildren)
         {
-            if (child != null && child.Visibility != Visibility.Collapsed)
-            {
-                child.Measure(new Size(itemWidth, itemHeight));
-                visibleCount++;
-            }
+            if (child is null or { Visibility: Visibility.Collapsed }) continue;
+            child.Measure(new Size(itemWidth, itemHeight));
+            visibleCount++;
         }
 
-        int rows = (int)Math.Ceiling((double)visibleCount / columns);
-        double totalHeight = rows * (itemHeight + (2 * ItemGap));
+        var rows = (int)Math.Ceiling((double)visibleCount / columns);
+        var totalHeight = rows * (itemHeight + (2 * ItemGap));
 
         return new Size(width, totalHeight);
     }
@@ -58,22 +56,22 @@ public class AdaptiveWrapPanel : Panel
     {
         if (finalSize.Width <= 0) return finalSize;
 
-        double width = finalSize.Width;
-        int columns = Math.Max(1, (int)(width / (MinItemWidth + (2 * ItemGap))));
-        double itemWidth = Math.Max(1, (width - (columns * 2 * ItemGap)) / columns);
-        double itemHeight = itemWidth;
+        var width = finalSize.Width;
+        var columns = Math.Max(1, (int)(width / (MinItemWidth + (2 * ItemGap))));
+        var itemWidth = Math.Max(1, (width - (columns * 2 * ItemGap)) / columns);
+        var itemHeight = itemWidth;
 
-        int index = 0;
+        var index = 0;
         foreach (UIElement child in InternalChildren)
         {
-            if (child == null || child.Visibility == Visibility.Collapsed)
+            if (child is null or { Visibility: Visibility.Collapsed })
                 continue;
 
-            int col = index % columns;
-            int row = index / columns;
+            var col = index % columns;
+            var row = index / columns;
 
-            double x = (col * (itemWidth + (2 * ItemGap))) + ItemGap;
-            double y = (row * (itemHeight + (2 * ItemGap))) + ItemGap;
+            var x = (col * (itemWidth + (2 * ItemGap))) + ItemGap;
+            var y = (row * (itemHeight + (2 * ItemGap))) + ItemGap;
 
             child.Arrange(new Rect(x, y, itemWidth, itemHeight));
             index++;
