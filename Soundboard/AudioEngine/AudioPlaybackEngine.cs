@@ -1,7 +1,7 @@
-﻿using NAudio.CoreAudioApi;
+using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using Soundboard.Models;
+using Soundboard.Discovery;
 using Soundboard.Settings;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -16,8 +16,8 @@ namespace Soundboard.AudioEngine
         private  MixingSampleProvider _mixer;
 
         private readonly SettingsService _settingsService;
-        private readonly Dictionary<Sound, List<ISampleProvider>> _soundsAndSampleProviders = new();
-        private readonly Dictionary<Sound, DateTime> _soundsLastPlayed = new();
+        private readonly Dictionary<SoundModel, List<ISampleProvider>> _soundsAndSampleProviders = new();
+        private readonly Dictionary<SoundModel, DateTime> _soundsLastPlayed = new();
         private CancellationTokenSource _cancellationTokenSource = new();
 
 
@@ -31,7 +31,7 @@ namespace Soundboard.AudioEngine
             _ = UpdateTimers(_cancellationTokenSource.Token);
         }
 
-        [MemberNotNull(nameof(_outputDevice), nameof(_mixer), nameof(_soundsAndSampleProviders), nameof(_soundsLastPlayed), nameof(_cancellationTokenSource))]
+        [MemberNotNull(nameof(_outputDevice), nameof(_mixer))]
         private void InitializeDriver()
         {
             var audioSettings = _settingsService.AudioPlayerSettings;
@@ -54,9 +54,9 @@ namespace Soundboard.AudioEngine
             _outputDevice.Play();
         }
 
-        public void PlaySound(Sound sound, int fadeDuration = 0)
+        public void PlaySound(SoundModel sound, int fadeDuration = 0)
         {
-            if ((sound.AudioData != null && sound.AudioData.Any()) || (sound.ByteData != null && sound.ByteData.Any()))
+            if (sound.AudioData is { Length: > 0 }  /* also checks if not null */)
             {
                 var provider =
                     ConvertToRightChannelCount(new CachedSoundSampleProvider(sound));
@@ -125,7 +125,7 @@ namespace Soundboard.AudioEngine
             return new DelayFadeOutSampleProvider(result);
         }
 
-        public void StopSound(Sound sound)
+        public void StopSound(SoundModel sound)
         {
             if (!_soundsAndSampleProviders.TryGetValue(sound, out var soundSampleProviders)) return;
 
@@ -195,10 +195,19 @@ namespace Soundboard.AudioEngine
 
         public void Reset()
         {
+            StopAllSounds();
             _soundsAndSampleProviders.Clear();
             _soundsLastPlayed.Clear();
-            // Dispose old driver before recreating
+
             _outputDevice?.Dispose();
+
+            if (_cancellationTokenSource.IsCancellationRequested)
+            {
+                _cancellationTokenSource.Dispose();
+                _cancellationTokenSource = new CancellationTokenSource();
+                _ = UpdateTimers(_cancellationTokenSource.Token);
+            }
+
             InitializeDriver();
         }
 

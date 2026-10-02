@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
@@ -11,7 +11,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media;
-using Soundboard.Models;
 using Soundboard.Utils;
 
 namespace Soundboard
@@ -43,18 +42,18 @@ namespace Soundboard
             {
                 return value switch
                 {
-                    string s => new SolidColorBrush(CategoryColors.GetColorForCategory(s, overlay: parameter is not null)),
-                    Sound sound => new SolidColorBrush(CategoryColors.GetColorForCategory(sound.Category, sound.Group, overlay: parameter is not null)),
-                    _ => throw new NotImplementedException()
+                    Soundboard.Discovery.SoundModel soundModel => soundModel.BackgroundBrush,
+                    Soundboard.Discovery.CategoryModel categoryModel => categoryModel.BackgroundBrush,
+                    _ => Brushes.Transparent
                 };
             }
             else if (targetType == typeof(Color))
             {
                 return value switch
                 {
-                    string s => CategoryColors.GetColorForCategory(s, overlay: parameter is not null),
-                    Sound sound => CategoryColors.GetColorForCategory(sound.Category, sound.Group, overlay: parameter is not null),
-                    _ => throw new NotImplementedException()
+                    Soundboard.Discovery.SoundModel soundModel => (soundModel.BackgroundBrush as SolidColorBrush)?.Color ?? Colors.Transparent,
+                    Soundboard.Discovery.CategoryModel categoryModel => (categoryModel.BackgroundBrush as SolidColorBrush)?.Color ?? Colors.Transparent,
+                    _ => Colors.Transparent
                 };
             }
 

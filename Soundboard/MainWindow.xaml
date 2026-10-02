@@ -21,7 +21,7 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-
+        
         <ListView x:Name="TopTabsPanel" Grid.Row="0"
                   ItemsSource="{Binding Categories}" Margin="5 0 5 -4" BorderThickness="0"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -34,13 +34,13 @@
             </ListView.ItemsPanel>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Border Background="{Binding Path= Category, Converter={StaticResource CategoryColorConverter}}"
+                    <Border Background="{Binding BackgroundBrush}"
                             Style="{StaticResource TopTabsButtonStyle}"
-                            IsManipulationEnabled="{Binding Enabled}"
+                            IsManipulationEnabled="{Binding IsEnabled}"
                             Margin="1"
                             MouseDown="TabButtonClick">
                         <TextBlock
-                            Text="{Binding Category, Converter={StaticResource NoCategoryConverter}}" />
+                            Text="{Binding Name}" />
                     </Border>
                 </DataTemplate>
             </ListView.ItemTemplate>

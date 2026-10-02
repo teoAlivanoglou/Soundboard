@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Soundboard.AudioEngine;
+using Soundboard.Discovery;
 using Soundboard.Settings;
 using Soundboard.ViewModels;
 using System.Configuration;
@@ -26,6 +27,7 @@ namespace Soundboard
 
             builder.Services.AddSingleton(SettingsService.Load());
             builder.Services.AddSingleton<AudioPlaybackEngine>();
+            builder.Services.AddSingleton<SoundDiscoveryService>();
             builder.Services.AddSingleton<SoundboardViewModel>();
             builder.Services.AddSingleton<MainWindow>();
 

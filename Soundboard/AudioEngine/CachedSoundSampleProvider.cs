@@ -1,13 +1,14 @@
 ﻿using NAudio.Wave;
-using Soundboard.Models;
+using Soundboard.Discovery;
 using System.Diagnostics;
 
 namespace Soundboard.AudioEngine;
 
-class CachedSoundSampleProvider(Sound cachedSound) : ISampleProvider
+class CachedSoundSampleProvider(SoundModel cachedSound) : ISampleProvider
 {
     private long _position;
-    public Sound CachedSound { get; init; } = cachedSound;
+    public SoundModel CachedSound { get; init; } = cachedSound;
+
 
     public int Read(Span<float> buffer)
     {
@@ -21,5 +22,5 @@ class CachedSoundSampleProvider(Sound cachedSound) : ISampleProvider
         return (int)samplesToCopy;
     }
 
-    public WaveFormat WaveFormat => CachedSound.WaveFormat;
+    public WaveFormat WaveFormat => CachedSound.WaveFormat!;
 }

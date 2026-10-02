@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using Soundboard.ViewModels;
 using System.Windows;
@@ -6,10 +6,10 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
-using Soundboard.Models;
 using Soundboard.Settings;
 using static Soundboard.ViewModels.SoundboardViewModel;
 using System.IO;
+using Soundboard.Discovery;
 
 
 // TODO: Massive refactoring needed, split shit up boy!
@@ -31,7 +31,6 @@ namespace Soundboard
         private readonly SoundboardViewModel _viewModel;
         private readonly SettingsService _settings;
         ScrollViewer? soundboardButtonsScrollViewer;
-
 
         public MainWindow(SoundboardViewModel viewModel, SettingsService settings)
         {
@@ -60,16 +59,16 @@ namespace Soundboard
 
         private void SoundButtonClicked(object sender, MouseButtonEventArgs e)
         {
-            var buttonClicked = sender as FrameworkElement;
-            var sound = buttonClicked.DataContext as Sound;
+            if ((sender as FrameworkElement)?.DataContext is not SoundModel sound) return;
 
-            if (e.ChangedButton == MouseButton.Left)
+            switch (e.ChangedButton)
             {
-                _viewModel.PlaySound(sound);
-            }
-            else if (e.ChangedButton == MouseButton.Right)
-            {
-                _viewModel.StopSound(sound);
+                case MouseButton.Left:
+                    _viewModel.PlaySound(sound);
+                    break;
+                case MouseButton.Right:
+                    _viewModel.StopSound(sound);
+                    break;
             }
         }
 
@@ -80,45 +79,35 @@ namespace Soundboard
 
         private void SettingsClicked(object sender, MouseButtonEventArgs e)
         {
-            // if (!e.RightButton.HasFlag(MouseButtonState.Pressed))
-            //     return;
-
             _viewModel.ToggleSettings();
         }
 
         private void TabButtonClick(object sender, MouseButtonEventArgs e)
         {
-            var buttonClicked = sender as FrameworkElement;
-            var filter = buttonClicked?.DataContext as CategoryFilter;
+            if (sender is not FrameworkElement { DataContext: CategoryModel filter })
+                return;
 
-            Debug.Assert(filter != null, nameof(filter) + " != null");
-
-            if (string.IsNullOrWhiteSpace(filter.Category) || filter.Category == "All")
+            if (filter.IsAll)
             {
-                filter.Enabled = !filter.Enabled;
-                foreach (var categoryFilter in _viewModel.Categories)
+                var newState = !filter.IsEnabled;
+                foreach (var cat in _viewModel.Categories)
                 {
-                    if (categoryFilter.Category != "All")
-                        categoryFilter.Enabled = filter.Enabled;
+                    cat.IsEnabled = newState;
                 }
             }
             else
             {
-                filter.Enabled = !filter.Enabled;
-                var allEnabled = true;
-                for (var i = 1; i < _viewModel.Categories.Count; i++)
+                filter.IsEnabled = !filter.IsEnabled;
+                var allCategory = _viewModel.Categories.FirstOrDefault(c => c.IsAll);
+                if (allCategory != null)
                 {
-                    allEnabled &= _viewModel.Categories[i].Enabled;
+                    allCategory.IsEnabled = _viewModel.Categories
+                        .Where(c => !c.IsAll)
+                        .All(c => c.IsEnabled);
                 }
-
-                _viewModel.Categories[0].Enabled = allEnabled;
             }
 
-            foreach (var sound in _viewModel.SoundItems)
-            {
-                var enabled = _viewModel.Categories.FirstOrDefault(c => c.Category == sound.Category)?.Enabled ?? true;
-                sound.IsVisible = enabled;
-            }
+            _viewModel.UpdateSoundVisibility();
         }
 
 
@@ -142,16 +131,16 @@ namespace Soundboard
             return null;
         }
 
-        private void BrowseFolderClicked(object sender, MouseButtonEventArgs e)
+        private async void BrowseFolderClicked(object sender, MouseButtonEventArgs e)
         {
             var folder = OpenFolder();
             if (folder is not null)
-                _viewModel.ReadSounds(folder);
+                await _viewModel.ReadSoundsAsync(folder);
         }
 
-        private void RefreshClicked(object sender, MouseButtonEventArgs e)
+        private async void RefreshClicked(object sender, MouseButtonEventArgs e)
         {
-            _viewModel.RefreshSounds();
+            await _viewModel.RefreshSoundsAsync();
         }
 
 
