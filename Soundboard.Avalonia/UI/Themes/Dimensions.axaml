@@ -1,0 +1,18 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Soundboard.Avalonia.UI.Controls"
+                    xmlns:system="clr-namespace:System;assembly=System.Runtime">
+
+    <Design.PreviewWith>
+        <controls:SoundPad Width="136" Height="136"/>
+    </Design.PreviewWith>
+
+    <CornerRadius x:Key="PadOuterCornerRadius">14</CornerRadius>
+    <CornerRadius x:Key="PadInnerCornerRadius">13</CornerRadius>
+    <Thickness x:Key="PadBorderThickness">1</Thickness>
+    <CornerRadius x:Key="PadAccentCornerRadius">10</CornerRadius>
+    <system:Double x:Key="PadAccentThickness">28</system:Double>
+
+    <Thickness x:Key="PadInnerPadding">10,8,8,8</Thickness>
+
+</ResourceDictionary>

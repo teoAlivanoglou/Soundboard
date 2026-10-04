@@ -1,0 +1,29 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Soundboard.Avalonia.UI.Controls">
+
+    <Design.PreviewWith>
+        <controls:SoundPad Width="136" Height="136"/>
+    </Design.PreviewWith>
+
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFF4F6FA" />
+            <SolidColorBrush x:Key="PadSurfaceBrush" Color="#FFFFFFFF" />
+            <SolidColorBrush x:Key="PadBorderBrush" Color="#FFD8DCE6" />
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FF181B22" />
+            <SolidColorBrush x:Key="StopAllButtonBrush" Color="#FFE11D48" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FF111318"/>
+            <SolidColorBrush x:Key="PadSurfaceBrush" Color="#FF1A1D26"/>
+            <SolidColorBrush x:Key="PadBorderBrush" Color="#FF2B3142"/>
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFF1F3F7"/>
+            <SolidColorBrush x:Key="TextMutedBrush" Color="#FF828A9C" />
+            <SolidColorBrush x:Key="StopAllButtonBrush" Color="#FFE11D48"/>
+            <SolidColorBrush x:Key="LaserPlayheadBrush" Color="#FFFFFFFF" />
+        </ResourceDictionary>
+
+    </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>
