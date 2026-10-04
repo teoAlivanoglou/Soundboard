@@ -1,0 +1,153 @@
+<UserControl x:Class="Soundboard.UI.Controls.SoundPad"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Soundboard.UI.Controls"
+             xmlns:soundboard="clr-namespace:Soundboard"
+             xmlns:discovery="clr-namespace:Soundboard.Discovery"
+             xmlns:converters="clr-namespace:Soundboard.UI.Converters"
+             mc:Ignorable="d"
+             x:Name="SoundPadControl"
+             MouseEnter="SoundPad_OnMouseEnter"
+             MouseLeave="SoundPad_MouseLeave"
+             d:DesignHeight="136" d:DesignWidth="136"
+             d:DataContext="{d:DesignInstance d:Type=discovery:DesignSoundModel, IsDesignTimeCreatable=true}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Soundboard;component/UI/Themes/Colors.Dark.xaml" />
+                <ResourceDictionary Source="/Soundboard;component/UI/Themes/Dimensions.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <soundboard:LerpConverter x:Key="LerpConverter" />
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <soundboard:BorderClipConverter x:Key="BorderClipConverter" />
+            <converters:AdaptiveFontSizeConverter x:Key="AdaptiveFontSizeConverter" />
+        </ResourceDictionary>
+
+
+    </UserControl.Resources>
+
+    <Border Background="{DynamicResource PadSurfaceBrush}"
+            CornerRadius="{DynamicResource PadCornerRadius}"
+            BorderThickness="{DynamicResource PadBorderThickness}"
+            BorderBrush="{DynamicResource PadBorderBrush}">
+
+        <!-- Outer Glow when playing -->
+        <Border.Style>
+            <Style TargetType="Border">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                        <Setter Property="Effect">
+                            <Setter.Value>
+                                <DropShadowEffect BlurRadius="16"
+                                                  ShadowDepth="0"
+                                                  Color="{Binding Category.BackgroundBrush.Color}"
+                                                  Opacity="0.45" />
+                            </Setter.Value>
+                        </Setter>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+
+        <!-- Clipped Content Area -->
+        <Grid>
+            <Grid.Clip>
+                <MultiBinding Converter="{StaticResource BorderClipConverter}">
+                    <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}" />
+                    <Binding Path="ActualHeight" RelativeSource="{RelativeSource Self}" />
+                    <Binding Source="{StaticResource PadCornerRadius}" />
+                </MultiBinding>
+            </Grid.Clip>
+
+            <!-- Left Accent -->
+            <Border BorderThickness="{StaticResource PadAccentThickness}"
+                    ClipToBounds="True"
+                    BorderBrush="{Binding Category.BackgroundBrush, FallbackValue=Orange}"
+                    CornerRadius="{StaticResource PadAccentCornerRadius}" />
+
+            <!-- Progress Fill & Playhead -->
+            <Border HorizontalAlignment="Left"
+                    Visibility="{Binding IsPlaying, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}">
+                <Border.Width>
+                    <MultiBinding Converter="{StaticResource LerpConverter}">
+                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Grid}" />
+                        <Binding Path="Progress" />
+                    </MultiBinding>
+                </Border.Width>
+
+                <Grid>
+                    <!-- 15% -> 45% Translucent Tint -->
+                    <Border Background="{Binding Category.BackgroundBrush}">
+                        <Border.OpacityMask>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#26000000" Offset="0" />
+                                <GradientStop Color="#73000000" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.OpacityMask>
+                    </Border>
+
+                    <!-- Playhead -->
+                    <Rectangle HorizontalAlignment="Right"
+                               Width="2.5"
+                               Fill="#FFFFFFFF">
+                        <Rectangle.Effect>
+                            <DropShadowEffect BlurRadius="8" ShadowDepth="0" Color="White" Opacity="0.9" />
+                        </Rectangle.Effect>
+                    </Rectangle>
+                </Grid>
+            </Border>
+
+            <!-- Text -->
+            <Grid Margin="{StaticResource PadInnerPadding}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                           Text="{Binding Category.Name}"
+                           Foreground="{Binding Category.BackgroundBrush}"
+                           FontSize="8" FontWeight="DemiBold" HorizontalAlignment="Left" VerticalAlignment="Top" />
+
+                <Grid x:Name="TitleTextArea"
+                      Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                      Margin="0,8,0,8"
+                      ClipToBounds="True" VerticalAlignment="Stretch"
+                      SizeChanged="TitleTextArea_OnSizeChanged">
+
+                    <!-- <TextBlock Text="{Binding Name}" -->
+                    <!-- FontSize="{Binding Name, Converter={StaticResource AdaptiveFontSizeConverter}}" -->
+
+                    <TextBlock x:Name="TitleText"
+                               Text="{Binding Name}"
+                               d:Text="0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999"
+                               TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Top"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               FontFamily="Cascadia Mono, Consolas">
+                        <TextBlock.RenderTransform>
+                            <TranslateTransform x:Name="TextRollTransform" Y="0" />
+                        </TextBlock.RenderTransform>
+                    </TextBlock>
+                </Grid>
+
+                <TextBlock Grid.Row="2" Grid.Column="0"
+                           Text="{Binding Duration, StringFormat='{}{0:m\\:ss}'}" d:Text="0:04"
+                           Foreground="{DynamicResource TextMutedBrush}" FontSize="8" HorizontalAlignment="Left"
+                           VerticalAlignment="Bottom" />
+
+                <TextBlock Grid.Row="2" Grid.Column="1"
+                           Text="{Binding PadNumber}" d:Text="#01"
+                           Foreground="{DynamicResource TextMutedBrush}" FontSize="8" HorizontalAlignment="Right"
+                           VerticalAlignment="Bottom" />
+            </Grid>
+        </Grid>
+    </Border>
+
+</UserControl>

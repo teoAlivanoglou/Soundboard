@@ -124,7 +124,10 @@ public class LerpConverter : IMultiValueConverter
 {
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
-        return (double)(values[0]) * (double)(values[1]);
+        if (values.Length < 2 || values[0] is not double a || values[1] is not double b)
+            return 0.0;
+
+        return Math.Max(0.0, a*b);
     }
 
     public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
@@ -279,6 +282,30 @@ public class BoldForEnabledConverter : IValueConverter
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class BorderClipConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (values.Length >= 2 && values[0] is double width && values[1] is double height && width > 0 && height > 0)
+        {
+            double radius = 13.0;
+            if (values.Length >= 3 && values[2] is CornerRadius cr)
+            {
+                radius = cr.TopLeft - 1.0;
+            }
+
+            return new RectangleGeometry(new Rect(0, 0, width, height), radius, radius);
+        }
+
+        return Geometry.Empty;
+    }
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
     }

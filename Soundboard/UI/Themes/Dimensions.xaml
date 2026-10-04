@@ -1,0 +1,12 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <CornerRadius x:Key="PadCornerRadius">14</CornerRadius>
+    <Thickness x:Key="PadBorderThickness">1</Thickness>
+    <CornerRadius x:Key="PadAccentCornerRadius">10</CornerRadius>
+    <Thickness x:Key="PadAccentThickness">2.8,0,0,0</Thickness>
+
+    <Thickness x:Key="PadInnerPadding">10,8,8,8</Thickness>
+
+
+</ResourceDictionary>

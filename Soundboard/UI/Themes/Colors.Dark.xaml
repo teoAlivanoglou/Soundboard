@@ -1,0 +1,10 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FF111318"/>
+    <SolidColorBrush x:Key="PadSurfaceBrush" Color="#FF1A1D26"/>
+    <SolidColorBrush x:Key="PadBorderBrush" Color="#FF2B3142"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFF1F3F7"/>
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#FF828A9C" />
+    <SolidColorBrush x:Key="StopAllButtonBrush" Color="#FFE11D48"/>
+    <SolidColorBrush x:Key="LaserPlayheadBrush" Color="#FFFFFFFF" />
+</ResourceDictionary>
