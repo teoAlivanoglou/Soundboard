@@ -1,0 +1,196 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=System.Runtime">
+
+    <!-- ========================================================================= -->
+    <!-- EXPERIMENTAL / HISTORICAL DESIGN ITERATIONS RESOURCE DICTIONARY           -->
+    <!-- Harvested from brainstorming sessions (Screens 01 through 09).            -->
+    <!-- Contains all color swatches, theme variations, borders, and geometry.     -->
+    <!-- ========================================================================= -->
+
+    <!-- ========================================================================= -->
+    <!-- 1. EXPERIMENTAL GEOMETRY & DIMENSIONS                                     -->
+    <!-- ========================================================================= -->
+
+    <!-- Corner Radii Variations -->
+    <CornerRadius x:Key="ExpCornerRadius_Sharp">8</CornerRadius>
+    <CornerRadius x:Key="ExpCornerRadius_Compact">10</CornerRadius>
+    <CornerRadius x:Key="ExpCornerRadius_Medium">12</CornerRadius>
+    <CornerRadius x:Key="ExpCornerRadius_Squircle14">14</CornerRadius>
+    <CornerRadius x:Key="ExpCornerRadius_Soft16">16</CornerRadius>
+    <CornerRadius x:Key="ExpCornerRadius_Inner15">15</CornerRadius>
+    <CornerRadius x:Key="ExpCornerRadius_Inner10">10</CornerRadius>
+
+    <!-- Border Thickness Variations -->
+    <Thickness x:Key="ExpBorderThickness_Hairline">1</Thickness>
+    <Thickness x:Key="ExpBorderThickness_Medium">1.5</Thickness>
+    <Thickness x:Key="ExpBorderThickness_Bold">2</Thickness>
+    <Thickness x:Key="ExpBorderThickness_Heavy">2.5</Thickness>
+
+    <!-- Left Accent Stripe Dimensions -->
+    <system:Double x:Key="ExpAccentWidth_Slim">2.8</system:Double>
+    <system:Double x:Key="ExpAccentWidth_Medium">4.0</system:Double>
+    <system:Double x:Key="ExpAccentWidth_Standard">5.0</system:Double>
+    <system:Double x:Key="ExpAccentWidth_Bold">5.5</system:Double>
+    <system:Double x:Key="ExpAccentWidth_Heavy">6.0</system:Double>
+
+    <system:Double x:Key="ExpAccentCornerRadius_Subtle">2.0</system:Double>
+    <system:Double x:Key="ExpAccentCornerRadius_Standard">4.0</system:Double>
+    <system:Double x:Key="ExpAccentCornerRadius_Curved">10.0</system:Double>
+
+    <!-- Playhead / Laser Indicator Widths -->
+    <system:Double x:Key="ExpPlayhead_Thin">1.5</system:Double>
+    <system:Double x:Key="ExpPlayhead_Standard">2.0</system:Double>
+    <system:Double x:Key="ExpPlayhead_GlowLaser">2.5</system:Double>
+    <system:Double x:Key="ExpPlayhead_Bold">3.0</system:Double>
+
+    <!-- Button Gap Variations -->
+    <system:Double x:Key="ExpButtonGap_Tight">4.0</system:Double>
+    <system:Double x:Key="ExpButtonGap_Compact">6.0</system:Double>
+    <system:Double x:Key="ExpButtonGap_Standard">8.0</system:Double>
+    <system:Double x:Key="ExpButtonGap_Relaxed">10.0</system:Double>
+    <system:Double x:Key="ExpButtonGap_Spacious">12.0</system:Double>
+    <system:Double x:Key="ExpButtonGap_Wide">16.0</system:Double>
+
+    <!-- Pad Inner Padding Variations -->
+    <Thickness x:Key="ExpPadPadding_Tight">10,8,8,8</Thickness>
+    <Thickness x:Key="ExpPadPadding_Spec07">12,12,12,14</Thickness>
+    <Thickness x:Key="ExpPadPadding_Current">14,10,10,10</Thickness>
+    <Thickness x:Key="ExpPadPadding_Spacious">16,12,12,12</Thickness>
+
+    <!-- Typography Scales Across Iterations -->
+    <system:Double x:Key="ExpFont_CategoryTiny">10</system:Double>
+    <system:Double x:Key="ExpFont_CategorySmall">12</system:Double>
+    <system:Double x:Key="ExpFont_CategoryStandard">14</system:Double>
+
+    <system:Double x:Key="ExpFont_TitleMin13">13</system:Double>
+    <system:Double x:Key="ExpFont_TitleMin14">14</system:Double>
+    <system:Double x:Key="ExpFont_TitleMax16">16</system:Double>
+    <system:Double x:Key="ExpFont_TitleMax18">18</system:Double>
+    <system:Double x:Key="ExpFont_TitleHero20">20</system:Double>
+
+    <system:Double x:Key="ExpFont_MetaDuration11">11</system:Double>
+    <system:Double x:Key="ExpFont_MetaDuration12">12</system:Double>
+    <system:Double x:Key="ExpFont_MetaDuration14">14</system:Double>
+
+    <system:Double x:Key="ExpFont_Number11">11</system:Double>
+    <system:Double x:Key="ExpFont_Number12">12</system:Double>
+    <system:Double x:Key="ExpFont_Number14">14</system:Double>
+
+
+    <!-- ========================================================================= -->
+    <!-- 2. CATEGORY ACCENT PALETTE (Screens 05, 07, 08)                           -->
+    <!-- ========================================================================= -->
+
+    <!-- Solid Accents -->
+    <SolidColorBrush x:Key="ExpCat_Basses_AmberGold" Color="#FFFBBF24" />
+    <SolidColorBrush x:Key="ExpCat_DrumLoops_SkyCyan" Color="#FF38BDF8" />
+    <SolidColorBrush x:Key="ExpCat_Cymbals_EmeraldMint" Color="#FF34D399" />
+    <SolidColorBrush x:Key="ExpCat_HiHats_LavenderPurple" Color="#FFA78BFA" />
+    <SolidColorBrush x:Key="ExpCat_Kicks_HotCoralPink" Color="#FFF472B6" />
+    <SolidColorBrush x:Key="ExpCat_Percs_TangerineOrange" Color="#FFFB923C" />
+    <SolidColorBrush x:Key="ExpCat_Snares_SlateBlue" Color="#FF94A3B8" />
+    <SolidColorBrush x:Key="ExpCat_AllPill_Indigo" Color="#FF818CF8" />
+
+    <!-- Progress Wave Fills (15% to 45% alpha) -->
+    <SolidColorBrush x:Key="ExpCat_Basses_Fill15" Color="#26FBBF24" />
+    <SolidColorBrush x:Key="ExpCat_Basses_Fill45" Color="#73FBBF24" />
+    <SolidColorBrush x:Key="ExpCat_DrumLoops_Fill15" Color="#2638BDF8" />
+    <SolidColorBrush x:Key="ExpCat_DrumLoops_Fill45" Color="#7338BDF8" />
+    <SolidColorBrush x:Key="ExpCat_Cymbals_Fill15" Color="#2634D399" />
+    <SolidColorBrush x:Key="ExpCat_Cymbals_Fill45" Color="#7334D399" />
+    <SolidColorBrush x:Key="ExpCat_HiHats_Fill15" Color="#26A78BFA" />
+    <SolidColorBrush x:Key="ExpCat_HiHats_Fill45" Color="#73A78BFA" />
+    <SolidColorBrush x:Key="ExpCat_Kicks_Fill15" Color="#26F472B6" />
+    <SolidColorBrush x:Key="ExpCat_Kicks_Fill45" Color="#73F472B6" />
+    <SolidColorBrush x:Key="ExpCat_Percs_Fill15" Color="#26FB923C" />
+    <SolidColorBrush x:Key="ExpCat_Percs_Fill45" Color="#73FB923C" />
+    <SolidColorBrush x:Key="ExpCat_Snares_Fill15" Color="#2694A3B8" />
+    <SolidColorBrush x:Key="ExpCat_Snares_Fill45" Color="#7394A3B8" />
+
+
+    <!-- ========================================================================= -->
+    <!-- 3. HISTORICAL COLOR SCHEMES BY ITERATION                                 -->
+    <!-- ========================================================================= -->
+
+    <!-- 01-Design Directions (Studio Dark vs Modern Light) -->
+    <SolidColorBrush x:Key="Exp01_Dark_WindowBg" Color="#FF121316" />
+    <SolidColorBrush x:Key="Exp01_Dark_Surface" Color="#FF1A1C23" />
+    <SolidColorBrush x:Key="Exp01_Dark_PadFace" Color="#FF22252E" />
+    <SolidColorBrush x:Key="Exp01_Dark_Border" Color="#FF2F3442" />
+    <SolidColorBrush x:Key="Exp01_Dark_TextPrimary" Color="#FFF0F2F5" />
+    <SolidColorBrush x:Key="Exp01_Dark_TextMuted" Color="#FF8B92A5" />
+
+    <SolidColorBrush x:Key="Exp01_Light_WindowBg" Color="#FFF4F5F8" />
+    <SolidColorBrush x:Key="Exp01_Light_Surface" Color="#FFE6E8EC" />
+    <SolidColorBrush x:Key="Exp01_Light_PadFace" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="Exp01_Light_Border" Color="#FFCBD1DC" />
+    <SolidColorBrush x:Key="Exp01_Light_TextPrimary" Color="#FF14161B" />
+    <SolidColorBrush x:Key="Exp01_Light_TextMuted" Color="#FF7D8494" />
+
+    <!-- 02-Layout Iterations (High-Contrast Clean Deck) -->
+    <SolidColorBrush x:Key="Exp02_Dark_WindowBg" Color="#FF121418" />
+    <SolidColorBrush x:Key="Exp02_Dark_PadFace" Color="#FF1A1D24" />
+    <SolidColorBrush x:Key="Exp02_Dark_Border" Color="#FF2A2E3A" />
+    <SolidColorBrush x:Key="Exp02_Dark_TextPrimary" Color="#FFF3F4F6" />
+    <SolidColorBrush x:Key="Exp02_Dark_TextMuted" Color="#FF8B92A5" />
+
+    <SolidColorBrush x:Key="Exp02_Light_WindowBg" Color="#FFF5F6F9" />
+    <SolidColorBrush x:Key="Exp02_Light_PadFace" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="Exp02_Light_Border" Color="#FFD5D8E0" />
+    <SolidColorBrush x:Key="Exp02_Light_TextPrimary" Color="#FF13151A" />
+    <SolidColorBrush x:Key="Exp02_Light_TextMuted" Color="#FF6D7586" />
+
+    <!-- 03-Matrix Styles Compared -->
+    <!-- Style 1: Minimal Line -->
+    <SolidColorBrush x:Key="Exp03_Style1_PadFace" Color="#FF191C23" />
+    <SolidColorBrush x:Key="Exp03_Style1_Border" Color="#FF262B37" />
+    <!-- Style 2: Glow Pill -->
+    <SolidColorBrush x:Key="Exp03_Style2_PadFace" Color="#FF181B22" />
+    <SolidColorBrush x:Key="Exp03_Style2_Border" Color="#FF242937" />
+    <!-- Style 3: Laser Header -->
+    <SolidColorBrush x:Key="Exp03_Style3_PadFace" Color="#FF15171E" />
+    <SolidColorBrush x:Key="Exp03_Style3_Border" Color="#FF222632" />
+    <!-- Style 4: Compact Grid -->
+    <SolidColorBrush x:Key="Exp03_Style4_PadFace" Color="#FF1A1E28" />
+    <SolidColorBrush x:Key="Exp03_Style4_Border" Color="#FF282E3C" />
+
+    <!-- 04-Style A Variations -->
+    <SolidColorBrush x:Key="Exp04_Var1_BorderDark" Color="#FF282E3C" />
+    <SolidColorBrush x:Key="Exp04_Var1_BorderLight" Color="#FFD9DCE3" />
+    <SolidColorBrush x:Key="Exp04_Var2_BorderDark" Color="#FF2E3547" />
+    <SolidColorBrush x:Key="Exp04_Var2_BorderLight" Color="#FFD2D7E2" />
+    <SolidColorBrush x:Key="Exp04_Var3_BorderDark" Color="#FF272C3B" />
+    <SolidColorBrush x:Key="Exp04_Var3_BorderLight" Color="#FFD6DAE3" />
+
+    <!-- 05 & 06 Border & Accent Tuning -->
+    <!-- Crisp 1px Outline -->
+    <SolidColorBrush x:Key="Exp06_Crisp1px_BorderDark" Color="#FF2B3142" />
+    <SolidColorBrush x:Key="Exp06_Crisp1px_BorderLight" Color="#FFD8DCE6" />
+    <!-- Balanced 1.5px Outline -->
+    <SolidColorBrush x:Key="Exp06_Balanced15px_BorderDark" Color="#FF2E3547" />
+    <SolidColorBrush x:Key="Exp06_Balanced15px_BorderLight" Color="#FFD4D8E4" />
+    <!-- Bold 2px Outline -->
+    <SolidColorBrush x:Key="Exp06_Bold2px_BorderDark" Color="#FF31384B" />
+    <SolidColorBrush x:Key="Exp06_Bold2px_BorderLight" Color="#FFCFD4E0" />
+
+    <!-- States: Hover, Playing, and Glow Borders -->
+    <SolidColorBrush x:Key="ExpState_BorderHover_Dark" Color="#FF3E475D" />
+    <SolidColorBrush x:Key="ExpState_BorderHover_Light" Color="#FFB8BFCF" />
+    <SolidColorBrush x:Key="ExpState_BorderPlaying_Dark" Color="#FF556080" />
+
+    <!-- 08 & 09 Deep Obsidian Deck Theme -->
+    <SolidColorBrush x:Key="Exp09_DeepDark_WindowBg" Color="#FF0C0E12" />
+    <SolidColorBrush x:Key="Exp09_DeepDark_Surface" Color="#FF12141A" />
+    <SolidColorBrush x:Key="Exp09_DeepDark_PadFace" Color="#FF161922" />
+    <SolidColorBrush x:Key="Exp09_DeepDark_Border" Color="#FF2B3142" />
+    <SolidColorBrush x:Key="Exp09_DeepDark_BorderFocus" Color="#FF3F475C" />
+    <SolidColorBrush x:Key="Exp08_HeaderStrip_Dark" Color="#FF131722" />
+
+    <!-- Action & Status Brushes -->
+    <SolidColorBrush x:Key="ExpAction_StopAll_Crimson" Color="#FFE11D48" />
+    <SolidColorBrush x:Key="ExpAction_StopAll_Hover" Color="#FFF43F5E" />
+    <SolidColorBrush x:Key="ExpAction_StopAll_Active" Color="#FFB91C1C" />
+    <SolidColorBrush x:Key="ExpAction_StopAll_LightBg" Color="#FFFEE2E2" />
+
+</ResourceDictionary>

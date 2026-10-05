@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             xmlns:converters="clr-namespace:Soundboard.Avalonia.UI.Converters"
+             mc:Ignorable="d" d:DesignWidth="800"
+             x:Class="Soundboard.Avalonia.UI.Views.BottomBarView">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <system:Double x:Key="ButtonHeight">32</system:Double>
+            <converters:VolumeIconConverter x:Key="VolumeIconConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.Styles>
+        <Style Selector="Button.ConsistentButton">
+            <Setter Property="Height" Value="{StaticResource ButtonHeight}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="8, 0" />
+        </Style>
+        <Style Selector="Button.IconButton">
+            <Setter Property="Width" Value="{StaticResource ButtonHeight}" />
+            <Setter Property="FontFamily" Value="{StaticResource IconFont}" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style Selector="Button.GhostButton">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+    </UserControl.Styles>
+
+
+    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" RowDefinitions="Auto,*" ColumnSpacing="4" Margin="8">
+
+        <!-- Stop All Button -->
+        <Button Grid.Column="0" Content="Stop All"
+                Classes="ConsistentButton"
+                Background="{DynamicResource StopAllButtonBrush}" />
+
+
+        <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="4" VerticalAlignment="Center"
+              HorizontalAlignment="Stretch" MaxWidth="256">
+
+            <!-- Volume Button -->
+            <Button Grid.Column="0"
+                    Classes="ConsistentButton IconButton GhostButton"
+                    Content="{Binding Path=Value, ElementName=VolumeSlider, Converter={StaticResource VolumeIconConverter}}"/>
+
+            <!-- Volume Slider -->
+            <Slider x:Name="VolumeSlider" Grid.Column="1" Minimum="0" Maximum="100" Value="70"
+                    VerticalAlignment="Center" Margin="0" Padding="0" IsSnapToTickEnabled="True" TickFrequency="1" />
+
+            <!-- Volume Label -->
+            <TextBlock Grid.Column="2" Width="32"
+                       VerticalAlignment="Center" HorizontalAlignment="Right"
+                       TextAlignment="End"
+                       FontFeatures="tnum"
+                       Text="{Binding Path=Value, ElementName=VolumeSlider}" />
+        </Grid>
+
+
+        <!-- Browse Folder Button -->
+        <Button Grid.Row="0" Grid.Column="2"
+                Classes="ConsistentButton IconButton"
+                Content="&#xe247;" />
+
+        <!-- Refresh Button -->
+        <Button Grid.Row="0" Grid.Column="3"
+                Classes="ConsistentButton IconButton"
+                Content="&#xe144;" />
+
+        <!-- Settings Button -->
+        <Button Grid.Row="0" Grid.Column="4"
+                Classes="ConsistentButton IconButton"
+                Content="&#xe154;" />
+    </Grid>
+</UserControl>

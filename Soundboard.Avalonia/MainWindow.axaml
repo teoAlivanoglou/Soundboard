@@ -4,34 +4,21 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:Soundboard.Avalonia.UI.Controls"
         xmlns:avalonia="clr-namespace:Soundboard.Avalonia"
-        xmlns:ui="clr-namespace:Soundboard.Avalonia.UI"
+        xmlns:ui="clr-namespace:Soundboard.Avalonia.UI" 
+        xmlns:views="clr-namespace:Soundboard.Avalonia.UI.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Soundboard.Avalonia.MainWindow"
         Title="Soundboard.Avalonia" 
         x:DataType="avalonia:TestViewModel">
     
-    <Grid RowDefinitions="Auto,*,Auto,Auto" ClipToBounds="False">
+    <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" ClipToBounds="False" Background="{DynamicResource WindowBackgroundBrush}">
 
+        <views:CategoryBarView Grid.Row="0"/>
+        <views:SoundboardGridView Grid.Row="1"/>
+        <!-- <views:SettingsPanelView Grid.Row="2"/> -->
 
-        <controls:SoundPad Grid.Row="0" Grid.Column="0" 
-                           HorizontalAlignment="Left"
-                           VerticalAlignment="Top"
-                           Margin="24"
-                           ClipToBounds="False"
-                           DataContext="{Binding Model}"
-                           x:DataType="ui:DesignSoundModel"
-                           Width="{Binding Size}" 
-                           Height="{Binding Size}"/>
-
-        <Slider Grid.Row="1" Margin="24,0,24,10" Minimum="100" Maximum="300" Value="{Binding Model.Size, Mode=TwoWay}"/>
-        <!-- <ListBox x:Name="TopTabsPanel" -->
-        <!--          Grid.Row="0" -->
-        <!--          ItemsSource="{Binding Categories}" -->
-        <!--          Margin="5,5,5,-4" BorderThickness="0" -->
-        <!--          HorizontalAlignment="Stretch" -->
-        <!--          ItemContainerStyle="{StaticResource NoHoverListViewItem}" -->
-        <!--          > -->
-        <!-- </ListBox> -->
+        <!-- <Slider Grid.Row="2" Margin="24,10" Minimum="100" Maximum="300" Value="{Binding Model.Size, Mode=TwoWay}"/> -->
+        <views:BottomBarView Grid.Row="3"/>
 
     </Grid>
     

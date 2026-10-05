@@ -6,7 +6,7 @@
              xmlns:avalonia="clr-namespace:Soundboard.Avalonia"
              xmlns:converters="clr-namespace:Soundboard.Avalonia.UI.Converters"
              xmlns:soundboard="clr-namespace:Soundboard;assembly=Soundboard"
-             mc:Ignorable="d" d:DesignWidth="136" d:DesignHeight="136"
+             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="200"
              x:Class="Soundboard.Avalonia.UI.Controls.SoundPad"
              x:DataType="discovery:DesignSoundModel"
              PointerEntered="InputElement_OnPointerEntered"
@@ -18,17 +18,7 @@
         <discovery:DesignSoundModel />
     </Design.DataContext>
 
-    <UserControl.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="/UI/Themes/Dimensions.axaml" />
-                <ResourceInclude Source="/UI/Themes/Colors.axaml" />
-            </ResourceDictionary.MergedDictionaries>
-            <converters:ShadowConverter x:Key="ShadowConverter" />
-            <converters:OuterGlowConverter x:Key="OuterGlowConverter" />
-            <converters:LerpConverter x:Key="LerpConverter" />
-        </ResourceDictionary>
-    </UserControl.Resources>
+   
 
     <UserControl.Styles>
         <Style Selector="Border.glow">

@@ -17,7 +17,7 @@
     <system:Double x:Key="PadCategoryFontSize">14</system:Double>
     <system:Double x:Key="PadDurationFontSize">14</system:Double>
     <system:Double x:Key="PadNumberFontSize">14</system:Double>
-    <system:Double x:Key="PadTitleMaxFontSize">18</system:Double>
-    <system:Double x:Key="PadTitleMinFontSize">15</system:Double>
+    <system:Double x:Key="PadTitleMaxFontSize">16</system:Double>
+    <system:Double x:Key="PadTitleMinFontSize">14</system:Double>
 
 </ResourceDictionary>

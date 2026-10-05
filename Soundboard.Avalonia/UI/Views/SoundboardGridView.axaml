@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:Soundboard.Avalonia.UI.Controls"
+             xmlns:ui="clr-namespace:Soundboard.Avalonia.UI"
+             xmlns:avalonia="clr-namespace:Soundboard.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Soundboard.Avalonia.UI.Views.SoundboardGridView"
+             x:DataType="avalonia:TestViewModel">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+        <controls:UniformSquarePanel MinItemSize="{Binding Model.Size}"
+                                     ItemGap="8"
+                                     ClipToBounds="False">
+            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
+            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
+            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
+            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
+            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
+            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
+            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
+            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
+        </controls:UniformSquarePanel>
+    </ScrollViewer>
+</UserControl>
