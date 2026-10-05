@@ -1,14 +1,14 @@
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using Avalonia;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace Soundboard.Avalonia.UI.Converters;
 
-public class ShadowConverter : IValueConverter
+public class ShadowConverter : IMultiValueConverter, IValueConverter
 {
-
     /// <summary>
     /// Creates a BoxShadow object.
     /// <param name="value">must be bound to an <c>Avalonia.Media.Color</c> or <c>Avalonia.Media.SolidColorBrush</c>.</param>
@@ -29,7 +29,7 @@ public class ShadowConverter : IValueConverter
             double d => d,
             int i => i,
             string s when double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed) => parsed,
-            _ => 28
+            _ => 3.0
         };
 
         var shadow = new BoxShadow
@@ -48,5 +48,39 @@ public class ShadowConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Creates a BoxShadow object.
+    /// </summary>
+    public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var color = values.Count > 0 ? values[0] switch
+        {
+            SolidColorBrush brush => brush.Color,
+            Color c => c,
+            _ => Colors.Transparent
+        } : Colors.Transparent;
+
+        var width = values.Count > 1 ? values[1] switch
+        {
+            Thickness thickness => thickness.Left,
+            double d => d,
+            int i => i,
+            string s when double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed) => parsed,
+            _ => 3.0
+        } : 3.0;
+
+        var shadow = new BoxShadow
+        {
+            IsInset = true,
+            OffsetX = width,
+            OffsetY = 0,
+            Blur = 0,
+            Spread = 0,
+            Color = color
+        };
+
+        return new BoxShadows(shadow);
     }
 }

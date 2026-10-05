@@ -7,12 +7,19 @@
         <controls:SoundPad Width="136" Height="136"/>
     </Design.PreviewWith>
 
-    <CornerRadius x:Key="PadOuterCornerRadius">14</CornerRadius>
-    <CornerRadius x:Key="PadInnerCornerRadius">13</CornerRadius>
-    <Thickness x:Key="PadBorderThickness">1</Thickness>
-    <CornerRadius x:Key="PadAccentCornerRadius">10</CornerRadius>
-    <system:Double x:Key="PadAccentThickness">28</system:Double>
+    <CornerRadius x:Key="PadOuterCornerRadius">16</CornerRadius>
+    <CornerRadius x:Key="PadInnerCornerRadius">15</CornerRadius>
+    <Thickness x:Key="PadBorderThickness">2</Thickness>
 
-    <Thickness x:Key="PadInnerPadding">10,8,8,8</Thickness>
+    <system:Double x:Key="PadAccentCornerRadius">4</system:Double>
+    <system:Double x:Key="PadAccentThickness">6</system:Double>
+
+    <Thickness x:Key="PadInnerPadding">14,10,10,10</Thickness>
+
+    <system:Double x:Key="PadCategoryFontSize">14</system:Double>
+    <system:Double x:Key="PadDurationFontSize">14</system:Double>
+    <system:Double x:Key="PadNumberFontSize">14</system:Double>
+    <system:Double x:Key="PadTitleMaxFontSize">18</system:Double>
+    <system:Double x:Key="PadTitleMinFontSize">15</system:Double>
 
 </ResourceDictionary>

@@ -5,11 +5,15 @@
              xmlns:discovery="clr-namespace:Soundboard.Avalonia.UI"
              xmlns:avalonia="clr-namespace:Soundboard.Avalonia"
              xmlns:converters="clr-namespace:Soundboard.Avalonia.UI.Converters"
+             xmlns:soundboard="clr-namespace:Soundboard;assembly=Soundboard"
              mc:Ignorable="d" d:DesignWidth="136" d:DesignHeight="136"
              x:Class="Soundboard.Avalonia.UI.Controls.SoundPad"
              x:DataType="discovery:DesignSoundModel"
              PointerEntered="InputElement_OnPointerEntered"
-             PointerExited="InputElement_OnPointerExited">
+             PointerExited="InputElement_OnPointerExited"
+             SizeChanged="Control_OnSizeChanged"
+             Cursor="Hand"
+             ClipToBounds="False">
     <Design.DataContext>
         <discovery:DesignSoundModel />
     </Design.DataContext>
@@ -22,20 +26,24 @@
             </ResourceDictionary.MergedDictionaries>
             <converters:ShadowConverter x:Key="ShadowConverter" />
             <converters:OuterGlowConverter x:Key="OuterGlowConverter" />
+            <converters:LerpConverter x:Key="LerpConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
 
     <Border
-
-
-        Margin="8"
-
-
+        ClipToBounds="False"
         Background="{DynamicResource PadSurfaceBrush}"
         CornerRadius="{DynamicResource PadOuterCornerRadius}"
         BorderThickness="{DynamicResource PadBorderThickness}"
-        BorderBrush="{DynamicResource PadBorderBrush}"
-        BoxShadow="{Binding Category.BackgroundBrush, Converter={StaticResource ShadowConverter}, ConverterParameter={StaticResource PadAccentThickness}}">
+        BorderBrush="{DynamicResource PadBorderBrush}">
+        <!-- BoxShadow="{Binding Category.BackgroundBrush, Converter={StaticResource ShadowConverter}, ConverterParameter={StaticResource PadAccentThickness}}" -->
+        <Border.BoxShadow>
+            <MultiBinding Converter="{StaticResource ShadowConverter}">
+                <Binding Path="Category.BackgroundBrush" />
+                <Binding Source="{StaticResource PadAccentThickness}" />
+                <Binding Source="{StaticResource PadAccentCornerRadius}" />
+            </MultiBinding>
+        </Border.BoxShadow>
         <Border.Effect>
             <MultiBinding Converter="{StaticResource OuterGlowConverter}">
                 <Binding Path="IsPlaying" />
@@ -53,38 +61,59 @@
                 <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                            Text="{Binding Category.Name}"
                            Foreground="{Binding Category.BackgroundBrush}"
-                           FontSize="8" FontWeight="DemiBold" />
+                           FontSize="{DynamicResource PadCategoryFontSize}" FontWeight="DemiBold" />
+                <Border Grid.Row="1"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="2"
+                        x:Name="TitleTextBoxBounds"
+                        UseLayoutRounding="False"
+                        Padding="0 8"
+                        ClipToBounds="True">
 
-                <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Padding="0 8">
-                    <TextBlock Text="{Binding Name}"
-                               TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Top"
-                               Foreground="{DynamicResource TextPrimaryBrush}"
-                               FontFamily="Cascadia Mono, Consolas">
-                    </TextBlock>
+                    <ScrollViewer x:Name="TitleScroll"
+                                  UseLayoutRounding="False"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Hidden">
+                        <TextBlock x:Name="TitleTextBlock"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Top"
+                                   UseLayoutRounding="False"
+                                   TextOptions.BaselinePixelAlignment="Unaligned"
+                                   TextOptions.TextRenderingMode="SubpixelAntialias"
+                                   Text="{Binding Name}"
+                                   FontFamily="Cascadia Mono, Consolas"
+                                   Foreground="{DynamicResource TextPrimaryBrush}">
+                            <TextBlock.RenderTransform>
+                                <TranslateTransform />
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                    </ScrollViewer>
                 </Border>
 
                 <TextBlock Grid.Row="2" Grid.Column="0"
                            Text="{Binding Duration, StringFormat='{}{0:m\\:ss}'}"
-                           Foreground="{DynamicResource TextMutedBrush}" FontSize="8"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           FontSize="{DynamicResource PadDurationFontSize}"
                            FontFamily="Cascadia Mono, Consolas"
-                           HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+                           HorizontalAlignment="Left" VerticalAlignment="Bottom" />
 
                 <TextBlock Grid.Row="2" Grid.Column="1"
                            Text="{Binding  PadNumber}"
-                           Foreground="{DynamicResource TextMutedBrush}" FontSize="8"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           FontSize="{DynamicResource PadNumberFontSize}"
                            FontFamily="Cascadia Mono, Consolas"
-                           HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                           HorizontalAlignment="Right" VerticalAlignment="Bottom" />
 
             </Grid>
 
 
             <!-- Playhead and progress -->
-            <Border ClipToBounds="True"
+            <Border ClipToBounds="True" IsVisible="{Binding IsPlaying}"
                     CornerRadius="{DynamicResource PadInnerCornerRadius}">
 
                 <Grid ColumnDefinitions="Auto,*">
 
-                    <Rectangle Grid.Column="0" Width="45" VerticalAlignment="Stretch"
+                    <Rectangle Grid.Column="0" VerticalAlignment="Stretch"
                                Fill="{Binding Category.BackgroundBrush}">
                         <Rectangle.OpacityMask>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="100%,0%">
@@ -93,16 +122,22 @@
                                 <GradientStop Color="#0000" Offset="1" />
                             </LinearGradientBrush>
                         </Rectangle.OpacityMask>
+                        <Rectangle.Width>
+                            <MultiBinding Converter="{StaticResource LerpConverter}">
+                                <Binding Path="Bounds.Width" RelativeSource="{RelativeSource AncestorType=Grid}" />
+                                <Binding Path="Progress" />
+                            </MultiBinding>
+                        </Rectangle.Width>
                     </Rectangle>
 
-                    <Rectangle Grid.Column="1" Width="1"
+                    <Rectangle Grid.Column="1" Width="2"
                                VerticalAlignment="Stretch" HorizontalAlignment="Left"
-                               Fill="{DynamicResource TextPrimaryBrush}" Opacity="0.7" Effect="drop-shadow(0 0 2 #FFF)" />
+                               Fill="{DynamicResource TextPrimaryBrush}" Opacity="0.7" Effect="drop-shadow(0 0 6 #FFF)" />
 
-                    <Rectangle Grid.Column="1" Width="1" Margin="0,1"
+                    <Rectangle Grid.Column="1" Width="2" Margin="0,1"
                                VerticalAlignment="Stretch" HorizontalAlignment="Left"
                                Fill="{DynamicResource TextPrimaryBrush}"
-                               Effect="drop-shadow(0 0 2 #7FFF)" />
+                               Effect="drop-shadow(0 0 4 #7FFF)" />
                 </Grid>
             </Border>
         </Grid>

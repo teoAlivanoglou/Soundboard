@@ -26,7 +26,7 @@ public class OuterGlowConverter : IMultiValueConverter
             _ => Colors.Blue
         };
 
-        return new ImmutableDropShadowEffect(0, 0, 16, color, 0.45);
+        return new ImmutableDropShadowEffect(0, 0, 32, color, 0.45);
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
