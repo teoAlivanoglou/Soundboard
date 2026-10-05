@@ -42,7 +42,7 @@ public partial class DesignSoundModel : ObservableObject
 
     public void StartSimulation()
     {
-        StopSimulation();
+        StopPlaybackTimer();
 
         if (global::System.TimeSpan.TryParseExact(Duration, @"m\:ss", global::System.Globalization.CultureInfo.InvariantCulture, out var parsed) ||
             global::System.TimeSpan.TryParse(Duration, global::System.Globalization.CultureInfo.InvariantCulture, out parsed))
@@ -54,8 +54,8 @@ public partial class DesignSoundModel : ObservableObject
             _totalDuration = global::System.TimeSpan.FromSeconds(3);
         }
 
-        IsPlaying = true;
         Progress = 0.0;
+        IsPlaying = true;
 
         _stopwatch = global::System.Diagnostics.Stopwatch.StartNew();
         _playbackTimer = new global::Avalonia.Threading.DispatcherTimer
@@ -68,6 +68,12 @@ public partial class DesignSoundModel : ObservableObject
 
     public void StopSimulation()
     {
+        StopPlaybackTimer();
+        IsPlaying = false;
+    }
+
+    private void StopPlaybackTimer()
+    {
         if (_playbackTimer != null)
         {
             _playbackTimer.Stop();
@@ -77,9 +83,6 @@ public partial class DesignSoundModel : ObservableObject
 
         _stopwatch?.Stop();
         _stopwatch = null;
-
-        IsPlaying = false;
-        Progress = 0.0;
     }
 
     private void OnPlaybackTimerTick(object? sender, global::System.EventArgs e)
@@ -95,6 +98,7 @@ public partial class DesignSoundModel : ObservableObject
 
         if (totalMs <= 0 || elapsedMs >= totalMs)
         {
+            Progress = 1.0;
             StopSimulation();
         }
         else

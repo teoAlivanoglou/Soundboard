@@ -30,28 +30,59 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border
-        ClipToBounds="False"
-        Background="{DynamicResource PadSurfaceBrush}"
-        CornerRadius="{DynamicResource PadOuterCornerRadius}"
-        BorderThickness="{DynamicResource PadBorderThickness}"
-        BorderBrush="{DynamicResource PadBorderBrush}">
-        <!-- BoxShadow="{Binding Category.BackgroundBrush, Converter={StaticResource ShadowConverter}, ConverterParameter={StaticResource PadAccentThickness}}" -->
-        <Border.BoxShadow>
-            <MultiBinding Converter="{StaticResource ShadowConverter}">
-                <Binding Path="Category.BackgroundBrush" />
-                <Binding Source="{StaticResource PadAccentThickness}" />
-                <Binding Source="{StaticResource PadAccentCornerRadius}" />
-            </MultiBinding>
-        </Border.BoxShadow>
-        <Border.Effect>
-            <MultiBinding Converter="{StaticResource OuterGlowConverter}">
-                <Binding Path="IsPlaying" />
-                <Binding Path="Category.BackgroundBrush" />
-            </MultiBinding>
-        </Border.Effect>
+    <UserControl.Styles>
+        <Style Selector="Border.glow">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseOut" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.glow.playing">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
 
-        <Grid>
+        <Style Selector="Border.progress">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseOut" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.progress.playing">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+    </UserControl.Styles>
+
+    <Panel ClipToBounds="False">
+        <!-- Glow Underlay -->
+        <Border Classes="glow"
+                Classes.playing="{Binding IsPlaying}"
+                ClipToBounds="False"
+                IsHitTestVisible="False"
+                Background="{DynamicResource PadSurfaceBrush}"
+                CornerRadius="{DynamicResource PadOuterCornerRadius}"
+                Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}}" />
+
+        <!-- Main Pad Surface -->
+        <Border
+            ClipToBounds="False"
+            Background="{DynamicResource PadSurfaceBrush}"
+            CornerRadius="{DynamicResource PadOuterCornerRadius}"
+            BorderThickness="{DynamicResource PadBorderThickness}"
+            BorderBrush="{DynamicResource PadBorderBrush}">
+            <!-- BoxShadow="{Binding Category.BackgroundBrush, Converter={StaticResource ShadowConverter}, ConverterParameter={StaticResource PadAccentThickness}}" -->
+            <Border.BoxShadow>
+                <MultiBinding Converter="{StaticResource ShadowConverter}">
+                    <Binding Path="Category.BackgroundBrush" />
+                    <Binding Source="{StaticResource PadAccentThickness}" />
+                    <Binding Source="{StaticResource PadAccentCornerRadius}" />
+                </MultiBinding>
+            </Border.BoxShadow>
+
+            <Grid>
 
             <!-- Content -->
             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*,Auto"
@@ -108,7 +139,10 @@
 
 
             <!-- Playhead and progress -->
-            <Border ClipToBounds="True" IsVisible="{Binding IsPlaying}"
+            <Border Classes="progress"
+                    Classes.playing="{Binding IsPlaying}"
+                    ClipToBounds="True"
+                    IsHitTestVisible="False"
                     CornerRadius="{DynamicResource PadInnerCornerRadius}">
 
                 <Grid ColumnDefinitions="Auto,*">
@@ -142,4 +176,5 @@
             </Border>
         </Grid>
     </Border>
+</Panel>
 </UserControl>
