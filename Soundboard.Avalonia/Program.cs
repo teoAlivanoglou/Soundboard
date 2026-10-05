@@ -5,6 +5,7 @@ using Soundboard.AudioEngine;
 using Soundboard.Discovery;
 using Soundboard.Settings;
 using System;
+using Soundboard.Avalonia.UI.Fonts;
 
 namespace Soundboard.Avalonia;
 
@@ -43,6 +44,9 @@ class Program
 #if DEBUG
             .WithDeveloperTools()
 #endif
-            .WithInterFont()
+            .ConfigureFonts(fontManager =>
+            {
+                fontManager.AddFontCollection(new UIFontCollection());
+            })
             .LogToTrace();
 }

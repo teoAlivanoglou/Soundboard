@@ -57,6 +57,7 @@
     </UserControl.Styles>
 
     <Panel ClipToBounds="False">
+
         <!-- Glow Underlay -->
         <Border Classes="glow"
                 Classes.playing="{Binding IsPlaying}"
@@ -89,10 +90,12 @@
                   HorizontalAlignment="Stretch"
                   Margin="{DynamicResource PadInnerPadding}">
 
+                <!-- Category Name -->
                 <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                            Text="{Binding Category.Name}"
                            Foreground="{Binding Category.BackgroundBrush}"
-                           FontSize="{DynamicResource PadCategoryFontSize}" FontWeight="DemiBold" />
+                           FontSize="{DynamicResource PadCategoryFontSize}"
+                           FontWeight="DemiBold" />
                 <Border Grid.Row="1"
                         Grid.Column="0"
                         Grid.ColumnSpan="2"
@@ -101,6 +104,7 @@
                         Padding="0 8"
                         ClipToBounds="True">
 
+                    <!-- Sound Name -->
                     <ScrollViewer x:Name="TitleScroll"
                                   UseLayoutRounding="False"
                                   HorizontalScrollBarVisibility="Disabled"
@@ -112,7 +116,6 @@
                                    TextOptions.BaselinePixelAlignment="Unaligned"
                                    TextOptions.TextRenderingMode="SubpixelAntialias"
                                    Text="{Binding Name}"
-                                   FontFamily="Cascadia Mono, Consolas"
                                    Foreground="{DynamicResource TextPrimaryBrush}">
                             <TextBlock.RenderTransform>
                                 <TranslateTransform />
@@ -121,18 +124,20 @@
                     </ScrollViewer>
                 </Border>
 
+                <!-- Duration -->
                 <TextBlock Grid.Row="2" Grid.Column="0"
                            Text="{Binding Duration, StringFormat='{}{0:m\\:ss}'}"
                            Foreground="{DynamicResource TextMutedBrush}"
                            FontSize="{DynamicResource PadDurationFontSize}"
-                           FontFamily="Cascadia Mono, Consolas"
+                           FontFeatures="tnum"
                            HorizontalAlignment="Left" VerticalAlignment="Bottom" />
 
+                <!-- Number -->
                 <TextBlock Grid.Row="2" Grid.Column="1"
                            Text="{Binding  PadNumber}"
                            Foreground="{DynamicResource TextMutedBrush}"
                            FontSize="{DynamicResource PadNumberFontSize}"
-                           FontFamily="Cascadia Mono, Consolas"
+                           FontFeatures="tnum"
                            HorizontalAlignment="Right" VerticalAlignment="Bottom" />
 
             </Grid>
@@ -164,13 +169,14 @@
                         </Rectangle.Width>
                     </Rectangle>
 
-                    <Rectangle Grid.Column="1" Width="2"
+                    <!-- Playhead -->
+                    <Rectangle Grid.Column="1" Width="{StaticResource PlayheadSize}"
                                VerticalAlignment="Stretch" HorizontalAlignment="Left"
-                               Fill="{DynamicResource TextPrimaryBrush}" Opacity="0.7" Effect="drop-shadow(0 0 6 #FFF)" />
+                               Fill="{DynamicResource LaserPlayheadBrush}" Opacity="0.7" Effect="drop-shadow(0 0 6 #FFF)" />
 
-                    <Rectangle Grid.Column="1" Width="2" Margin="0,1"
+                    <Rectangle Grid.Column="1" Width="{StaticResource PlayheadSize}" Margin="0,1"
                                VerticalAlignment="Stretch" HorizontalAlignment="Left"
-                               Fill="{DynamicResource TextPrimaryBrush}"
+                               Fill="{DynamicResource LaserPlayheadBrush}"
                                Effect="drop-shadow(0 0 4 #7FFF)" />
                 </Grid>
             </Border>

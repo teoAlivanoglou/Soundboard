@@ -14,7 +14,7 @@ public partial class DesignSoundModel : ObservableObject
 
     [ObservableProperty] public partial string Duration { get; set; } = "0:04";
     [ObservableProperty] public partial string PadNumber { get; set; } = "#01";
-    [ObservableProperty] public partial bool IsPlaying { get; set; } = false;
+    [ObservableProperty] public partial bool IsPlaying { get; set; } = true;
     [ObservableProperty] public partial double Progress { get; set; } = 0.33;
 
 
