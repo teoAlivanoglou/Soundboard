@@ -18,7 +18,6 @@
         <discovery:DesignSoundModel />
     </Design.DataContext>
 
-   
 
     <UserControl.Styles>
         <Style Selector="Border.glow">
@@ -55,122 +54,142 @@
                 IsHitTestVisible="False"
                 Background="{DynamicResource PadSurfaceBrush}"
                 CornerRadius="{DynamicResource PadOuterCornerRadius}"
-                Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}}" />
+                Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='Pad'}" />
 
         <!-- Main Pad Surface -->
-        <Border
-            ClipToBounds="False"
+        <Border ClipToBounds="False"
             Background="{DynamicResource PadSurfaceBrush}"
             CornerRadius="{DynamicResource PadOuterCornerRadius}"
             BorderThickness="{DynamicResource PadBorderThickness}"
             BorderBrush="{DynamicResource PadBorderBrush}">
-            <!-- BoxShadow="{Binding Category.BackgroundBrush, Converter={StaticResource ShadowConverter}, ConverterParameter={StaticResource PadAccentThickness}}" -->
+            <Border.Transitions>
+                <Transitions>
+                    <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.15" Easing="CubicEaseInOut" />
+                </Transitions>
+            </Border.Transitions>
             <Border.BoxShadow>
                 <MultiBinding Converter="{StaticResource ShadowConverter}">
                     <Binding Path="Category.BackgroundBrush" />
                     <Binding Source="{StaticResource PadAccentThickness}" />
                     <Binding Source="{StaticResource PadAccentCornerRadius}" />
+                    <Binding Path="IsPlaying" />
                 </MultiBinding>
             </Border.BoxShadow>
 
             <Grid>
 
-            <!-- Content -->
-            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*,Auto"
-                  HorizontalAlignment="Stretch"
-                  Margin="{DynamicResource PadInnerPadding}">
+                <!-- Content -->
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*,Auto"
+                      HorizontalAlignment="Stretch"
+                      Margin="{DynamicResource PadInnerPadding}">
 
-                <!-- Category Name -->
-                <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                           Text="{Binding Category.Name}"
-                           Foreground="{Binding Category.BackgroundBrush}"
-                           FontSize="{DynamicResource PadCategoryFontSize}"
-                           FontWeight="DemiBold" />
-                <Border Grid.Row="1"
-                        Grid.Column="0"
-                        Grid.ColumnSpan="2"
-                        x:Name="TitleTextBoxBounds"
-                        UseLayoutRounding="False"
-                        Padding="0 8"
-                        ClipToBounds="True">
+                    <!-- Category Name -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                               Text="{Binding Category.Name}"
+                               Foreground="{Binding Category.BackgroundBrush}"
+                               FontSize="{DynamicResource PadCategoryFontSize}"
+                               FontWeight="DemiBold" />
+                    <Border Grid.Row="1"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            x:Name="TitleTextBoxBounds"
+                            UseLayoutRounding="False"
+                            Padding="0 8"
+                            ClipToBounds="True">
 
-                    <!-- Sound Name -->
-                    <ScrollViewer x:Name="TitleScroll"
-                                  UseLayoutRounding="False"
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  VerticalScrollBarVisibility="Hidden">
-                        <TextBlock x:Name="TitleTextBlock"
-                                   TextWrapping="Wrap"
-                                   VerticalAlignment="Top"
-                                   UseLayoutRounding="False"
-                                   TextOptions.BaselinePixelAlignment="Unaligned"
-                                   TextOptions.TextRenderingMode="SubpixelAntialias"
-                                   Text="{Binding Name}"
-                                   Foreground="{DynamicResource TextPrimaryBrush}">
-                            <TextBlock.RenderTransform>
-                                <TranslateTransform />
-                            </TextBlock.RenderTransform>
-                        </TextBlock>
-                    </ScrollViewer>
-                </Border>
+                        <!-- Sound Name -->
+                        <ScrollViewer x:Name="TitleScroll"
+                                      UseLayoutRounding="False"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Hidden">
+                            <TextBlock x:Name="TitleTextBlock"
+                                       TextWrapping="Wrap"
+                                       VerticalAlignment="Top"
+                                       UseLayoutRounding="False"
+                                       TextOptions.BaselinePixelAlignment="Unaligned"
+                                       TextOptions.TextRenderingMode="SubpixelAntialias"
+                                       Text="{Binding Name}"
+                                       Foreground="{DynamicResource TextPrimaryBrush}">
+                                <TextBlock.RenderTransform>
+                                    <TranslateTransform />
+                                </TextBlock.RenderTransform>
+                            </TextBlock>
+                        </ScrollViewer>
+                    </Border>
 
-                <!-- Duration -->
-                <TextBlock Grid.Row="2" Grid.Column="0"
-                           Text="{Binding Duration, StringFormat='{}{0:m\\:ss}'}"
-                           Foreground="{DynamicResource TextMutedBrush}"
-                           FontSize="{DynamicResource PadDurationFontSize}"
-                           FontFeatures="tnum"
-                           HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+                    <!-- Duration -->
+                    <TextBlock Grid.Row="2" Grid.Column="0"
+                               Text="{Binding Duration, StringFormat='{}{0:m\\:ss}'}"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="{DynamicResource PadDurationFontSize}"
+                               FontFeatures="tnum"
+                               HorizontalAlignment="Left" VerticalAlignment="Bottom" />
 
-                <!-- Number -->
-                <TextBlock Grid.Row="2" Grid.Column="1"
-                           Text="{Binding  PadNumber}"
-                           Foreground="{DynamicResource TextMutedBrush}"
-                           FontSize="{DynamicResource PadNumberFontSize}"
-                           FontFeatures="tnum"
-                           HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                    <!-- Number -->
+                    <TextBlock Grid.Row="2" Grid.Column="1"
+                               Text="{Binding  PadNumber}"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="{DynamicResource PadNumberFontSize}"
+                               FontFeatures="tnum"
+                               HorizontalAlignment="Right" VerticalAlignment="Bottom" />
 
-            </Grid>
-
-
-            <!-- Playhead and progress -->
-            <Border Classes="progress"
-                    Classes.playing="{Binding IsPlaying}"
-                    ClipToBounds="True"
-                    IsHitTestVisible="False"
-                    CornerRadius="{DynamicResource PadInnerCornerRadius}">
-
-                <Grid ColumnDefinitions="Auto,*">
-
-                    <Rectangle Grid.Column="0" VerticalAlignment="Stretch"
-                               Fill="{Binding Category.BackgroundBrush}">
-                        <Rectangle.OpacityMask>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="100%,0%">
-                                <GradientStop Color="#2000" Offset="0" />
-                                <GradientStop Color="#7000" Offset="1" />
-                                <GradientStop Color="#0000" Offset="1" />
-                            </LinearGradientBrush>
-                        </Rectangle.OpacityMask>
-                        <Rectangle.Width>
-                            <MultiBinding Converter="{StaticResource LerpConverter}">
-                                <Binding Path="Bounds.Width" RelativeSource="{RelativeSource AncestorType=Grid}" />
-                                <Binding Path="Progress" />
-                            </MultiBinding>
-                        </Rectangle.Width>
-                    </Rectangle>
-
-                    <!-- Playhead -->
-                    <Rectangle Grid.Column="1" Width="{StaticResource PlayheadSize}"
-                               VerticalAlignment="Stretch" HorizontalAlignment="Left"
-                               Fill="{DynamicResource LaserPlayheadBrush}" Opacity="0.7" Effect="drop-shadow(0 0 6 #FFF)" />
-
-                    <Rectangle Grid.Column="1" Width="{StaticResource PlayheadSize}" Margin="0,1"
-                               VerticalAlignment="Stretch" HorizontalAlignment="Left"
-                               Fill="{DynamicResource LaserPlayheadBrush}"
-                               Effect="drop-shadow(0 0 4 #7FFF)" />
                 </Grid>
-            </Border>
-        </Grid>
-    </Border>
-</Panel>
+
+
+                <!-- Playhead and progress -->
+                <Border Classes="progress"
+                        Classes.playing="{Binding IsPlaying}"
+                        ClipToBounds="True"
+                        IsHitTestVisible="False"
+                        CornerRadius="{DynamicResource PadInnerCornerRadius}">
+
+                    <Grid ColumnDefinitions="Auto,*">
+
+                        <Rectangle x:Name="ProgressFill" Grid.Column="0" VerticalAlignment="Stretch"
+                                   Fill="{Binding Category.BackgroundBrush}">
+                            <Rectangle.OpacityMask>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="100%,0%">
+                                    <GradientStop Color="#1400" Offset="0" />
+                                    <GradientStop Color="#8000" Offset="1" />
+                                    <GradientStop Color="#0000" Offset="1" />
+                                </LinearGradientBrush>
+                            </Rectangle.OpacityMask>
+                            <Rectangle.Width>
+                                <MultiBinding Converter="{StaticResource LerpConverter}">
+                                    <Binding Path="Bounds.Width" RelativeSource="{RelativeSource AncestorType=Grid}" />
+                                    <Binding Path="Progress" />
+                                </MultiBinding>
+                            </Rectangle.Width>
+                        </Rectangle>
+
+                        <!-- Playhead -->
+                        <Rectangle Grid.Column="1" Width="{StaticResource PlayheadSize}"
+                                   VerticalAlignment="Stretch" HorizontalAlignment="Left"
+                                   Fill="{Binding Category.BackgroundBrush}" Opacity="0.85"
+                                   Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='PlayheadOuter'}" />
+
+                        <Rectangle Grid.Column="1" Width="{StaticResource PlayheadSize}"
+                                   VerticalAlignment="Stretch" HorizontalAlignment="Left"
+                                   Fill="{DynamicResource LaserCoreBrush}"
+                                   Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='PlayheadInner'}" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Playing Border Overlay -->
+        <Border Classes="progress"
+                Classes.playing="{Binding IsPlaying}"
+                IsHitTestVisible="False"
+                CornerRadius="{DynamicResource PadOuterCornerRadius}"
+                BorderThickness="{DynamicResource PadBorderThickness}"
+                BorderBrush="{Binding Category.BackgroundBrush}">
+            <Border.OpacityMask>
+                <LinearGradientBrush StartPoint="0%,80%" EndPoint="70%,20%">
+                    <GradientStop Color="#FF000000" Offset="0" />
+                    <GradientStop Color="#00000000" Offset="1" />
+                </LinearGradientBrush>
+            </Border.OpacityMask>
+        </Border>
+    </Panel>
 </UserControl>

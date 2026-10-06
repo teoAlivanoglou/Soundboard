@@ -11,6 +11,7 @@
             <SolidColorBrush x:Key="TextMutedBrush" Color="#FF64748B" />
             <SolidColorBrush x:Key="StopAllButtonBrush" Color="#FFE11D48" />
             <SolidColorBrush x:Key="LaserPlayheadBrush" Color="#FFFFFFFF" />
+            <SolidColorBrush x:Key="LaserCoreBrush" Color="#FFFBE8" />
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="Dark">
@@ -21,6 +22,7 @@
             <SolidColorBrush x:Key="TextMutedBrush" Color="#FF828A9C" />
             <SolidColorBrush x:Key="StopAllButtonBrush" Color="#FFE11D48" />
             <SolidColorBrush x:Key="LaserPlayheadBrush" Color="#FFFFFFFF" />
+            <SolidColorBrush x:Key="LaserCoreBrush" Color="#FFFBE8" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

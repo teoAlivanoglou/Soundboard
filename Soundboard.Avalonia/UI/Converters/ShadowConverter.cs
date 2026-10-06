@@ -55,6 +55,8 @@ public class ShadowConverter : IMultiValueConverter, IValueConverter
     /// </summary>
     public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
+        var isPlaying = values.Count > 3 && values[3] is bool b && b;
+
         var color = values.Count > 0 ? values[0] switch
         {
             SolidColorBrush brush => brush.Color,
@@ -74,11 +76,11 @@ public class ShadowConverter : IMultiValueConverter, IValueConverter
         var shadow = new BoxShadow
         {
             IsInset = true,
-            OffsetX = width,
+            OffsetX = isPlaying ? 0 : width,
             OffsetY = 0,
             Blur = 0,
             Spread = 0,
-            Color = color
+            Color = isPlaying ? Colors.Transparent : color
         };
 
         return new BoxShadows(shadow);

@@ -65,9 +65,10 @@
                 Classes="ConsistentButton IconButton"
                 Content="&#xe247;" />
 
-        <!-- Refresh Button -->
+        <!-- Refresh Button (temporary theme toggle) -->
         <Button Grid.Row="0" Grid.Column="3"
                 Classes="ConsistentButton IconButton"
+                Click="OnRefreshClick"
                 Content="&#xe144;" />
 
         <!-- Settings Button -->
