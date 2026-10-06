@@ -44,8 +44,8 @@ public partial class DesignSoundModel : ObservableObject
     {
         StopPlaybackTimer();
 
-        if (global::System.TimeSpan.TryParseExact(Duration, @"m\:ss", global::System.Globalization.CultureInfo.InvariantCulture, out var parsed) ||
-            global::System.TimeSpan.TryParse(Duration, global::System.Globalization.CultureInfo.InvariantCulture, out parsed))
+        if (System.TimeSpan.TryParseExact(Duration, @"m\:ss", global::System.Globalization.CultureInfo.InvariantCulture, out var parsed) ||
+            System.TimeSpan.TryParse(Duration, global::System.Globalization.CultureInfo.InvariantCulture, out parsed))
         {
             _totalDuration = parsed > global::System.TimeSpan.Zero ? parsed : global::System.TimeSpan.FromSeconds(3);
         }
