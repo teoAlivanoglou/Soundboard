@@ -52,6 +52,18 @@
                 </Transitions>
             </Setter>
         </Style>
+
+        <Style Selector="TextBlock.pad-footer">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="FontFeatures" Value="tnum" />
+            <Setter Property="VerticalAlignment" Value="Bottom" />
+        </Style>
+
+        <Style Selector="Rectangle.playhead-layer">
+            <Setter Property="Width" Value="{StaticResource PlayheadSize}" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
     </UserControl.Styles>
 
     <Panel ClipToBounds="False">
@@ -128,19 +140,17 @@
 
                     <!-- Duration -->
                     <TextBlock Grid.Row="2" Grid.Column="0"
+                               Classes="pad-footer"
                                Text="{Binding Duration, StringFormat='{}{0:m\\:ss\\.ff}'}"
-                               Foreground="{DynamicResource TextMutedBrush}"
                                FontSize="{DynamicResource PadDurationFontSize}"
-                               FontFeatures="tnum"
-                               HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+                               HorizontalAlignment="Left" />
 
                     <!-- Number -->
                     <TextBlock Grid.Row="2" Grid.Column="1"
+                               Classes="pad-footer"
                                Text="{Binding Index, StringFormat='#{0:D2}'}"
-                               Foreground="{DynamicResource TextMutedBrush}"
                                FontSize="{DynamicResource PadNumberFontSize}"
-                               FontFeatures="tnum"
-                               HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                               HorizontalAlignment="Right" />
 
                 </Grid>
 
@@ -158,9 +168,9 @@
                                    Fill="{Binding Category.BackgroundBrush}">
                             <Rectangle.OpacityMask>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="100%,0%">
-                                    <GradientStop Color="#1400" Offset="0" />
-                                    <GradientStop Color="#8000" Offset="1" />
-                                    <GradientStop Color="#0000" Offset="1" />
+                                     <GradientStop Color="#1400" Offset="0" />
+                                     <GradientStop Color="#8000" Offset="1" />
+                                     <GradientStop Color="#0000" Offset="1" />
                                 </LinearGradientBrush>
                             </Rectangle.OpacityMask>
                             <Rectangle.Width>
@@ -172,13 +182,11 @@
                         </Rectangle>
 
                         <!-- Playhead -->
-                        <Rectangle Grid.Column="1" Width="{StaticResource PlayheadSize}"
-                                   VerticalAlignment="Stretch" HorizontalAlignment="Left"
+                        <Rectangle Grid.Column="1" Classes="playhead-layer"
                                    Fill="{Binding Category.BackgroundBrush}" Opacity="0.85"
                                    Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='PlayheadOuter'}" />
 
-                        <Rectangle Grid.Column="1" Width="{StaticResource PlayheadSize}"
-                                   VerticalAlignment="Stretch" HorizontalAlignment="Left"
+                        <Rectangle Grid.Column="1" Classes="playhead-layer"
                                    Fill="{DynamicResource LaserCoreBrush}"
                                    Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='PlayheadInner'}" />
                     </Grid>

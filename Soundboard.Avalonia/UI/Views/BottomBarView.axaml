@@ -75,25 +75,19 @@
 
         <!-- Browse Folder Button -->
         <Button Grid.Row="0" Grid.Column="2"
-                Classes="ConsistentButton IconButton"
-                Background="{DynamicResource ActionButtonBrush}"
-                Foreground="{DynamicResource ActionButtonForeground}"
+                Classes="ConsistentButton IconButton ActionButton"
                 Click="OnBrowseFolderClick"
                 Content="&#xe247;" />
 
         <!-- Refresh Button (temporary theme toggle) -->
         <Button Grid.Row="0" Grid.Column="3"
-                Classes="ConsistentButton IconButton"
-                Background="{DynamicResource ActionButtonBrush}"
-                Foreground="{DynamicResource ActionButtonForeground}"
+                Classes="ConsistentButton IconButton ActionButton"
                 Click="OnRefreshClick"
                 Content="&#xe144;" />
 
         <!-- Settings Button -->
         <Button Grid.Row="0" Grid.Column="4"
-                Classes="ConsistentButton IconButton"
-                Background="{DynamicResource ActionButtonBrush}"
-                Foreground="{DynamicResource ActionButtonForeground}"
+                Classes="ConsistentButton IconButton ActionButton"
                 Command="{Binding ToggleSettingsCommand}"
                 Content="&#xe154;" />
     </Grid>

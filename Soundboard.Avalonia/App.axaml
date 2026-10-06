@@ -7,7 +7,10 @@
 
     <Application.Styles>
         <FluentTheme />
-
+        <Style Selector="Button.ActionButton">
+            <Setter Property="Background" Value="{DynamicResource ActionButtonBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource ActionButtonForeground}" />
+        </Style>
     </Application.Styles>
 
     <Application.Resources>

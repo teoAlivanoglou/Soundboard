@@ -1,28 +1,35 @@
-﻿using CommandLine;
+using System;
 using Soundboard.Avalonia.AudioEngine;
 
 namespace Soundboard.Avalonia.Utils;
 
 public class Options
 {
-    [Option('d', "debug", Required = false, HelpText = "Set debug mode.")]
     public bool Debug { get; set; } = false;
-
-    [Option('o', "output", Required = false, HelpText = "Sets output device type.")]
     public DriverType? OutputType { get; set; }
 
-
-    public static Parser Parser = new(s =>
+    public static Options Parse(string[] args)
     {
-        s.CaseInsensitiveEnumValues = true;
-        s.CaseSensitive = false;
-    });
-
-
-    public static Options? Parse(string[] args)
-    {
-        var options = Parser.ParseArguments<Options>(args);
-
-        return options.Tag == ParserResultType.Parsed ? options.Value : null;
+        var result = new Options();
+        for (int i = 0; i < args.Length; i++)
+        {
+            var arg = args[i];
+            if (arg.Equals("-d", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("--debug", StringComparison.OrdinalIgnoreCase))
+            {
+                result.Debug = true;
+            }
+            else if ((arg.Equals("-o", StringComparison.OrdinalIgnoreCase) ||
+                      arg.Equals("--output", StringComparison.OrdinalIgnoreCase)) &&
+                     i + 1 < args.Length)
+            {
+                var val = args[++i];
+                if (Enum.TryParse<DriverType>(val, ignoreCase: true, out var dt))
+                {
+                    result.OutputType = dt;
+                }
+            }
+        }
+        return result;
     }
 }

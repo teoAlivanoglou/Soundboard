@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -24,7 +24,7 @@ public static class EnumHelper
 
         return
         [
-            .. Enum.GetValues(t).Cast<Enum>()
+            .. Enum.GetValuesAsUnderlyingType(t).Cast<Enum>()
                 .Select((e) => new ValueDescription()
                 {
                     Value = e,

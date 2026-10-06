@@ -1,45 +1,70 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <RootNamespace>Soundboard.Avalonia</RootNamespace>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows7.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-  </PropertyGroup>
+	<PropertyGroup>
+		<RootNamespace>Soundboard.Avalonia</RootNamespace>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows7.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<Platforms>AnyCPU;x64;x86</Platforms>
+	</PropertyGroup>
+	<PropertyGroup Label="Avalonia">
+		<AvaloniaNameGeneratorDefaultFieldModifier>Public</AvaloniaNameGeneratorDefaultFieldModifier>
+		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.1.2" />
-    <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
-      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
-      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
-    <PackageReference Include="NAudio" Version="3.1.0" />
-    <PackageReference Include="NAudio.SoundFile" Version="3.1.0" />
-    <PackageReference Include="YamlDotNet" Version="18.1.0" />
-  </ItemGroup>
+	<PropertyGroup Condition="'$(PublishAot)' == 'true'">
+		<DebugSymbols>false</DebugSymbols>
+		<DebugType>none</DebugType>
+		<StripSymbols>true</StripSymbols>
+		<OptimizationPreference Condition="'$(OptimizationPreference)' == ''">Speed</OptimizationPreference>
+		<IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+		<IlcGenerateCompleteTypeMetadata>false</IlcGenerateCompleteTypeMetadata>
+		<EventSourceSupport>false</EventSourceSupport>
+		<UseSystemResourceKeys>true</UseSystemResourceKeys>
+		<HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+		<DebuggerSupport>false</DebuggerSupport>
+		<StackTraceSupport>false</StackTraceSupport>
+	</PropertyGroup>
+
+	<!-- Exclude any 3rd-party .pdb files (e.g. libSkiaSharp.pdb, libHarfBuzzSharp.pdb) from publish output -->
+	<Target Name="RemovePdbFromPublish" AfterTargets="ComputeFilesToPublish">
+		<ItemGroup>
+			<ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.pdb'" />
+		</ItemGroup>
+	</Target>
+
+	<ItemGroup>
+		<PackageReference Include="Avalonia" Version="12.1.2" />
+		<PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
+		<PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
+			<IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+			<PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+		<PackageReference Include="NAudio" Version="3.1.0" />
+		<PackageReference Include="NAudio.SoundFile" Version="3.1.0" />
+		<PackageReference Include="YamlDotNet" Version="18.1.0" />
+	</ItemGroup>
 
 
-  <ItemGroup>
-    <AvaloniaResource Include="UI\Fonts\*.ttf" />
-  </ItemGroup>
+	<ItemGroup>
+		<AvaloniaResource Include="UI\Fonts\*.ttf" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Remove="Assets\warning.mp3" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="Assets\warning.mp3" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <AvaloniaResource Include="Assets\warning.mp3" />
-  </ItemGroup>
+	<ItemGroup>
+		<AvaloniaResource Include="Assets\warning.mp3" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Content Include="Native\sndfile.dll" TargetPath="sndfile.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="Native\sndfile.dll" TargetPath="sndfile.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 </Project>

@@ -1,8 +1,7 @@
 using System;
-using System.ComponentModel;
 using System.Globalization;
-using System.Reflection;
 using Avalonia.Data.Converters;
+using Soundboard.Avalonia.AudioEngine;
 
 namespace Soundboard.Avalonia.UI.Converters;
 
@@ -12,15 +11,28 @@ public class EnumDescriptionConverter : IValueConverter
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is Enum enumValue)
+        if (value is DriverType dt)
         {
-            var field = enumValue.GetType().GetField(enumValue.ToString());
-            if (field?.GetCustomAttribute<DescriptionAttribute>() is { } desc)
+            return dt switch
             {
-                return desc.Description;
-            }
+                DriverType.WaveOutEvent => "WaveOut",
+                DriverType.Wasapi => "WASAPI",
+                DriverType.DirectSound => "DirectSound",
+                _ => dt.ToString()
+            };
+        }
 
-            return enumValue.ToString();
+        if (value is SampleRate sr)
+        {
+            return sr switch
+            {
+                SampleRate.R44100 => "44100",
+                SampleRate.R48000 => "48000",
+                SampleRate.R88200 => "88200",
+                SampleRate.R96000 => "96000",
+                SampleRate.R192000 => "192000",
+                _ => sr.ToString()
+            };
         }
 
         return value?.ToString();

@@ -16,14 +16,22 @@
     <UserControl.Resources>
         <converters:DoubleToIntConverter x:Key="DoubleToIntConverter" />
         <converters:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
+        <DataTemplate x:Key="EnumDescriptionTemplate" x:DataType="x:Object">
+            <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+        </DataTemplate>
     </UserControl.Resources>
 
     <Border x:Name="SettingsPanel"
             Background="{DynamicResource WindowBackgroundBrush}"
             Padding="16, 12">
         <Grid x:Name="SettingsGrid"
-              ColumnDefinitions="Auto,*,Auto"
-              RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+              Grid.IsSharedSizeScope="True"
+              RowDefinitions="Auto,Auto,Auto,Auto">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="LabelCol" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
             <Grid.Styles>
                 <Style Selector="TextBlock.label">
                     <Setter Property="VerticalAlignment" Value="Center" />
@@ -42,6 +50,8 @@
                 <Style Selector="Slider">
                     <Setter Property="VerticalAlignment" Value="Center" />
                     <Setter Property="Margin" Value="0, 2" />
+                    <Setter Property="IsSnapToTickEnabled" Value="True" />
+                    <Setter Property="TickFrequency" Value="1" />
                 </Style>
                 <Style Selector="ComboBox">
                     <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -54,8 +64,7 @@
             <TextBlock Grid.Column="0" Grid.Row="0" Classes="label" Text="Min Button Size: " />
             <Slider Grid.Column="1" Grid.Row="0"
                     Value="{Binding Settings.ApplicationUiSettings.MinButtonSize, Converter={StaticResource DoubleToIntConverter}}"
-                    Minimum="50" Maximum="300"
-                    TickFrequency="1" IsSnapToTickEnabled="True" />
+                    Minimum="50" Maximum="300" />
             <TextBlock Grid.Column="2" Grid.Row="0" Classes="value"
                        Text="{Binding Settings.ApplicationUiSettings.MinButtonSize, StringFormat='{}{0}px'}" />
 
@@ -63,8 +72,7 @@
             <TextBlock Grid.Column="0" Grid.Row="1" Classes="label" Text="Button Gap: " />
             <Slider Grid.Column="1" Grid.Row="1"
                     Value="{Binding Settings.ApplicationUiSettings.ButtonGap, Converter={StaticResource DoubleToIntConverter}}"
-                    Minimum="0" Maximum="30"
-                    TickFrequency="1" IsSnapToTickEnabled="True" />
+                    Minimum="0" Maximum="30" />
             <TextBlock Grid.Column="2" Grid.Row="1" Classes="value"
                        Text="{Binding Settings.ApplicationUiSettings.ButtonGap, StringFormat='{}{0}px'}" />
 
@@ -72,82 +80,64 @@
             <TextBlock Grid.Column="0" Grid.Row="2" Classes="label" Text="Max Folder Level: " />
             <Slider Grid.Column="1" Grid.Row="2"
                     Value="{Binding Settings.ApplicationUiSettings.MaxFolderLevel, Converter={StaticResource DoubleToIntConverter}}"
-                    Minimum="1" Maximum="10"
-                    TickFrequency="1" IsSnapToTickEnabled="True" />
+                    Minimum="1" Maximum="10" />
             <TextBlock Grid.Column="2" Grid.Row="2" Classes="value"
                        Text="{Binding Settings.ApplicationUiSettings.MaxFolderLevel}" />
 
-            <!-- Fade In Time -->
-            <TextBlock Grid.Column="0" Grid.Row="3" Classes="label" Text="Fade In Time: "
-                       IsVisible="{Binding Settings.AudioPlayerSettings.Show}" />
-            <Slider Grid.Column="1" Grid.Row="3"
-                    Value="{Binding Settings.AudioPlayerSettings.FadeInTime, Converter={StaticResource DoubleToIntConverter}}"
-                    Minimum="0" Maximum="1000"
-                    TickFrequency="10" IsSnapToTickEnabled="True"
-                    IsVisible="{Binding Settings.AudioPlayerSettings.Show}" />
-            <TextBlock Grid.Column="2" Grid.Row="3" Classes="value"
-                       Text="{Binding Settings.AudioPlayerSettings.FadeInTime, StringFormat='{}{0}ms'}"
-                       IsVisible="{Binding Settings.AudioPlayerSettings.Show}" />
+            <!-- Audio Settings (Grouped with single IsVisible) -->
+            <Grid Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3"
+                  IsVisible="{Binding Settings.AudioPlayerSettings.Show}"
+                  RowDefinitions="Auto,Auto,Auto">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LabelCol" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
+                <!-- Fade In Time -->
+                <TextBlock Grid.Column="0" Grid.Row="0" Classes="label" Text="Fade In Time: " />
+                <Slider Grid.Column="1" Grid.Row="0"
+                        Value="{Binding Settings.AudioPlayerSettings.FadeInTime, Converter={StaticResource DoubleToIntConverter}}"
+                        Minimum="0" Maximum="1000"
+                        TickFrequency="10" />
+                <TextBlock Grid.Column="2" Grid.Row="0" Classes="value"
+                           Text="{Binding Settings.AudioPlayerSettings.FadeInTime, StringFormat='{}{0}ms'}" />
 
-            <!-- Latency -->
-            <TextBlock Grid.Column="0" Grid.Row="4" Classes="label" Text="Latency: "
-                       IsVisible="{Binding Settings.AudioPlayerSettings.Show}" />
-            <Slider Grid.Column="1" Grid.Row="4"
-                    Value="{Binding Settings.AudioPlayerSettings.Latency}"
-                    Minimum="5" Maximum="200"
-                    TickFrequency="1" IsSnapToTickEnabled="True"
-                    IsVisible="{Binding Settings.AudioPlayerSettings.Show}" />
-            <TextBlock Grid.Column="2" Grid.Row="4" Classes="value"
-                       Text="{Binding Settings.AudioPlayerSettings.Latency, StringFormat='{}{0:0}ms'}"
-                       IsVisible="{Binding Settings.AudioPlayerSettings.Show}" />
+                <!-- Latency -->
+                <TextBlock Grid.Column="0" Grid.Row="1" Classes="label" Text="Latency: " />
+                <Slider Grid.Column="1" Grid.Row="1"
+                        Value="{Binding Settings.AudioPlayerSettings.Latency}"
+                        Minimum="5" Maximum="200" />
+                <TextBlock Grid.Column="2" Grid.Row="1" Classes="value"
+                           Text="{Binding Settings.AudioPlayerSettings.Latency, StringFormat='{}{0:0}ms'}" />
 
-            <!-- Audio Driver -->
-            <Grid Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="3"
-                  ColumnDefinitions="Auto,*,Auto,*,Auto">
+                <!-- Audio Driver -->
+                <Grid Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3"
+                      ColumnDefinitions="Auto,*,Auto,*,Auto">
 
-                <TextBlock Grid.Column="0"
-                           Classes="label" Text="Audio Driver: "
-                           IsVisible="{Binding Settings.AudioPlayerSettings.Show}" />
-                <ComboBox Grid.Column="1"
-                          Margin="0, 0, 24, 0"
-                          ItemsSource="{Binding AvailableDriverTypes}"
-                          SelectedItem="{Binding Settings.AudioPlayerSettings.DriverType}"
-                          IsVisible="{Binding Settings.AudioPlayerSettings.Show}">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate x:DataType="audioEngine:DriverType">
-                            <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+                    <TextBlock Grid.Column="0" Classes="label" Text="Audio Driver: " />
+                    <ComboBox Grid.Column="1"
+                              Margin="0, 0, 24, 0"
+                              ItemsSource="{Binding AvailableDriverTypes}"
+                              SelectedItem="{Binding Settings.AudioPlayerSettings.DriverType}"
+                              ItemTemplate="{StaticResource EnumDescriptionTemplate}" />
 
-                <!-- Sample Rate -->
-                <TextBlock Grid.Column="2" Classes="label" Text="Sample Rate: "
-                           IsVisible="{Binding Settings.AudioPlayerSettings.Show}" />
-                <ComboBox Grid.Column="3"
-                          Margin="0, 0, 12, 0"
-                          ItemsSource="{Binding AvailableSampleRates}"
-                          SelectedItem="{Binding Settings.AudioPlayerSettings.SampleRate}"
-                          IsVisible="{Binding Settings.AudioPlayerSettings.Show}">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate x:DataType="audioEngine:SampleRate">
-                            <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+                    <!-- Sample Rate -->
+                    <TextBlock Grid.Column="2" Classes="label" Text="Sample Rate: " />
+                    <ComboBox Grid.Column="3"
+                              Margin="0, 0, 12, 0"
+                              ItemsSource="{Binding AvailableSampleRates}"
+                              SelectedItem="{Binding Settings.AudioPlayerSettings.SampleRate}"
+                              ItemTemplate="{StaticResource EnumDescriptionTemplate}" />
 
-                <Button Grid.Column="4"
-                        Content="Reset Driver" Margin="12, 2, 0, 2"
-                        VerticalAlignment="Center"
-                        Background="{DynamicResource ActionButtonBrush}"
-                        Foreground="{DynamicResource ActionButtonForeground}"
-                        Command="{Binding ResetAudioDriverCommand}"
-                        Click="ResetAudioDriverButtonClicked"
-                        IsVisible="{Binding Settings.AudioPlayerSettings.Show}" />
-
-
+                    <Button Grid.Column="4"
+                            Classes="ActionButton"
+                            Content="Reset Driver" Margin="12, 2, 0, 2"
+                            VerticalAlignment="Center"
+                            Command="{Binding ResetAudioDriverCommand}"
+                            Click="ResetAudioDriverButtonClicked" />
+                </Grid>
             </Grid>
-
         </Grid>
     </Border>
 </UserControl>
