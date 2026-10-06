@@ -3,10 +3,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:Soundboard.Avalonia.UI.Views"
-             xmlns:ui="clr-namespace:Soundboard.Avalonia.UI"
-             mc:Ignorable="d" d:DesignWidth="800" 
+             xmlns:discovery="clr-namespace:Soundboard.Avalonia.Discovery"
+             xmlns:vm="clr-namespace:Soundboard.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800"
              x:Class="Soundboard.Avalonia.UI.Views.CategoryBarView"
-             x:DataType="views:CategoryBarView">
+             x:DataType="vm:SoundboardViewModel">
+
+    <Design.DataContext>
+        <vm:SoundboardViewModel />
+    </Design.DataContext>
 
     <UserControl.Styles>
         <Style Selector="Border.cat-pill">
@@ -26,67 +31,60 @@
             <Setter Property="Opacity" Value="1.0" />
         </Style>
 
-
     </UserControl.Styles>
 
-    <Border Padding="16,12,16,4"
-            BorderThickness="0,0,0,1"
-            BorderBrush="{DynamicResource PadBorderBrush}">
 
-        <ItemsControl ItemsSource="{Binding Categories}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="ui:DesignCategoryModel">
+    <ItemsControl ItemsSource="{Binding Categories}" Padding="16,12,8,4">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="discovery:CategoryModel">
 
-                    <!-- Pill -->
-                    <Border Classes="cat-pill"
-                            Classes.active="{Binding IsEnabled}"
-                            Cursor="Hand"
-                            Margin="0,0,8,8"
-                            Background="{DynamicResource PadSurfaceBrush}"
-                            BorderThickness="1"
-                            CornerRadius="12"
-                            Padding="10,6"
-                            ClipToBounds="False"
-                            PointerPressed="InputElement_OnPointerPressed">
+                <!-- Pill -->
+                <Border Classes="cat-pill"
+                        Classes.active="{Binding IsEnabled}"
+                        Cursor="Hand"
+                        Margin="0,0,8,8"
+                        Background="{DynamicResource PadSurfaceBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Padding="10,6"
+                        ClipToBounds="False"
+                        PointerPressed="InputElement_OnPointerPressed">
 
-                        <Border.Transitions>
-                            <Transitions>
-                                <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
-                            </Transitions>
-                        </Border.Transitions>
+                    <Border.Transitions>
+                        <Transitions>
+                            <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+                        </Transitions>
+                    </Border.Transitions>
 
-                        <Border.Styles>
-                            <Style Selector="Border.cat-pill">
-                                <Setter Property="BorderBrush" Value="{DynamicResource PadBorderBrush}" />
-                            </Style>
-                            <Style Selector="Border.cat-pill.active" x:DataType="ui:DesignCategoryModel">
-                                <Setter Property="BorderBrush" Value="{Binding BackgroundBrush}" />
-                            </Style>
-                        </Border.Styles>
+                    <Border.Styles>
+                        <Style Selector="Border.cat-pill">
+                            <Setter Property="BorderBrush" Value="{DynamicResource PadBorderBrush}" />
+                        </Style>
+                        <Style Selector="Border.cat-pill.active" x:DataType="discovery:CategoryModel">
+                            <Setter Property="BorderBrush" Value="{Binding BackgroundBrush}" />
+                        </Style>
+                    </Border.Styles>
 
-                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                            <Ellipse Width="8" Height="8"
-                                     Fill="{Binding BackgroundBrush}" />
-                            <TextBlock Text="{Binding Name}"
-                                       Foreground="{DynamicResource TextPrimaryBrush}"
-                                       VerticalAlignment="Center" />
-                            <TextBlock Text="{Binding  SoundCount, StringFormat='({0})'}"
-                                       Foreground="{DynamicResource TextMutedBrush}"
-                                       VerticalAlignment="Center" />
-                        </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Ellipse Width="8" Height="8"
+                                 Fill="{Binding BackgroundBrush}" />
+                        <TextBlock Text="{Binding Name}"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding  SoundCount, StringFormat='({0})'}"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
 
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
+                </Border>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
 
-        </ItemsControl>
-
-    </Border>
-
+    </ItemsControl>
 
 </UserControl>

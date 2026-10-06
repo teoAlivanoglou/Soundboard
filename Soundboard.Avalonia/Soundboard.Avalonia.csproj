@@ -24,9 +24,6 @@
     <PackageReference Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Soundboard\Soundboard.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="UI\Fonts\*.ttf" />

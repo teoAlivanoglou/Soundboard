@@ -1,12 +1,12 @@
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Soundboard.AudioEngine;
-using Soundboard.Settings;
 using System;
-
+using Soundboard.Avalonia.AudioEngine;
 using Soundboard.Avalonia.Discovery;
+using Soundboard.Avalonia.Settings;
 using Soundboard.Avalonia.UI.Fonts;
+using Soundboard.Avalonia.ViewModels;
 
 
 namespace Soundboard.Avalonia;
@@ -26,6 +26,7 @@ class Program
         builder.Services.AddSingleton(SettingsService.Load());
         builder.Services.AddSingleton<AudioPlaybackEngine>();
         builder.Services.AddSingleton<SoundDiscoveryService>();
+        builder.Services.AddSingleton<SoundboardViewModel>();
 
         // Register Avalonia Views / ViewModels
         builder.Services.AddSingleton<MainWindow>();

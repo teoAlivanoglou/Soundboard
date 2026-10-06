@@ -2,20 +2,19 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:discovery="clr-namespace:Soundboard.Avalonia.UI"
+             xmlns:discovery="clr-namespace:Soundboard.Avalonia.Discovery"
              xmlns:avalonia="clr-namespace:Soundboard.Avalonia"
              xmlns:converters="clr-namespace:Soundboard.Avalonia.UI.Converters"
-             xmlns:soundboard="clr-namespace:Soundboard;assembly=Soundboard"
              mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="200"
              x:Class="Soundboard.Avalonia.UI.Controls.SoundPad"
-             x:DataType="discovery:DesignSoundModel"
+             x:DataType="discovery:SoundModel"
              PointerEntered="InputElement_OnPointerEntered"
              PointerExited="InputElement_OnPointerExited"
              SizeChanged="Control_OnSizeChanged"
              Cursor="Hand"
              ClipToBounds="False">
     <Design.DataContext>
-        <discovery:DesignSoundModel />
+        <discovery:SoundModel />
     </Design.DataContext>
 
 
@@ -30,18 +29,28 @@
         </Style>
         <Style Selector="Border.glow.playing">
             <Setter Property="Opacity" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.02" />
+                </Transitions>
+            </Setter>
         </Style>
 
         <Style Selector="Border.progress">
             <Setter Property="Opacity" Value="0" />
             <Setter Property="Transitions">
                 <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseOut" />
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="CubicEaseOut" />
                 </Transitions>
             </Setter>
         </Style>
         <Style Selector="Border.progress.playing">
             <Setter Property="Opacity" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.02" />
+                </Transitions>
+            </Setter>
         </Style>
     </UserControl.Styles>
 
@@ -119,7 +128,7 @@
 
                     <!-- Duration -->
                     <TextBlock Grid.Row="2" Grid.Column="0"
-                               Text="{Binding Duration, StringFormat='{}{0:m\\:ss}'}"
+                               Text="{Binding Duration, StringFormat='{}{0:m\\:ss\\.ff}'}"
                                Foreground="{DynamicResource TextMutedBrush}"
                                FontSize="{DynamicResource PadDurationFontSize}"
                                FontFeatures="tnum"
@@ -127,7 +136,7 @@
 
                     <!-- Number -->
                     <TextBlock Grid.Row="2" Grid.Column="1"
-                               Text="{Binding  PadNumber}"
+                               Text="{Binding Index, StringFormat='#{0:D2}'}"
                                Foreground="{DynamicResource TextMutedBrush}"
                                FontSize="{DynamicResource PadNumberFontSize}"
                                FontFeatures="tnum"

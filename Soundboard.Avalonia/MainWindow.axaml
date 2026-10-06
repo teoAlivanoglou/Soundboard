@@ -2,24 +2,35 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:controls="clr-namespace:Soundboard.Avalonia.UI.Controls"
-        xmlns:avalonia="clr-namespace:Soundboard.Avalonia"
-        xmlns:ui="clr-namespace:Soundboard.Avalonia.UI" 
         xmlns:views="clr-namespace:Soundboard.Avalonia.UI.Views"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:vm="clr-namespace:Soundboard.Avalonia.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="1240" d:DesignHeight="720"
         x:Class="Soundboard.Avalonia.MainWindow"
-        Title="Soundboard.Avalonia" 
-        x:DataType="avalonia:TestViewModel">
-    
-    <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" ClipToBounds="False" Background="{DynamicResource WindowBackgroundBrush}">
+        Title="Soundboard.Avalonia"
+        x:DataType="vm:SoundboardViewModel">
 
-        <views:CategoryBarView Grid.Row="0"/>
-        <views:SoundboardGridView Grid.Row="1"/>
-        <!-- <views:SettingsPanelView Grid.Row="2"/> -->
+    <Design.DataContext>
+        <vm:SoundboardViewModel />
+    </Design.DataContext>
 
-        <!-- <Slider Grid.Row="2" Margin="24,10" Minimum="100" Maximum="300" Value="{Binding Model.Size, Mode=TwoWay}"/> -->
-        <views:BottomBarView Grid.Row="3"/>
+    <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" ClipToBounds="False"
+          Background="{DynamicResource WindowBackgroundBrush}">
+
+        <views:CategoryBarView Grid.Row="0"
+                               BorderThickness="0,0,0,1"
+                               BorderBrush="{DynamicResource PadBorderBrush}" />
+
+        <views:SoundboardGridView Grid.Row="1"
+                                  BorderThickness="0,0,0,1"
+                                  BorderBrush="{DynamicResource PadBorderBrush}" />
+        
+        <views:SettingsPanelView Grid.Row="2"
+                                 IsVisible="{Binding SettingsVisible}"
+                                 BorderThickness="0,1,0,1"
+                                 BorderBrush="{DynamicResource PadBorderBrush}" />
+
+        <views:BottomBarView Grid.Row="3" />
 
     </Grid>
-    
+
 </Window>

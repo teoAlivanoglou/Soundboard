@@ -6,12 +6,14 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media.Transformation;
 using System;
+using Microsoft.Extensions.DependencyInjection;
+using Soundboard.Avalonia.Discovery;
+using Soundboard.Avalonia.ViewModels;
 
 namespace Soundboard.Avalonia.UI.Controls;
 
 public partial class SoundPad : UserControl
 {
-    public DesignSoundModel Model { get; set; } = new();
 
     private const double LinesPerSecond = 1.0;
     private const double ReturnSpeedMultiplier = 15.0;
@@ -47,11 +49,24 @@ public partial class SoundPad : UserControl
         _pointerDown = false;
         StopIfOutside(e);
 
-        if (wasDown &&
-            e.InitialPressMouseButton == MouseButton.Left &&
-            new Rect(Bounds.Size).Contains(e.GetPosition(this)))
+        if (wasDown && new Rect(Bounds.Size).Contains(e.GetPosition(this)))
         {
-            (DataContext as DesignSoundModel)?.ToggleSimulation();
+            if (DataContext is SoundModel sound)
+            {
+                var vm = (this.VisualRoot as Control)?.DataContext as SoundboardViewModel
+                         ?? App.Host?.Services.GetService<SoundboardViewModel>();
+
+                if (e.InitialPressMouseButton == MouseButton.Left)
+                {
+                    vm?.PlaySound(sound);
+                    e.Handled = true;
+                }
+                else if (e.InitialPressMouseButton == MouseButton.Right)
+                {
+                    vm?.StopSound(sound);
+                    e.Handled = true;
+                }
+            }
         }
     }
 

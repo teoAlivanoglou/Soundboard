@@ -3,24 +3,38 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:Soundboard.Avalonia.UI.Controls"
-             xmlns:ui="clr-namespace:Soundboard.Avalonia.UI"
-             xmlns:avalonia="clr-namespace:Soundboard.Avalonia"
+             xmlns:discovery="clr-namespace:Soundboard.Avalonia.Discovery"
+             xmlns:vm="clr-namespace:Soundboard.Avalonia.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Soundboard.Avalonia.UI.Views.SoundboardGridView"
-             x:DataType="avalonia:TestViewModel">
+             x:DataType="vm:SoundboardViewModel"
+             ClipToBounds="False">
+    <Design.DataContext>
+        <vm:SoundboardViewModel />
+    </Design.DataContext>
     <ScrollViewer HorizontalScrollBarVisibility="Disabled"
-                  VerticalScrollBarVisibility="Auto">
-        <controls:UniformSquarePanel MinItemSize="{Binding Model.Size}"
-                                     ItemGap="8"
-                                     ClipToBounds="False">
-            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
-            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
-            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
-            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
-            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
-            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
-            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
-            <controls:SoundPad DataContext="{Binding Model}" x:DataType="ui:DesignSoundModel"/>
-        </controls:UniformSquarePanel>
+                  VerticalScrollBarVisibility="Auto"
+                  Padding="16, 12"
+                  ClipToBounds="False">
+        <ItemsControl ItemsSource="{Binding SoundItems}" ClipToBounds="False">
+            <ItemsControl.Styles>
+                <Style Selector="ItemsControl > ContentPresenter" x:DataType="discovery:SoundModel">
+                    <Setter Property="IsVisible" Value="{Binding IsVisible}" />
+                    <Setter Property="ClipToBounds" Value="False" />
+                </Style>
+            </ItemsControl.Styles>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <controls:UniformSquarePanel MinItemSize="{Binding Settings.ApplicationUiSettings.MinButtonSize}"
+                                                 ItemGap="{Binding Settings.ApplicationUiSettings.ButtonGap}"
+                                                 ClipToBounds="False" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="discovery:SoundModel">
+                    <controls:SoundPad IsVisible="{Binding IsVisible}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </ScrollViewer>
 </UserControl>

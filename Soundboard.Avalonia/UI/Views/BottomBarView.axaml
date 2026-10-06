@@ -5,7 +5,9 @@
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:converters="clr-namespace:Soundboard.Avalonia.UI.Converters"
              mc:Ignorable="d" d:DesignWidth="800"
-             x:Class="Soundboard.Avalonia.UI.Views.BottomBarView">
+             xmlns:vm="clr-namespace:Soundboard.Avalonia.ViewModels"
+             x:Class="Soundboard.Avalonia.UI.Views.BottomBarView"
+             x:DataType="vm:SoundboardViewModel">
     <UserControl.Resources>
         <ResourceDictionary>
             <system:Double x:Key="ButtonHeight">32</system:Double>
@@ -28,14 +30,25 @@
         <Style Selector="Button.GhostButton">
             <Setter Property="Background" Value="Transparent" />
         </Style>
+        <Style Selector="Button.StopAllButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource StopAllButtonPointerOverBrush}" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Button.StopAllButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource StopAllButtonBrush}" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
     </UserControl.Styles>
 
 
-    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" RowDefinitions="Auto,*" ColumnSpacing="4" Margin="8">
+    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" RowDefinitions="Auto,*" ColumnSpacing="4" Margin="8,0">
 
         <!-- Stop All Button -->
         <Button Grid.Column="0" Content="Stop All"
-                Classes="ConsistentButton"
+                Classes="ConsistentButton StopAllButton"
+                Click="OnStopAllClick"
+                Foreground="White"
+                FontWeight="SemiBold"
                 Background="{DynamicResource StopAllButtonBrush}" />
 
 
@@ -63,17 +76,25 @@
         <!-- Browse Folder Button -->
         <Button Grid.Row="0" Grid.Column="2"
                 Classes="ConsistentButton IconButton"
+                Background="{DynamicResource ActionButtonBrush}"
+                Foreground="{DynamicResource ActionButtonForeground}"
+                Click="OnBrowseFolderClick"
                 Content="&#xe247;" />
 
         <!-- Refresh Button (temporary theme toggle) -->
         <Button Grid.Row="0" Grid.Column="3"
                 Classes="ConsistentButton IconButton"
+                Background="{DynamicResource ActionButtonBrush}"
+                Foreground="{DynamicResource ActionButtonForeground}"
                 Click="OnRefreshClick"
                 Content="&#xe144;" />
 
         <!-- Settings Button -->
         <Button Grid.Row="0" Grid.Column="4"
                 Classes="ConsistentButton IconButton"
+                Background="{DynamicResource ActionButtonBrush}"
+                Foreground="{DynamicResource ActionButtonForeground}"
+                Command="{Binding ToggleSettingsCommand}"
                 Content="&#xe154;" />
     </Grid>
 </UserControl>
