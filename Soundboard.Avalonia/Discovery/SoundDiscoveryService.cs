@@ -22,7 +22,7 @@ public class SoundDiscoveryService
         RecurseSubdirectories = false
     };
 
-    public DiscoveryResult DiscoverSounds(string rootPath, int maxDepth = 2,
+    public DiscoveryResult DiscoverSounds(string rootPath, int maxDepth = 6,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath))
@@ -46,7 +46,7 @@ public class SoundDiscoveryService
             .Where(g => g.Any())
             .ToList();
 
-        var categories = new List<Avalonia.Discovery.CategoryModel>();
+        var categories = new List<CategoryModel>();
         var allSounds = new List<SoundModel>();
         var categoryIndex = 0;
 
@@ -56,31 +56,32 @@ public class SoundDiscoveryService
 
             var categoryBrush = ColorPalette.GetBrush(categoryIndex++);
             var categoryModel =
-                new Avalonia.Discovery.CategoryModel(name: group.Key, soundCount: group.Count(), backgroundBrush: categoryBrush);
+                new CategoryModel(name: group.Key, soundCount: group.Count(), backgroundBrush: categoryBrush);
 
             categories.Add(categoryModel);
 
-            allSounds.AddRange(group
-                .Select(rawSound => new SoundModel(
+            foreach (var rawSound in group)
+            {
+                allSounds.Add(new SoundModel(
                     name: rawSound.Name,
                     filePath: rawSound.FilePath,
                     category: categoryModel,
                     subFolder: rawSound.SubFolder,
                     duration: rawSound.Duration,
                     audioData: rawSound.AudioData,
-                    waveFormat: rawSound.WaveFormat)
-                )
-            );
+                    waveFormat: rawSound.WaveFormat,
+                    index: allSounds.Count + 1));
+            }
         }
 
         categories.Insert(0,
-            new Avalonia.Discovery.CategoryModel(name: "All", soundCount: allSounds.Count, backgroundBrush: ColorPalette.AllButtonBrush,
+            new CategoryModel(name: "All", soundCount: allSounds.Count, backgroundBrush: ColorPalette.AllButtonBrush,
                 isAll: true));
 
         return new DiscoveryResult(categories, allSounds);
     }
 
-    public Task<DiscoveryResult> DiscoverSoundsAsync(string rootPath, int maxDepth = 2,
+    public Task<DiscoveryResult> DiscoverSoundsAsync(string rootPath, int maxDepth = 6,
         CancellationToken cancellationToken = default) =>
         Task.Run(() => DiscoverSounds(rootPath, maxDepth, cancellationToken), cancellationToken);
 
@@ -122,11 +123,6 @@ public class SoundDiscoveryService
                 using var reader = new SoundFileReader(file);
                 var waveFormat = reader.WaveFormat;
 
-                // Should be more accurate than using AudioFileReader.TotalTime
-                var duration = TimeSpan.FromSeconds(
-                    waveFormat.ExtraSize +
-                    (int)reader.Length / sizeof(float) / (waveFormat.Channels * waveFormat.SampleRate));
-
                 var wholeFile = new List<float>((int)(reader.Length / sizeof(float)));
                 var readBuffer = new float[waveFormat.SampleRate * waveFormat.Channels]; // 1 second buffer
                 int samplesRead;
@@ -134,6 +130,10 @@ public class SoundDiscoveryService
                 {
                     wholeFile.AddRange(readBuffer.AsSpan(0, samplesRead));
                 }
+
+                var duration = waveFormat.SampleRate > 0 && waveFormat.Channels > 0
+                    ? TimeSpan.FromSeconds((double)wholeFile.Count / (waveFormat.Channels * waveFormat.SampleRate))
+                    : TimeSpan.Zero;
 
                 soundAccumulator.Add(new RawSoundRecord(
                     Name: Path.GetFileNameWithoutExtension(file),

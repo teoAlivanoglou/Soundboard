@@ -1,20 +1,21 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 
 namespace Soundboard.Avalonia.Discovery;
 
 public static class ColorPalette
 {
-    public static readonly SolidColorBrush AllButtonBrush = new SolidColorBrush(Color.FromHex("#CAC8D6"));
+    public static readonly ImmutableSolidColorBrush AllButtonBrush = new(Color.FromHex("#FF818CF8"));
 
     private static readonly List<Color> PrimaryColors =
     [
-        Color.FromHex("#FAEDCB"), // Cream
-        Color.FromHex("#C9E4DE"), // Teal
-        Color.FromHex("#C6DEF1"), // Soft Blue
-        Color.FromHex("#DBCDF0"), // Lavender
-        Color.FromHex("#F2C6DE"), // Pink
-        Color.FromHex("#F7D9C4"), // Peach
+        Color.FromHex("#FFFBBF24"),
+        Color.FromHex("#FF34D399"),
+        Color.FromHex("#FF38BDF8"),
+        Color.FromHex("#FFF472B6"),
+        Color.FromHex("#FFFB923C"),
+        Color.FromHex("#FF94A3B8"),
         Color.FromHex("#FFD1DC"), // Rose
         Color.FromHex("#D1C4E9"), // Deep Lavender
         Color.FromHex("#BBDEFB"), // Sky Blue
@@ -25,16 +26,14 @@ public static class ColorPalette
         Color.FromHex("#D7CCC8"), // Warm Grey
     ];
 
-    public static SolidColorBrush GetBrush(int index)
+    public static ImmutableSolidColorBrush GetBrush(int index)
     {
         var color = PrimaryColors[index % PrimaryColors.Count];
-        var brush = new SolidColorBrush(color);
-        brush.ToImmutable();
-        return brush;
+        return new ImmutableSolidColorBrush(color);
     }
 
     private static int _nextIndex = 0;
-    public static SolidColorBrush GetBrush() => GetBrush(_nextIndex++);
+    public static ImmutableSolidColorBrush GetBrush() => GetBrush(_nextIndex++);
 
 
     extension(Color)
