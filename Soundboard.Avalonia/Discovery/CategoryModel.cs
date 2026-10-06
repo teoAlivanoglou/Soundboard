@@ -1,0 +1,23 @@
+﻿using Avalonia.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace Soundboard.Avalonia.Discovery;
+
+public partial class CategoryModel : ObservableObject
+{
+    [ObservableProperty] public partial string Name { get; set; }
+    [ObservableProperty] public partial int SoundCount { get; set; }
+    [ObservableProperty] public partial bool IsEnabled { get; set; }
+    [ObservableProperty] public partial SolidColorBrush BackgroundBrush { get; set; }
+
+    public bool IsAll { get; init; }
+
+    public CategoryModel(string name, int soundCount, SolidColorBrush backgroundBrush, bool isAll = false)
+    {
+        Name = name;
+        SoundCount = soundCount;
+        IsEnabled = true;
+        BackgroundBrush = backgroundBrush;
+        IsAll = isAll;
+    }
+}

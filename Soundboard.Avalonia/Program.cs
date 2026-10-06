@@ -2,10 +2,12 @@ using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Soundboard.AudioEngine;
-using Soundboard.Discovery;
 using Soundboard.Settings;
 using System;
+
+using Soundboard.Avalonia.Discovery;
 using Soundboard.Avalonia.UI.Fonts;
+
 
 namespace Soundboard.Avalonia;
 
