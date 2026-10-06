@@ -20,6 +20,8 @@
             <converters:ShadowConverter x:Key="ShadowConverter" />
             <converters:OuterGlowConverter x:Key="OuterGlowConverter" />
             <converters:LerpConverter x:Key="LerpConverter" />
+            <converters:DoubleToIntConverter x:Key="DoubleToIntConverter" />
+            <converters:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

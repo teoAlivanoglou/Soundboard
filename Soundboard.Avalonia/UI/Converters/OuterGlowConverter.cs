@@ -2,6 +2,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Avalonia;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -12,7 +13,11 @@ public class OuterGlowConverter : IValueConverter, IMultiValueConverter
 {
     private static ImmutableDropShadowEffect CreateGlow(Color color, string parameter)
     {
-        var isLight = Application.Current?.ActualThemeVariant == ThemeVariant.Light;
+        var isLight = false;
+        if (Dispatcher.UIThread.CheckAccess() && Application.Current is not null)
+        {
+            isLight = Application.Current.ActualThemeVariant == ThemeVariant.Light;
+        }
         
         double blur;
         double opacity;
@@ -30,11 +35,23 @@ public class OuterGlowConverter : IValueConverter, IMultiValueConverter
             case "Pad":
             default:
                 blur = isLight ? 20 : 24;
-                opacity = 0.55;
+                opacity = isLight ? 0.7 : 0.55;
                 break;
         }
 
         return new ImmutableDropShadowEffect(0, 0, blur, color, opacity);
+    }
+
+    private static Color GetColorSafe(ISolidColorBrush brush)
+    {
+        try
+        {
+            return brush.Color;
+        }
+        catch (InvalidOperationException)
+        {
+            return Colors.Blue;
+        }
     }
 
     /// <summary>
@@ -45,7 +62,7 @@ public class OuterGlowConverter : IValueConverter, IMultiValueConverter
         var color = value switch
         {
             Color c => c,
-            SolidColorBrush b => b.Color,
+            ISolidColorBrush b => GetColorSafe(b),
             _ => Colors.Blue
         };
 

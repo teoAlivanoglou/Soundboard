@@ -14,11 +14,23 @@ public class ShadowConverter : IMultiValueConverter, IValueConverter
     /// <param name="value">must be bound to an <c>Avalonia.Media.Color</c> or <c>Avalonia.Media.SolidColorBrush</c>.</param>
     /// <param name="parameter">must be a <c>Avalonia.Thickness</c>, <c>double</c>, <c>int</c> or <c>string</c>.</param>
     /// </summary>
+    private static Color GetColorSafe(ISolidColorBrush brush)
+    {
+        try
+        {
+            return brush.Color;
+        }
+        catch (InvalidOperationException)
+        {
+            return Colors.Transparent;
+        }
+    }
+
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         var color = value switch
         {
-            SolidColorBrush brush => brush.Color,
+            ISolidColorBrush brush => GetColorSafe(brush),
             Color c => c,
             _ => Colors.Transparent
         };
@@ -59,7 +71,7 @@ public class ShadowConverter : IMultiValueConverter, IValueConverter
 
         var color = values.Count > 0 ? values[0] switch
         {
-            SolidColorBrush brush => brush.Color,
+            ISolidColorBrush brush => GetColorSafe(brush),
             Color c => c,
             _ => Colors.Transparent
         } : Colors.Transparent;

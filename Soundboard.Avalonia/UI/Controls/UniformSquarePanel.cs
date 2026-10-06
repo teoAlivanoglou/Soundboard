@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using System;
 
 namespace Soundboard.Avalonia.UI.Controls;
@@ -54,20 +55,19 @@ public class UniformSquarePanel : Panel
             for (int i = 0; i < count; i++)
             {
                 var child = children[i];
-                if (child.IsVisible)
+                if (IsChildVisible(child))
                 {
                     child.Measure(new Size(itemSize, itemSize));
                     visible++;
                 }
             }
 
-            double totalW = visible > 0 ? visible * (itemSize + gap) + gap : 0;
-            double totalH = visible > 0 ? itemSize + 2 * gap : 0;
+            double totalW = visible > 0 ? visible * itemSize + (visible - 1) * gap : 0;
+            double totalH = visible > 0 ? itemSize : 0;
             return new Size(totalW, totalH);
         }
 
-        int columns = Math.Max(1, (int)((width - gap) / (minSize + gap)));
-        double itemWidth = Math.Max(1.0, (width - (columns + 1) * gap) / columns);
+        var (columns, itemWidth) = CalculateLayout(width, minSize, gap);
         double itemHeight = itemWidth;
 
         var childConstraint = new Size(itemWidth, itemHeight);
@@ -78,7 +78,7 @@ public class UniformSquarePanel : Panel
         for (int i = 0; i < totalCount; i++)
         {
             var child = panelChildren[i];
-            if (child.IsVisible)
+            if (IsChildVisible(child))
             {
                 child.Measure(childConstraint);
                 visibleCount++;
@@ -89,7 +89,7 @@ public class UniformSquarePanel : Panel
             return new Size(width, 0);
 
         int rows = (visibleCount + columns - 1) / columns;
-        double totalHeight = rows * (itemHeight + gap) + gap;
+        double totalHeight = rows * itemHeight + (rows - 1) * gap;
 
         return new Size(width, totalHeight);
     }
@@ -103,8 +103,7 @@ public class UniformSquarePanel : Panel
         var gap = Math.Max(0.0, ItemGap);
         var minSize = Math.Max(1.0, MinItemSize);
 
-        int columns = Math.Max(1, (int)((width - gap) / (minSize + gap)));
-        double itemWidth = Math.Max(1.0, (width - (columns + 1) * gap) / columns);
+        var (columns, itemWidth) = CalculateLayout(width, minSize, gap);
         double itemHeight = itemWidth;
 
         var children = Children;
@@ -114,19 +113,34 @@ public class UniformSquarePanel : Panel
         for (int i = 0; i < count; i++)
         {
             var child = children[i];
-            if (!child.IsVisible)
+            if (!IsChildVisible(child))
                 continue;
 
             int col = index % columns;
             int row = index / columns;
 
-            double x = gap + col * (itemWidth + gap);
-            double y = gap + row * (itemHeight + gap);
+            double x = col * (itemWidth + gap);
+            double y = row * (itemHeight + gap);
 
             child.Arrange(new Rect(x, y, itemWidth, itemHeight));
             index++;
         }
 
         return finalSize;
+    }
+
+    private static bool IsChildVisible(Control child)
+    {
+        if (!child.IsVisible) return false;
+        if (child is ContentPresenter { Child: { } innerChild } && !innerChild.IsVisible)
+            return false;
+        return true;
+    }
+
+    private static (int columns, double itemSize) CalculateLayout(double width, double minSize, double gap)
+    {
+        int columns = Math.Max(1, (int)((width + gap) / (minSize + gap)));
+        double itemSize = Math.Max(1.0, (width - (columns - 1) * gap) / columns);
+        return (columns, itemSize);
     }
 }
