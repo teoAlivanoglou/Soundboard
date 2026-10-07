@@ -19,6 +19,7 @@ public class AudioPlaybackEngine : IDisposable
 {
     private IWavePlayer _outputDevice;
     private MixingSampleProvider _mixer;
+    private VolumeSampleProvider _volumeProvider;
 
     private readonly SettingsService _settingsService;
     private readonly object _lock = new();
@@ -91,7 +92,7 @@ public class AudioPlaybackEngine : IDisposable
         return drivers;
     }
     
-    [MemberNotNull(nameof(_outputDevice), nameof(_mixer))]
+    [MemberNotNull(nameof(_outputDevice), nameof(_mixer), nameof(_volumeProvider))]
     private void InitializeDriver()
     {
         var audioSettings = _settingsService.AudioPlayerSettings;
@@ -120,8 +121,21 @@ public class AudioPlaybackEngine : IDisposable
 
         _mixer.MixerInputEnded += MixerOnMixerInputEnded;
 
-        _outputDevice.Init(_mixer);
+        _volumeProvider = new VolumeSampleProvider(_mixer)
+        {
+            Volume = (float)Math.Clamp(audioSettings.Volume / 100.0, 0.0, 1.0)
+        };
+
+        _outputDevice.Init(_volumeProvider);
         _outputDevice.Play();
+    }
+
+    public void SetVolume(double volume)
+    {
+        if (_volumeProvider != null)
+        {
+            _volumeProvider.Volume = (float)Math.Clamp(volume / 100.0, 0.0, 1.0);
+        }
     }
 
     public void PlaySound(SoundModel sound, int fadeDuration = 0)

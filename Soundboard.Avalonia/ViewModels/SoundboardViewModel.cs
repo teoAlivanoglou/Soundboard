@@ -104,6 +104,13 @@ public partial class SoundboardViewModel : ObservableObject
             }
         };
 
+        Settings.AudioPlayerSettings.PropertyChanged += (_, arg) => {
+            if (arg.PropertyName is nameof(AudioPlayerSettings.Volume))
+            {
+                _audioEngine?.SetVolume(Settings.AudioPlayerSettings.Volume);
+            }
+        };
+
         HookThemeChanges();
         LoadDefaultSounds();
     }
@@ -297,5 +304,21 @@ public partial class SoundboardViewModel : ObservableObject
     {
         _audioEngine?.Reset();
         Settings.Save();
+    }
+
+    private double _previousVolume = 70.0;
+
+    [RelayCommand]
+    public void ToggleMute()
+    {
+        if (Settings.AudioPlayerSettings.Volume > 0)
+        {
+            _previousVolume = Settings.AudioPlayerSettings.Volume;
+            Settings.AudioPlayerSettings.Volume = 0;
+        }
+        else
+        {
+            Settings.AudioPlayerSettings.Volume = _previousVolume > 0 ? _previousVolume : 70.0;
+        }
     }
 }

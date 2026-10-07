@@ -58,10 +58,12 @@
             <!-- Volume Button -->
             <Button Grid.Column="0"
                     Classes="ConsistentButton IconButton GhostButton"
+                    Command="{Binding ToggleMuteCommand}"
                     Content="{Binding Path=Value, ElementName=VolumeSlider, Converter={StaticResource VolumeIconConverter}}"/>
 
             <!-- Volume Slider -->
-            <Slider x:Name="VolumeSlider" Grid.Column="1" Minimum="0" Maximum="100" Value="70"
+            <Slider x:Name="VolumeSlider" Grid.Column="1" Minimum="0" Maximum="100"
+                    Value="{Binding Settings.AudioPlayerSettings.Volume}"
                     VerticalAlignment="Center" Margin="0" Padding="0" IsSnapToTickEnabled="True" TickFrequency="1" />
 
             <!-- Volume Label -->

@@ -26,6 +26,6 @@ Uses NAudio for playback, CommunityToolkit.Mvvm for MVVM.
 - [x] Refactor viewmodel - split to services
 - [x] Expand Color Palette
 - [ ] Cleanup
-- [ ] Volume
+- [x] Volume
 - [ ] Indicate how many instances of a sound play at a time
 
