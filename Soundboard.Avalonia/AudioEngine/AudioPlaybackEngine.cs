@@ -142,7 +142,9 @@ public class AudioPlaybackEngine : IDisposable
         fadeDuration = Math.Min(fadeDuration, (int)sound.Duration.TotalMilliseconds / 2);
         if (fadeDuration > 0)
         {
-            provider.FadeEnding(TimeSpan.FromMilliseconds(fadeDuration), sound.Duration);
+            var fadeTimeSpan = TimeSpan.FromMilliseconds(fadeDuration);
+            provider.SetFadeIn(fadeTimeSpan);
+            provider.FadeEnding(fadeTimeSpan, sound.Duration);
         }
 
         lock (_lock)
@@ -201,6 +203,7 @@ public class AudioPlaybackEngine : IDisposable
     public void StopSound(SoundModel sound)
     {
         List<ISampleProvider>? soundSampleProviders = null;
+        var fadeDuration = _settingsService.AudioPlayerSettings.FadeInTime;
 
         lock (_lock)
         {
@@ -216,10 +219,17 @@ public class AudioPlaybackEngine : IDisposable
         {
             foreach (var sampleProvider in soundSampleProviders)
             {
-                _mixer.RemoveMixerInput(sampleProvider);
-                if (sampleProvider is IDisposable disposable)
+                if (fadeDuration > 0 && sampleProvider is DelayFadeOutSampleProvider fadeProvider)
                 {
-                    disposable.Dispose();
+                    fadeProvider.BeginFadeOut(TimeSpan.FromMilliseconds(fadeDuration));
+                }
+                else
+                {
+                    _mixer.RemoveMixerInput(sampleProvider);
+                    if (sampleProvider is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
                 }
             }
         }

@@ -17,7 +17,7 @@ Uses NAudio for playback, CommunityToolkit.Mvvm for MVVM.
 
 - [x] **Unicode path support**: Support audio files and directories with non-ANSI / Unicode characters in paths (e.g. accents, special symbols) by passing .NET UTF-16 `FileStream`s into the reader instead of ANSI paths.
 - [ ] **FL Studio Vorbis-in-WAV format (`0x674F` / `0x6750`)**: Support decoding FL Studio WAV files that embed raw `OggS` Vorbis bitstreams in their data chunks via on-demand streaming `SubStream`.
-- [ ] **Hook fade in/out**: Connect and fix fade in / fade out functionality during sound playback.
+- [x] **Hook fade in/out**: Connect and fix fade in / fade out functionality during sound playback.
 
 ## Roadmap / Next
 

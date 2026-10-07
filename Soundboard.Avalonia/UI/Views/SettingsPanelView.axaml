@@ -94,8 +94,8 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Fade In Time -->
-                <TextBlock Grid.Column="0" Grid.Row="0" Classes="label" Text="Fade In Time: " />
+                <!-- Fade Time -->
+                <TextBlock Grid.Column="0" Grid.Row="0" Classes="label" Text="Fade Time: " />
                 <Slider Grid.Column="1" Grid.Row="0"
                         Value="{Binding Settings.AudioPlayerSettings.FadeInTime, Converter={StaticResource DoubleToIntConverter}}"
                         Minimum="0" Maximum="1000"

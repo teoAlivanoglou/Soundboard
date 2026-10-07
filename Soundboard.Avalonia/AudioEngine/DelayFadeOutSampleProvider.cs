@@ -93,9 +93,22 @@ public class DelayFadeOutSampleProvider : ISampleProvider, IDisposable
     {
         lock (_lockObject)
         {
-            var wave = _source as IWaveProvider;
             _fadeOutStart = (int)((sourceLength - fadeOutLength).TotalSeconds * _source.WaveFormat.SampleRate *
                                   _source.WaveFormat.Channels);
+            _fadeOutSamples = (int)(fadeOutLength.TotalSeconds * _source.WaveFormat.SampleRate *
+                                    _source.WaveFormat.Channels);
+        }
+    }
+
+    /// <summary>
+    /// Starts fading out immediately from current playback position.
+    /// </summary>
+    /// <param name="fadeOutLength">Duration of the fade-out</param>
+    public void BeginFadeOut(TimeSpan fadeOutLength)
+    {
+        lock (_lockObject)
+        {
+            _fadeOutStart = _position;
             _fadeOutSamples = (int)(fadeOutLength.TotalSeconds * _source.WaveFormat.SampleRate *
                                     _source.WaveFormat.Channels);
         }
@@ -108,10 +121,31 @@ public class DelayFadeOutSampleProvider : ISampleProvider, IDisposable
     /// <returns>Number of samples read</returns>
     public int Read(Span<float> buffer)
     {
-        var sourceSamplesRead = _source.Read(buffer);
         lock (_lockObject)
         {
-            for (var i = 0; i < sourceSamplesRead; i++)
+            if (_fadeOutSamples > 0 && _position >= _fadeOutStart + _fadeOutSamples)
+            {
+                Dispose();
+                return 0;
+            }
+        }
+
+        var sourceSamplesRead = _source.Read(buffer);
+        if (sourceSamplesRead == 0)
+        {
+            Dispose();
+            return 0;
+        }
+
+        lock (_lockObject)
+        {
+            var samplesToProcess = sourceSamplesRead;
+            if (_fadeOutSamples > 0 && (_fadeOutStart + _fadeOutSamples) < (_position + sourceSamplesRead))
+            {
+                samplesToProcess = Math.Max(0, (_fadeOutStart + _fadeOutSamples) - _position);
+            }
+
+            for (var i = 0; i < samplesToProcess; i++)
             {
                 var samplePos = _position + i;
                 if (_fadeInSamples > 0)
@@ -120,24 +154,33 @@ public class DelayFadeOutSampleProvider : ISampleProvider, IDisposable
                     {
                         buffer[i] = 0;
                     }
-                    else if (samplePos >= _fadeInStart && samplePos < (_fadeInStart + _fadeInSamples))
+                    else if (samplePos < (_fadeInStart + _fadeInSamples))
                     {
                         buffer[i] *= (samplePos - _fadeInStart) / (float)_fadeInSamples;
                     }
                 }
 
-                if (_fadeOutSamples <= 0) continue;
-                if (samplePos >= _fadeOutStart && samplePos < (_fadeOutStart + _fadeOutSamples))
+                if (_fadeOutSamples > 0 && samplePos >= _fadeOutStart)
                 {
-                    buffer[i] *= (1 - ((samplePos - _fadeOutStart) / (float)_fadeOutSamples));
-                }
-                else if (samplePos >= _fadeOutStart + _fadeOutSamples)
-                {
-                    buffer[i] = 0;
+                    if (samplePos < (_fadeOutStart + _fadeOutSamples))
+                    {
+                        buffer[i] *= (1f - ((samplePos - _fadeOutStart) / (float)_fadeOutSamples));
+                    }
+                    else
+                    {
+                        buffer[i] = 0;
+                    }
                 }
             }
 
-            _position += sourceSamplesRead;
+            _position += samplesToProcess;
+
+            if (samplesToProcess < sourceSamplesRead)
+            {
+                buffer.Slice(samplesToProcess).Clear();
+                Dispose();
+                return samplesToProcess;
+            }
         }
 
         return sourceSamplesRead;
