@@ -97,7 +97,7 @@ public class AudioPlaybackEngine : IDisposable
 
     private void AddMixerInput(ISampleProvider input)
     {
-        if (input.WaveFormat.SampleRate == _outputDevice.OutputWaveFormat.SampleRate)
+        if (input.WaveFormat.SampleRate == _mixer.WaveFormat.SampleRate)
             _mixer.AddMixerInput(input);
     }
 
