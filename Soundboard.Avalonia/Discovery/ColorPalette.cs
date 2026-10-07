@@ -1,16 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
+using System.Globalization;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
-using Avalonia.Metadata;
+using Soundboard.Avalonia.Utils;
 
 namespace Soundboard.Avalonia.Discovery;
 
 public static class ColorPalette
 {
-
-    private static readonly List<Color> PrimaryColors =
+    private static readonly Color[] PrimaryColors =
     [
         Color.FromHex("#FFFBBF24"), // Warm Gold               
         Color.FromHex("#FF34D399"), // Cool Mint Green         
@@ -28,48 +26,19 @@ public static class ColorPalette
         Color.FromHex("#FFC084FC"), // Orchid Purple           
         Color.FromHex("#FF22D3EE"), // Electric Cyan           
         Color.FromHex("#FFA3E635"), // Bright Chartreuse / Lime
-        Color.FromHex("#FF818CF8")
+        Color.FromHex("#FF818CF8")  // Indigo (All button)
     ];
 
-    public static readonly ImmutableSolidColorBrush AllButtonBrush = new(PrimaryColors[^1]);
-
-    private static Dictionary<Color, (ImmutableSolidColorBrush light, ImmutableSolidColorBrush dark)> _brushCache = new (PrimaryColors.Capacity);
-
-    public static ImmutableSolidColorBrush GetBrush(int index)
-    {
-        var color = PrimaryColors[index % PrimaryColors.Count];
-        return new ImmutableSolidColorBrush(color);
-    }
-
-    public static (ImmutableSolidColorBrush light, ImmutableSolidColorBrush dark) GetBrushes(int index)
-    {
-        var color = PrimaryColors[index % PrimaryColors.Count];
-
-        if (_brushCache.TryGetValue(color, out var brushes))
-        {
-            return brushes;
-        }
-
-        var val = (new ImmutableSolidColorBrush(color), new ImmutableSolidColorBrush(color));
-        _brushCache.Add(color, val);
-        return val;
-
-    }
-
-    private static int _nextIndex = 0;
-    public static ImmutableSolidColorBrush GetBrush() => GetBrush(_nextIndex++);
-
+    public static Color GetColor(Index index) => PrimaryColors[index.IsFromEnd ? index : index.Value  % PrimaryColors.Length];
 
     extension(Color)
     {
         public static Color FromHex(string hexValue) =>
-            uint.TryParse(hexValue.TrimStart('#'), System.Globalization.NumberStyles.HexNumber, null, out var num)
+            uint.TryParse(hexValue.TrimStart('#'), NumberStyles.HexNumber, null, out var num)
                 ? Color.FromRgb(
                     (byte)((num >> 16) & 0xFF),
                     (byte)((num >> 8) & 0xFF),
                     (byte)(num & 0xFF))
                 : Colors.Magenta;
-
-       
     }
 }

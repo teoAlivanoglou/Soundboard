@@ -4,23 +4,31 @@
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using System;
+using System.Collections.Generic;
 
 namespace Soundboard.Avalonia.Utils;
 
 internal static class HelmlabColorConversion
 {
+    private static readonly Dictionary<Color, ImmutableSolidColorBrushPair> Cache = new();
+    
     // =========================================================
     // Public Static API
     // =========================================================
-
+    
     /// <summary>
     /// Takes any arbitrary input color, normalizes it to a perceptual 500 base,
     /// and generates the dual-mode 400 (Dark Mode) and 600 (Light Mode) brushes.
     /// </summary>
-    public static (ImmutableSolidColorBrush Dark, ImmutableSolidColorBrush Light) GetDualModeBrushes(Color color)
+    public static ImmutableSolidColorBrushPair GetDualModeBrushes(Color color)
     {
+        if (Cache.TryGetValue(color, out var brushes))
+            return brushes;
+
         var (dark, light) = GetDualModeColors(color);
-        return (new ImmutableSolidColorBrush(dark), new ImmutableSolidColorBrush(light));
+        var result = new ImmutableSolidColorBrushPair(new ImmutableSolidColorBrush(light), new ImmutableSolidColorBrush(dark));
+        Cache[color] = result;
+        return result;
     }
 
     /// <summary>
@@ -361,5 +369,22 @@ internal static class HelmlabColorConversion
             table[i] = (Math.Clamp(l, 0.38, 0.88), Math.Clamp(c, 0.20, 0.48));
         }
         return table;
+    }
+}
+
+public readonly record struct ImmutableSolidColorBrushPair
+{
+    public ImmutableSolidColorBrush Light { get; init; }
+    public ImmutableSolidColorBrush Dark { get; init; }
+
+    public ImmutableSolidColorBrushPair(ImmutableSolidColorBrush light, ImmutableSolidColorBrush dark)
+    {
+        Light = light;
+        Dark = dark;
+    }
+
+    public ImmutableSolidColorBrushPair(Color color)
+    {
+        this = HelmlabColorConversion.GetDualModeBrushes(color);
     }
 }

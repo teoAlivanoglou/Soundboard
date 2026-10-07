@@ -18,7 +18,6 @@ public class SoundRow(IReadOnlyList<SoundModel> items)
 {
     public IReadOnlyList<SoundModel> Items { get; } = items;
 }
-
 public partial class SoundboardViewModel : ObservableObject
 {
     private readonly AudioPlaybackEngine? _audioEngine;
@@ -53,10 +52,10 @@ public partial class SoundboardViewModel : ObservableObject
         _audioEngine = null;
         _soundDiscoveryService = new SoundDiscoveryService();
 
-        var catAll = new CategoryModel("All", 4, ColorPalette.AllButtonBrush, isAll: true);
-        var catBass = new CategoryModel("Basses", 2, ColorPalette.GetBrush(0));
-        var catLead = new CategoryModel("Leads", 1, ColorPalette.GetBrush(1));
-        var catDrums = new CategoryModel("Drums", 1, ColorPalette.GetBrush(2));
+        var catAll = CategoryModel.GetAll(4);
+        var catBass = new CategoryModel("Basses", 2, ColorPalette.GetColor(0));
+        var catLead = new CategoryModel("Leads", 1, ColorPalette.GetColor(1));
+        var catDrums = new CategoryModel("Drums", 1, ColorPalette.GetColor(2));
 
         Categories.Add(catAll);
         Categories.Add(catBass);
@@ -95,8 +94,7 @@ public partial class SoundboardViewModel : ObservableObject
             Settings.SettingsPanelVisible = true;
         }
 
-        Settings.ApplicationUiSettings.PropertyChanged += (_, arg) =>
-        {
+        Settings.ApplicationUiSettings.PropertyChanged += (_, arg) => {
             if (arg.PropertyName
                 is nameof(ApplicationUiSettings.MinButtonSize)
                 or nameof(ApplicationUiSettings.ButtonGap))
@@ -156,11 +154,11 @@ public partial class SoundboardViewModel : ObservableObject
 
         var stream = AssetLoader.Open(uri);
 
-        var defaultCategory = new CategoryModel("Info", 1, ColorPalette.GetBrush(0));
+        var defaultCategory = new CategoryModel("Info", 1, ColorPalette.GetColor(0));
         var warningSound = SoundModel.FromStream("Please Select a Folder", stream, defaultCategory, index: 1);
 
         Categories.Clear();
-        Categories.Add(new CategoryModel("All", 1, ColorPalette.AllButtonBrush, isAll: true));
+        Categories.Add(CategoryModel.GetAll(1));
         Categories.Add(defaultCategory);
 
         SoundItems.Clear();

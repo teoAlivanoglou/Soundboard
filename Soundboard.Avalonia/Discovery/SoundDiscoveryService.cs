@@ -18,7 +18,10 @@ public class SoundDiscoveryService
 
     private static readonly HashSet<string> ValidExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".mp3", ".wav", ".ogg", ".flac"
+        ".mp3",
+        ".wav",
+        ".ogg",
+        ".flac"
     };
 
     private static readonly EnumerationOptions SafeEnumOptions = new()
@@ -60,9 +63,9 @@ public class SoundDiscoveryService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var categoryBrush = ColorPalette.GetBrush(categoryIndex++);
+            var categoryColor = ColorPalette.GetColor(categoryIndex++);
             var categoryModel =
-                new CategoryModel(name: group.Key, soundCount: group.Count(), backgroundBrush: categoryBrush);
+                new CategoryModel(name: group.Key, soundCount: group.Count(), color: categoryColor);
 
             categories.Add(categoryModel);
 
@@ -80,9 +83,7 @@ public class SoundDiscoveryService
             }
         }
 
-        categories.Insert(0,
-            new CategoryModel(name: "All", soundCount: allSounds.Count, backgroundBrush: ColorPalette.AllButtonBrush,
-                isAll: true));
+        categories.Insert(0, CategoryModel.GetAll(allSounds.Count));
 
         return new DiscoveryResult(categories, allSounds);
     }
