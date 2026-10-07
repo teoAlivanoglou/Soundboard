@@ -71,6 +71,7 @@ public partial class SoundboardViewModel : ObservableObject
         SoundItems.Add(new SoundModel("Hyper Synth Lead", "", catLead, "", TimeSpan.FromMilliseconds(850), index: 3));
         SoundItems.Add(new SoundModel("Snappy Rimshot", "", catDrums, "", TimeSpan.FromMilliseconds(120), index: 4));
         UpdateLayoutAndRows(800);
+        HookThemeChanges();
     }
 
     public SoundboardViewModel(AudioPlaybackEngine audioEngine, SoundDiscoveryService soundDiscoveryService,
@@ -103,7 +104,23 @@ public partial class SoundboardViewModel : ObservableObject
             }
         };
 
+        HookThemeChanges();
         LoadDefaultSounds();
+    }
+
+    private void HookThemeChanges()
+    {
+        if (Application.Current is not null)
+        {
+            Application.Current.ActualThemeVariantChanged += (_, _) =>
+            {
+                CategoryModel.All.NotifyThemeChanged();
+                foreach (var category in Categories)
+                {
+                    category.NotifyThemeChanged();
+                }
+            };
+        }
     }
 
 

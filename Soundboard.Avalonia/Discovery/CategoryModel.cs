@@ -55,13 +55,9 @@ public partial class CategoryModel : ObservableObject
         BackgroundBrushDark = backgroundBrushDark;
         BackgroundBrushLight = backgroundBrushLight;
         IsAll = isAll;
-
-        if (Application.Current is not null)
-        {
-            Application.Current.ActualThemeVariantChanged += OnThemeVariantChanged;
-        }
     }
-    private void OnThemeVariantChanged(object? sender, EventArgs e)
+
+    public void NotifyThemeChanged()
     {
         OnPropertyChanged(nameof(BackgroundBrush));
     }
