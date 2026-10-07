@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Soundboard.Avalonia.UI.Controls;
 
@@ -40,6 +41,7 @@ public class UniformSquarePanel : Panel
         ClipToBounds = false;
     }
 
+
     protected override Size MeasureOverride(Size availableSize)
     {
         var width = availableSize.Width;
@@ -57,7 +59,6 @@ public class UniformSquarePanel : Panel
                 var child = children[i];
                 if (IsChildVisible(child))
                 {
-                    child.Measure(new Size(itemSize, itemSize));
                     visible++;
                 }
             }
@@ -70,7 +71,6 @@ public class UniformSquarePanel : Panel
         var (columns, itemWidth) = CalculateLayout(width, minSize, gap);
         double itemHeight = itemWidth;
 
-        var childConstraint = new Size(itemWidth, itemHeight);
         var panelChildren = Children;
         var totalCount = panelChildren.Count;
         int visibleCount = 0;
@@ -80,7 +80,6 @@ public class UniformSquarePanel : Panel
             var child = panelChildren[i];
             if (IsChildVisible(child))
             {
-                child.Measure(childConstraint);
                 visibleCount++;
             }
         }

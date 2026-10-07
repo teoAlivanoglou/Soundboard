@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -11,6 +14,11 @@ using Soundboard.Avalonia.Utils;
 
 namespace Soundboard.Avalonia.ViewModels;
 
+public class SoundRow(IReadOnlyList<SoundModel> items)
+{
+    public IReadOnlyList<SoundModel> Items { get; } = items;
+}
+
 public partial class SoundboardViewModel : ObservableObject
 {
     private readonly AudioPlaybackEngine? _audioEngine;
@@ -18,6 +26,13 @@ public partial class SoundboardViewModel : ObservableObject
 
     public ObservableCollection<SoundModel> SoundItems { get; set; } = [];
     public ObservableCollection<CategoryModel> Categories { get; set; } = [];
+    [ObservableProperty] public partial ObservableCollection<SoundRow> SoundRows { get; set; } = [];
+    [ObservableProperty] public partial double ItemSize { get; set; } = 140;
+    [ObservableProperty] public partial Thickness RowMargin { get; set; } = new(0, 0, 0, 8);
+
+    private double _lastGridWidth;
+    private int _lastColumnCount;
+
 
     [ObservableProperty] public partial bool SettingsVisible { get; set; } = false;
     [ObservableProperty] public partial bool SettingsButtonVisible { get; set; } = false;
@@ -56,6 +71,7 @@ public partial class SoundboardViewModel : ObservableObject
         SoundItems.Add(new SoundModel("Deep Sub Bass", "", catBass, "", TimeSpan.FromSeconds(3.8), index: 2));
         SoundItems.Add(new SoundModel("Hyper Synth Lead", "", catLead, "", TimeSpan.FromMilliseconds(850), index: 3));
         SoundItems.Add(new SoundModel("Snappy Rimshot", "", catDrums, "", TimeSpan.FromMilliseconds(120), index: 4));
+        UpdateLayoutAndRows(800);
     }
 
     public SoundboardViewModel(AudioPlaybackEngine audioEngine, SoundDiscoveryService soundDiscoveryService,
@@ -79,17 +95,66 @@ public partial class SoundboardViewModel : ObservableObject
             Settings.SettingsPanelVisible = true;
         }
 
+        Settings.ApplicationUiSettings.PropertyChanged += (_, arg) =>
+        {
+            if (arg.PropertyName
+                is nameof(ApplicationUiSettings.MinButtonSize)
+                or nameof(ApplicationUiSettings.ButtonGap))
+            {
+                UpdateLayoutAndRows(forceRebuild: true);
+            }
+        };
+
         LoadDefaultSounds();
     }
 
-    // TODO: How to port this to avalonia? Will probably be much easier
+
+    public void UpdateLayoutAndRows(double? availableWidth = null, bool forceRebuild = false)
+    {
+        if (availableWidth is > 0)
+        {
+            _lastGridWidth = availableWidth.Value;
+        }
+
+        if (_lastGridWidth <= 0) return;
+
+        var minSize = Math.Max(1.0, Settings.ApplicationUiSettings.MinButtonSize);
+        var gap = Math.Max(0.0, Settings.ApplicationUiSettings.ButtonGap);
+
+        RowMargin = new Thickness(0, 0, 0, gap);
+
+        // Column and item size (Math.Floor prevents sub-pixel rounding overflow on right edge)
+        var columns = Math.Max(1, (int)((_lastGridWidth + gap) / (minSize + gap)));
+        var itemSize = Math.Max(1.0, Math.Floor((_lastGridWidth - (columns - 1) * gap) / columns));
+
+        ItemSize = itemSize;
+
+        // If columns didn't change and we're not forcing a rebuild, the rows are already correct!
+        // We only needed to update ItemSize (which lets existing pads resize smoothly with 0 allocations).
+        if (columns == _lastColumnCount && !forceRebuild && SoundRows.Count > 0)
+        {
+            return;
+        }
+
+        _lastColumnCount = columns;
+
+        // Filter visible sounds and chunk into rows
+        var visibleSounds = SoundItems.Where(s => s.Category.IsEnabled).ToList();
+        var newRows = visibleSounds.Chunk(columns)
+            .Select(chunk => new SoundRow(chunk))
+            .ToList();
+
+        // Assigning SoundRows fires 1 PropertyChanged notification instead of 100 CollectionChanged(Add) events
+        SoundRows = new ObservableCollection<SoundRow>(newRows);
+    }
+
     public void LoadDefaultSounds()
     {
         var uri = new Uri("avares://Soundboard.Avalonia/Assets/warning.mp3");
 
         if (!AssetLoader.Exists(uri)) return;
-        
-        var stream =  AssetLoader.Open(uri);
+
+        var stream = AssetLoader.Open(uri);
 
         var defaultCategory = new CategoryModel("Info", 1, ColorPalette.GetBrush(0));
         var warningSound = SoundModel.FromStream("Please Select a Folder", stream, defaultCategory, index: 1);
@@ -100,6 +165,8 @@ public partial class SoundboardViewModel : ObservableObject
 
         SoundItems.Clear();
         SoundItems.Add(warningSound);
+
+        UpdateLayoutAndRows(forceRebuild: true);
     }
 
     public void ReadSounds(string filesystemUrl)
@@ -128,6 +195,8 @@ public partial class SoundboardViewModel : ObservableObject
         {
             SoundItems.Add(sound);
         }
+
+        UpdateLayoutAndRows(forceRebuild: true);
     }
 
     public async Task ReadSoundsAsync(string filesystemUrl)
@@ -156,6 +225,8 @@ public partial class SoundboardViewModel : ObservableObject
         {
             SoundItems.Add(sound);
         }
+
+        UpdateLayoutAndRows(forceRebuild: true);
     }
 
 
@@ -167,6 +238,8 @@ public partial class SoundboardViewModel : ObservableObject
         {
             sound.IsVisible = sound.Category.IsEnabled;
         }
+
+        UpdateLayoutAndRows(forceRebuild: true);
     }
 
     [RelayCommand]
@@ -208,5 +281,6 @@ public partial class SoundboardViewModel : ObservableObject
     public void ResetAudioDriver()
     {
         _audioEngine?.Reset();
+        Settings.Save();
     }
 }
