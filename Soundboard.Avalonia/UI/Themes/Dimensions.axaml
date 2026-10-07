@@ -20,4 +20,5 @@
     <system:Double x:Key="PadTitleMaxFontSize">16</system:Double>
     <system:Double x:Key="PadTitleMinFontSize">14</system:Double>
 
+    <system:Double x:Key="ViewEdgeFadeHeight">12</system:Double>
 </ResourceDictionary>

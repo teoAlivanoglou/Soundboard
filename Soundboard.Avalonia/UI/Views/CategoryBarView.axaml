@@ -37,42 +37,61 @@
     </UserControl.Styles>
 
 
-    <ItemsControl ItemsSource="{Binding Categories}" Padding="16,12,8,4">
-        <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-                <WrapPanel Orientation="Horizontal" />
-            </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="discovery:CategoryModel">
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Categories}" Padding="16,12,8,4">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="discovery:CategoryModel">
 
-                <!-- Pill -->
-                <Border Classes="cat-pill"
-                        Classes.active="{Binding IsEnabled}"
-                        Cursor="Hand"
-                        Margin="0,0,8,8"
-                        Background="{DynamicResource PadSurfaceBrush}"
-                        BorderThickness="1"
-                        CornerRadius="12"
-                        Padding="10,6"
-                        ClipToBounds="False"
-                        PointerPressed="InputElement_OnPointerPressed">
+                        <!-- Pill -->
+                        <Border Classes="cat-pill"
+                                Classes.active="{Binding IsEnabled}"
+                                Cursor="Hand"
+                                Margin="0,0,8,8"
+                                Background="{DynamicResource PadSurfaceBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="10,6"
+                                ClipToBounds="False"
+                                PointerPressed="InputElement_OnPointerPressed">
 
-                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <Ellipse Width="8" Height="8"
-                                 Fill="{Binding BackgroundBrush}" />
-                        <TextBlock Text="{Binding Name}"
-                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                   VerticalAlignment="Center" />
-                        <TextBlock Text="{Binding  SoundCount, StringFormat='({0})'}"
-                                   Foreground="{DynamicResource TextMutedBrush}"
-                                   VerticalAlignment="Center" />
-                    </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <Ellipse Width="8" Height="8"
+                                         Fill="{Binding BackgroundBrush}" />
+                                <TextBlock Text="{Binding Name}"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding  SoundCount, StringFormat='({0})'}"
+                                           Foreground="{DynamicResource TextMutedBrush}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
 
-                </Border>
-            </DataTemplate>
-        </ItemsControl.ItemTemplate>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
 
-    </ItemsControl>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Top edge fade shadow -->
+        <Border Height="{StaticResource ViewEdgeFadeHeight}"
+                VerticalAlignment="Top"
+                IsHitTestVisible="False"
+                Background="{DynamicResource WindowBackgroundBrush}"
+                OpacityMask="{StaticResource TopEdgeFadeOpacityMaskBrush}" />
+
+        <!-- Bottom edge fade shadow -->
+        <Border Height="{StaticResource ViewEdgeFadeHeight}"
+                VerticalAlignment="Bottom"
+                IsHitTestVisible="False"
+                Background="{DynamicResource WindowBackgroundBrush}"
+                OpacityMask="{StaticResource BottomEdgeFadeOpacityMaskBrush}" />
+    </Grid>
 
 </UserControl>
