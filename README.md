@@ -27,5 +27,7 @@ Uses NAudio for playback, CommunityToolkit.Mvvm for MVVM.
 - [x] Expand Color Palette
 - [ ] Cleanup
 - [x] Volume
+- [ ] Category panel min/max sizing (quantized to fit integer number of category rows: 1 min, 4-5 max)
+- [ ] Resizable category panel via GridSplitter with row snapping
 - [ ] Indicate how many instances of a sound play at a time
 
