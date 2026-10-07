@@ -38,7 +38,7 @@ public partial class SoundboardViewModel : ObservableObject
     [ObservableProperty] public partial bool SettingsButtonVisible { get; set; } = false;
     [ObservableProperty] public partial SettingsService Settings { get; set; }
 
-    public DriverType[] AvailableDriverTypes { get; } = Enum.GetValues<DriverType>();
+    public DriverType[] AvailableDriverTypes { get; } = [.. AudioPlaybackEngine.GetAvailableDrivers()];
     public SampleRate[] AvailableSampleRates { get; } = Enum.GetValues<SampleRate>();
 
     private string _lastChosenDirectory = string.Empty;

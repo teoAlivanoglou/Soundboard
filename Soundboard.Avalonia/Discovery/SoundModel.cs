@@ -65,17 +65,12 @@ public partial class SoundModel : ObservableObject
         string subFolder = "",
         int index = 1)
     {
-        var settings = new MediaFoundationReader.MediaFoundationReaderSettings { RequestFloatOutput = true, };
-
-        using var reader = new StreamMediaFoundationReader(memoryStream, settings);
+        using var reader = new NAudio.SoundFile.SoundFileReader(memoryStream);
         var sampleProvider = reader.ToSampleProvider();
         var waveFormat = sampleProvider.WaveFormat;
 
-        var duration = TimeSpan.FromSeconds(waveFormat.ExtraSize +
-                                            (reader.Length / 4.0) /
-                                            (double)(waveFormat.Channels * waveFormat.SampleRate));
-
-        var samples = new List<float>((int)(reader.Length / 4));
+        var duration = reader.TotalTime;
+        var samples = new List<float>((int)(reader.Length / sizeof(float)));
         var buffer = new float[16384];
         int read;
 

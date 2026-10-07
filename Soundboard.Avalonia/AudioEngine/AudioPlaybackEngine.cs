@@ -34,13 +34,69 @@ public class AudioPlaybackEngine : IDisposable
 
         _ = UpdateTimers(_cancellationTokenSource.Token);
     }
+    
+    public static IReadOnlyList<DriverType> GetAvailableDrivers()
+    {
+        var drivers = new List<DriverType>();
 
+#if WINDOWS
+        try
+        {
+            using var enumerator = new NAudio.CoreAudioApi.MMDeviceEnumerator();
+            var devices = enumerator.EnumerateAudioEndPoints(
+                NAudio.CoreAudioApi.DataFlow.Render,
+                NAudio.CoreAudioApi.DeviceState.Active);
+
+            if (devices.Count > 0)
+            {
+                drivers.Add(DriverType.Wasapi);
+            }
+        }
+        catch
+        {
+            // WASAPI unavailable
+        }
+
+        try
+        {
+            if (WaveOut.DeviceCount > 0)
+            {
+                drivers.Add(DriverType.WaveOutEvent);
+            }
+        }
+        catch
+        {
+            // WaveOut unavailable
+        }
+
+        try
+        {
+            if (DirectSoundOut.Devices.Any())
+            {
+                drivers.Add(DriverType.DirectSound);
+            }
+        }
+        catch
+        {
+            // DirectSound unavailable
+        }
+#else
+        if (OperatingSystem.IsMacOS())
+        {
+            drivers.Add(DriverType.CoreAudio);
+        }
+#endif
+
+        return drivers;
+    }
+    
     [MemberNotNull(nameof(_outputDevice), nameof(_mixer))]
     private void InitializeDriver()
     {
         var audioSettings = _settingsService.AudioPlayerSettings;
 
 
+#if WINDOWS
         _outputDevice = audioSettings.DriverType switch
         {
             DriverType.WaveOutEvent => new WaveOut() { BufferMilliseconds = (int)audioSettings.Latency },
@@ -50,7 +106,14 @@ public class AudioPlaybackEngine : IDisposable
             _ => throw new ArgumentOutOfRangeException(nameof(audioSettings.DriverType), audioSettings.DriverType,
                 null)
         };
-
+#else
+#pragma warning disable CA1416
+        _outputDevice = (OperatingSystem.IsMacOS() && audioSettings.DriverType == DriverType.CoreAudio)
+            ? new CoreAudioPlayer()
+            : throw new PlatformNotSupportedException($"Driver {audioSettings.DriverType} is not supported on this platform.");
+#pragma warning restore CA1416
+#endif
+        
         _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)audioSettings.SampleRate, 2));
         _mixer.ReadFully = true;
 

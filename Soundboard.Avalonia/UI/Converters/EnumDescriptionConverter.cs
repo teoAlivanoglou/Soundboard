@@ -15,9 +15,13 @@ public class EnumDescriptionConverter : IValueConverter
         {
             return dt switch
             {
+#if WINDOWS
                 DriverType.WaveOutEvent => "WaveOut",
                 DriverType.Wasapi => "WASAPI",
                 DriverType.DirectSound => "DirectSound",
+#else
+                DriverType.CoreAudio => "CoreAudio",
+#endif
                 _ => dt.ToString()
             };
         }

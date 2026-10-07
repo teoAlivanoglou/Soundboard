@@ -2,10 +2,12 @@
 	<PropertyGroup>
 		<RootNamespace>Soundboard.Avalonia</RootNamespace>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net10.0-windows7.0</TargetFramework>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('Windows'))">net10.0-windows7.0;net10.0</TargetFrameworks>
+		<TargetFramework Condition="!$([MSBuild]::IsOSPlatform('Windows'))">net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
-		<ApplicationManifest>app.manifest</ApplicationManifest>
-		<Platforms>AnyCPU;x64;x86</Platforms>
+		<ApplicationManifest Condition="$([MSBuild]::IsOSPlatform('Windows'))">app.manifest</ApplicationManifest>
+		<Platforms>AnyCPU;x64;x86;ARM64</Platforms>
+		<PlatformTarget Condition="!$([MSBuild]::IsOSPlatform('Windows'))">AnyCPU</PlatformTarget>
 	</PropertyGroup>
 	<PropertyGroup Label="Avalonia">
 		<AvaloniaNameGeneratorDefaultFieldModifier>Public</AvaloniaNameGeneratorDefaultFieldModifier>
@@ -48,6 +50,10 @@
 		<PackageReference Include="NAudio.SoundFile" Version="3.1.0" />
 	</ItemGroup>
 
+	<ItemGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
+		<PackageReference Include="NAudio.MacOS" Version="3.1.1-preview.2" />
+	</ItemGroup>
+
 
 	<ItemGroup>
 		<AvaloniaResource Include="UI\Fonts\*.ttf" />
@@ -61,8 +67,14 @@
 		<AvaloniaResource Include="Assets\warning.mp3" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
 		<Content Include="Native\sndfile.dll" TargetPath="sndfile.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
+		<Content Include="Native\libsndfile.dylib" TargetPath="libsndfile.dylib">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>

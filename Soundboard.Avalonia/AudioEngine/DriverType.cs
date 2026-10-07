@@ -6,15 +6,21 @@ namespace Soundboard.Avalonia.AudioEngine;
 [JsonConverter(typeof(JsonStringEnumConverter<DriverType>))]
 public enum DriverType
 {
-    [Description("WaveOut")]
-    [JsonStringEnumMemberName("WaveOut")]
-    WaveOutEvent = 0,
-
+#if WINDOWS
     [Description("WASAPI")]
     [JsonStringEnumMemberName("WASAPI")]
-    Wasapi = 1,
+    Wasapi = 0,
+
+    [Description("WaveOut")]
+    [JsonStringEnumMemberName("WaveOut")]
+    WaveOutEvent = 1,
 
     [Description("DirectSound")]
     [JsonStringEnumMemberName("DirectSound")]
     DirectSound = 2,
+#else
+    [Description("CoreAudio")]
+    [JsonStringEnumMemberName("CoreAudio")]
+    CoreAudio = 0,
+#endif
 }
