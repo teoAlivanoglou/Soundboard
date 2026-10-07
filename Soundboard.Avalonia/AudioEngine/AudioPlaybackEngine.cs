@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
@@ -125,9 +126,16 @@ public class AudioPlaybackEngine : IDisposable
 
     public void PlaySound(SoundModel sound, int fadeDuration = 0)
     {
-        ISampleProvider rawProvider = sound.AudioData is { Length: > 0 }
-            ? new CachedSoundSampleProvider(sound)
-            : new AutoDisposeFileReader(new SoundFileReader(sound.FilePath));
+        ISampleProvider rawProvider;
+        if (sound.AudioData is { Length: > 0 })
+        {
+            rawProvider = new CachedSoundSampleProvider(sound);
+        }
+        else
+        {
+            var stream = File.Open(sound.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            rawProvider = new AutoDisposeFileReader(new SoundFileReader(stream), stream);
+        }
 
         var provider = ConvertToRightChannelCount(rawProvider);
 

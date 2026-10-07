@@ -127,7 +127,8 @@ public class SoundDiscoveryService
 
             try
             {
-                using var reader = new SoundFileReader(file);
+                using var stream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var reader = new SoundFileReader(stream);
                 var waveFormat = reader.WaveFormat;
                 var duration = reader.TotalTime;
 

@@ -4,7 +4,7 @@ using NAudio.Wave;
 
 namespace Soundboard.Avalonia.AudioEngine;
 
-public class AutoDisposeFileReader(SoundFileReader reader) : ISampleProvider, IDisposable
+public class AutoDisposeFileReader(SoundFileReader reader, IDisposable? streamToDispose = null) : ISampleProvider, IDisposable
 {
     private bool _isDisposed;
 
@@ -15,6 +15,7 @@ public class AutoDisposeFileReader(SoundFileReader reader) : ISampleProvider, ID
 
         _isDisposed = true;
         reader.Dispose();
+        streamToDispose?.Dispose();
     }
 
     public int Read(Span<float> buffer)
