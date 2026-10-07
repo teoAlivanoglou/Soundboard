@@ -22,6 +22,10 @@ public partial class SoundPad : UserControl
     private const double MaxFontSize = 18.0;
     private const double MinFontSize = 11.0;
 
+    private static readonly TransformOperations ZeroTranslate = CreateTranslate(0);
+    private static double? _cachedMaxFontSize;
+    private static double? _cachedMinFontSize;
+
     private bool _scrolling; // pointer is hovering
     private bool _pointerDown;
     private double _baseOffsetY;
@@ -30,7 +34,7 @@ public partial class SoundPad : UserControl
     {
         InitializeComponent();
 
-        TitleTextBlock.RenderTransform = MakeTranslateY(0);
+        TitleTextBlock.RenderTransform = ZeroTranslate;
 
         TitleTextBlock.SizeChanged += (_, _) => UpdateVerticalCentering();
         TitleTextBoxBounds.SizeChanged += (_, _) => UpdateVerticalCentering();
@@ -38,6 +42,14 @@ public partial class SoundPad : UserControl
         AddHandler(PointerPressedEvent, OnPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         AddHandler(PointerReleasedEvent, OnReleased, RoutingStrategies.Tunnel, handledEventsToo: true);
         AddHandler(PointerMovedEvent, OnMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
+    }
+
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        _scrolling = false;
+        _pointerDown = false;
+        UpdateVerticalCentering();
     }
 
 
@@ -158,11 +170,20 @@ public partial class SoundPad : UserControl
         TitleTextBlock.RenderTransform = MakeTranslateY(targetY);
     }
 
-    private TransformOperations MakeTranslateY(double scrolledY)
+    private static TransformOperations CreateTranslate(double y)
     {
         var builder = TransformOperations.CreateBuilder(1);
-        builder.AppendTranslate(0, _baseOffsetY - scrolledY);
+        builder.AppendTranslate(0, y);
         return builder.Build();
+    }
+
+    private TransformOperations MakeTranslateY(double scrolledY)
+    {
+        var targetY = _baseOffsetY - scrolledY;
+        if (Math.Abs(targetY) < 0.01)
+            return ZeroTranslate;
+
+        return CreateTranslate(targetY);
     }
 
     private double GetLineHeight()
@@ -170,9 +191,7 @@ public partial class SoundPad : UserControl
         if (!double.IsNaN(TitleTextBlock.LineHeight) && TitleTextBlock.LineHeight > 0)
             return TitleTextBlock.LineHeight;
 
-        var layout = TitleTextBlock.TextLayout;
-        var count = layout.TextLines.Count;
-        return count > 0 ? layout.Height / count : 18;
+        return TitleTextBlock.FontSize * FontRatio;
     }
 
     private void UpdateVerticalCentering()
@@ -184,29 +203,43 @@ public partial class SoundPad : UserControl
                         - TitleTextBoxBounds.Padding.Bottom;
         var textHeight = TitleTextBlock.Bounds.Height;
 
-        if (available > 0 && textHeight > 0 && textHeight < available)
-        {
-            _baseOffsetY = Math.Round((available - textHeight) / 2.0);
-        }
-        else
-        {
-            _baseOffsetY = 0;
-        }
+        var newOffsetY = (available > 0 && textHeight > 0 && textHeight < available)
+            ? Math.Round((available - textHeight) / 2.0)
+            : 0;
 
+        // Skip re-applying transform if offset didn't change and no transition is running
+        if (Math.Abs(_baseOffsetY - newOffsetY) < 0.5 && TitleTextBlock.RenderTransform != null && TitleTextBlock.Transitions == null)
+            return;
+
+        _baseOffsetY = newOffsetY;
         TitleTextBlock.Transitions = null;
         TitleTextBlock.RenderTransform = MakeTranslateY(0);
     }
 
+    private static double GetResourceFontSize(string key, double fallback)
+    {
+        if (Application.Current is not null && Application.Current.TryFindResource(key, out var res) && res is double d)
+            return d;
+        return fallback;
+    }
+
     private void Control_OnSizeChanged(object? sender, SizeChangedEventArgs e)
     {
+        // Skip recalculation if height didn't change
+        if (Math.Abs(e.PreviousSize.Height - e.NewSize.Height) < 0.5 && e.PreviousSize.Height > 0)
+            return;
+
         var available = TitleTextBoxBounds.Bounds.Height
                         - TitleTextBoxBounds.Padding.Top
                         - TitleTextBoxBounds.Padding.Bottom;
 
         if (available <= 10) return;
 
-        var maxFontSize = this.TryFindResource("PadTitleMaxFontSize", out var maxRes) && maxRes is double maxVal ? maxVal : MaxFontSize;
-        var minFontSize = this.TryFindResource("PadTitleMinFontSize", out var minRes) && minRes is double minVal ? minVal : MinFontSize;
+        _cachedMaxFontSize ??= GetResourceFontSize("PadTitleMaxFontSize", MaxFontSize);
+        _cachedMinFontSize ??= GetResourceFontSize("PadTitleMinFontSize", MinFontSize);
+
+        var maxFontSize = _cachedMaxFontSize.Value;
+        var minFontSize = _cachedMinFontSize.Value;
 
         var lines = 2;
         var lineHeight = available / lines;
@@ -229,8 +262,12 @@ public partial class SoundPad : UserControl
         {
             TitleTextBlock.FontSize = fontSize;
             TitleTextBlock.LineHeight = lineHeight;
+            // Setting FontSize/LineHeight causes TitleTextBlock.SizeChanged to fire,
+            // which will call UpdateVerticalCentering automatically.
         }
-
-        UpdateVerticalCentering();
+        else
+        {
+            UpdateVerticalCentering();
+        }
     }
 }

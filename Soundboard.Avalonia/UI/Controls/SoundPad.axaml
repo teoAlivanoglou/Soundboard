@@ -17,7 +17,6 @@
         <discovery:SoundModel />
     </Design.DataContext>
 
-
     <UserControl.Styles>
         <Style Selector="Border.glow">
             <Setter Property="Opacity" Value="0" />
@@ -53,6 +52,13 @@
             </Setter>
         </Style>
 
+        <Style Selector="TextBlock.pad-title">
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="UseLayoutRounding" Value="False" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+
         <Style Selector="TextBlock.pad-footer">
             <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
             <Setter Property="FontFeatures" Value="tnum" />
@@ -68,31 +74,36 @@
 
     <Panel ClipToBounds="False">
 
-        <!-- Glow Underlay -->
+        <!-- Glow Underlay (completely hidden when not playing to skip GPU draw calls and drop shadow shaders) -->
         <Border Classes="glow"
                 Classes.playing="{Binding IsPlaying}"
+                IsVisible="{Binding IsPlaying}"
                 ClipToBounds="False"
                 IsHitTestVisible="False"
                 Background="{DynamicResource PadSurfaceBrush}"
-                CornerRadius="{DynamicResource PadOuterCornerRadius}"
-                Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='Pad'}" />
+                CornerRadius="{StaticResource PadOuterCornerRadius}">
+            <Border.Effect>
+                <MultiBinding Converter="{StaticResource OuterGlowConverter}" ConverterParameter="Pad">
+                    <Binding Path="IsPlaying" />
+                    <Binding Path="Category.BackgroundBrush" />
+                </MultiBinding>
+            </Border.Effect>
+        </Border>
 
         <!-- Main Pad Surface -->
         <Border ClipToBounds="False"
-            Background="{DynamicResource PadSurfaceBrush}"
-            CornerRadius="{DynamicResource PadOuterCornerRadius}"
-            BorderThickness="{DynamicResource PadBorderThickness}"
-            BorderBrush="{DynamicResource PadBorderBrush}">
+                Background="{DynamicResource PadSurfaceBrush}"
+                CornerRadius="{StaticResource PadOuterCornerRadius}"
+                BorderThickness="{StaticResource PadBorderThickness}"
+                BorderBrush="{DynamicResource PadBorderBrush}">
             <Border.Transitions>
                 <Transitions>
                     <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.15" Easing="CubicEaseInOut" />
                 </Transitions>
             </Border.Transitions>
             <Border.BoxShadow>
-                <MultiBinding Converter="{StaticResource ShadowConverter}">
+                <MultiBinding Converter="{StaticResource ShadowConverter}" ConverterParameter="{StaticResource PadAccentThickness}">
                     <Binding Path="Category.BackgroundBrush" />
-                    <Binding Source="{StaticResource PadAccentThickness}" />
-                    <Binding Source="{StaticResource PadAccentCornerRadius}" />
                     <Binding Path="IsPlaying" />
                 </MultiBinding>
             </Border.BoxShadow>
@@ -102,13 +113,13 @@
                 <!-- Content -->
                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*,Auto"
                       HorizontalAlignment="Stretch"
-                      Margin="{DynamicResource PadInnerPadding}">
+                      Margin="{StaticResource PadInnerPadding}">
 
                     <!-- Category Name -->
                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                                Text="{Binding Category.Name}"
                                Foreground="{Binding Category.BackgroundBrush}"
-                               FontSize="{DynamicResource PadCategoryFontSize}"
+                               FontSize="{StaticResource PadCategoryFontSize}"
                                FontWeight="DemiBold" />
                     <Border Grid.Row="1"
                             Grid.Column="0"
@@ -118,38 +129,26 @@
                             Padding="0 8"
                             ClipToBounds="True">
 
-                        <!-- Sound Name -->
-                        <ScrollViewer x:Name="TitleScroll"
-                                      UseLayoutRounding="False"
-                                      HorizontalScrollBarVisibility="Disabled"
-                                      VerticalScrollBarVisibility="Hidden">
+                        <!-- Sound Name: StackPanel provides unconstrained vertical measurement so Bounds.Height reflects full multiline text -->
+                        <StackPanel>
                             <TextBlock x:Name="TitleTextBlock"
-                                       TextWrapping="Wrap"
-                                       VerticalAlignment="Top"
-                                       UseLayoutRounding="False"
-                                       TextOptions.BaselinePixelAlignment="Unaligned"
-                                       TextOptions.TextRenderingMode="SubpixelAntialias"
-                                       Text="{Binding Name}"
-                                       Foreground="{DynamicResource TextPrimaryBrush}">
-                                <TextBlock.RenderTransform>
-                                    <TranslateTransform />
-                                </TextBlock.RenderTransform>
-                            </TextBlock>
-                        </ScrollViewer>
+                                       Classes="pad-title"
+                                       Text="{Binding Name}" />
+                        </StackPanel>
                     </Border>
 
                     <!-- Duration -->
                     <TextBlock Grid.Row="2" Grid.Column="0"
                                Classes="pad-footer"
                                Text="{Binding Duration, StringFormat='{}{0:m\\:ss\\.ff}'}"
-                               FontSize="{DynamicResource PadDurationFontSize}"
+                               FontSize="{StaticResource PadDurationFontSize}"
                                HorizontalAlignment="Left" />
 
                     <!-- Number -->
                     <TextBlock Grid.Row="2" Grid.Column="1"
                                Classes="pad-footer"
                                Text="{Binding Index, StringFormat='#{0:D2}'}"
-                               FontSize="{DynamicResource PadNumberFontSize}"
+                               FontSize="{StaticResource PadNumberFontSize}"
                                HorizontalAlignment="Right" />
 
                 </Grid>
@@ -158,36 +157,30 @@
                 <!-- Playhead and progress -->
                 <Border Classes="progress"
                         Classes.playing="{Binding IsPlaying}"
+                        IsVisible="{Binding IsPlaying}"
                         ClipToBounds="True"
                         IsHitTestVisible="False"
-                        CornerRadius="{DynamicResource PadInnerCornerRadius}">
+                        CornerRadius="{StaticResource PadInnerCornerRadius}">
 
-                    <Grid ColumnDefinitions="Auto,*">
+                    <Grid x:Name="ProgressGrid" ColumnDefinitions="Auto,*">
 
                         <Rectangle x:Name="ProgressFill" Grid.Column="0" VerticalAlignment="Stretch"
-                                   Fill="{Binding Category.BackgroundBrush}">
-                            <Rectangle.OpacityMask>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="100%,0%">
-                                     <GradientStop Color="#1400" Offset="0" />
-                                     <GradientStop Color="#8000" Offset="1" />
-                                     <GradientStop Color="#0000" Offset="1" />
-                                </LinearGradientBrush>
-                            </Rectangle.OpacityMask>
+                                   Fill="{Binding Category.BackgroundBrush}"
+                                   OpacityMask="{StaticResource ProgressFillOpacityMaskBrush}">
                             <Rectangle.Width>
                                 <MultiBinding Converter="{StaticResource LerpConverter}">
-                                    <Binding Path="Bounds.Width" RelativeSource="{RelativeSource AncestorType=Grid}" />
+                                    <Binding Path="#ProgressGrid.Bounds.Width" />
                                     <Binding Path="Progress" />
                                 </MultiBinding>
                             </Rectangle.Width>
                         </Rectangle>
 
                         <!-- Playhead -->
-                        <Rectangle Grid.Column="1" Classes="playhead-layer"
-                                   Fill="{Binding Category.BackgroundBrush}" Opacity="0.85"
+                        <Rectangle Grid.Column="1" Classes="playhead-layer" 
+                                   Fill="{Binding Category.BackgroundBrush}" Opacity="0.85" 
                                    Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='PlayheadOuter'}" />
-
-                        <Rectangle Grid.Column="1" Classes="playhead-layer"
-                                   Fill="{DynamicResource LaserCoreBrush}"
+                        <Rectangle Grid.Column="1" Classes="playhead-layer" 
+                                   Fill="{StaticResource LaserCoreBrush}"
                                    Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='PlayheadInner'}" />
                     </Grid>
                 </Border>
@@ -197,16 +190,11 @@
         <!-- Playing Border Overlay -->
         <Border Classes="progress"
                 Classes.playing="{Binding IsPlaying}"
+                IsVisible="{Binding IsPlaying}"
                 IsHitTestVisible="False"
-                CornerRadius="{DynamicResource PadOuterCornerRadius}"
-                BorderThickness="{DynamicResource PadBorderThickness}"
-                BorderBrush="{Binding Category.BackgroundBrush}">
-            <Border.OpacityMask>
-                <LinearGradientBrush StartPoint="0%,80%" EndPoint="70%,20%">
-                    <GradientStop Color="#FF000000" Offset="0" />
-                    <GradientStop Color="#00000000" Offset="1" />
-                </LinearGradientBrush>
-            </Border.OpacityMask>
-        </Border>
+                CornerRadius="{StaticResource PadOuterCornerRadius}"
+                BorderThickness="{StaticResource PadBorderThickness}"
+                BorderBrush="{Binding Category.BackgroundBrush}"
+                OpacityMask="{StaticResource PlayingBorderOpacityMaskBrush}" />
     </Panel>
 </UserControl>

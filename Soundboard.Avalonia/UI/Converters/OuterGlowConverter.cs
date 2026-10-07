@@ -11,6 +11,8 @@ namespace Soundboard.Avalonia.UI.Converters;
 
 public class OuterGlowConverter : IValueConverter, IMultiValueConverter
 {
+    private static readonly Dictionary<(Color, string, bool), ImmutableDropShadowEffect> GlowCache = new();
+
     private static ImmutableDropShadowEffect CreateGlow(Color color, string parameter)
     {
         var isLight = false;
@@ -18,7 +20,11 @@ public class OuterGlowConverter : IValueConverter, IMultiValueConverter
         {
             isLight = Application.Current.ActualThemeVariant == ThemeVariant.Light;
         }
-        
+
+        var key = (color, parameter, isLight);
+        if (GlowCache.TryGetValue(key, out var cached))
+            return cached;
+
         double blur;
         double opacity;
 
@@ -39,7 +45,9 @@ public class OuterGlowConverter : IValueConverter, IMultiValueConverter
                 break;
         }
 
-        return new ImmutableDropShadowEffect(0, 0, blur, color, opacity);
+        var effect = new ImmutableDropShadowEffect(0, 0, blur, color, opacity);
+        GlowCache[key] = effect;
+        return effect;
     }
 
     private static Color GetColorSafe(ISolidColorBrush brush)

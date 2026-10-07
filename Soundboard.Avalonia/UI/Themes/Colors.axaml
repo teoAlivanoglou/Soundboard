@@ -8,6 +8,17 @@
     <SolidColorBrush x:Key="LaserPlayheadBrush" Color="#FFFFFFFF" />
     <SolidColorBrush x:Key="LaserCoreBrush" Color="#FFFBE8" />
 
+    <LinearGradientBrush x:Key="ProgressFillOpacityMaskBrush" StartPoint="0,0" EndPoint="100%,0%">
+        <GradientStop Color="#1000" Offset="0" />
+        <GradientStop Color="#8000" Offset="1" />
+        <GradientStop Color="#0000" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="PlayingBorderOpacityMaskBrush" StartPoint="0%,80%" EndPoint="70%,20%">
+        <GradientStop Color="#FF000000" Offset="0" />
+        <GradientStop Color="#00000000" Offset="1" />
+    </LinearGradientBrush>
+
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
             <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFF4F6FA" />

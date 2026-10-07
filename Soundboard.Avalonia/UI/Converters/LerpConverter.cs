@@ -10,6 +10,11 @@ public class LerpConverter : IMultiValueConverter
     public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
         if (values.Count != 2) return 0.0;
+
+        if (values[0] is double d1 && values[1] is double d2)
+        {
+            return double.IsFinite(d1) && double.IsFinite(d2) ? Math.Max(0.0, d1 * d2) : 0.0;
+        }
         
         var a = values[0] switch
         {
