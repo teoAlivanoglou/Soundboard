@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Soundboard.Avalonia.AudioEngine;
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter<DriverType>))]
 public enum DriverType
 {
     [Description("WaveOut")]

@@ -38,11 +38,12 @@ public partial class SettingsService : ObservableObject
         try
         {
             using var stream = File.OpenRead(SettingsPath);
-            var loaded = JsonSerializer.Deserialize<SettingsService>(stream);
+            var loaded = JsonSerializer.Deserialize(stream, SettingsJsonContext.Default.SettingsService);
             return loaded ?? new SettingsService();
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[SettingsService] Load failed: {ex}");
             // Fallback if JSON is corrupted
             return new SettingsService();
         }
@@ -51,6 +52,7 @@ public partial class SettingsService : ObservableObject
 
     public void Save()
     {
+        var tempPath = SettingsPath + ".tmp";
         try
         {
             var directory = Path.GetDirectoryName(SettingsPath);
@@ -58,17 +60,22 @@ public partial class SettingsService : ObservableObject
             if (directory != null)
                 Directory.CreateDirectory(directory);
 
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            var tempPath = SettingsPath + ".tmp";
             using (var stream = File.Create(tempPath))
             {
-                JsonSerializer.Serialize(stream, this, options);
+                JsonSerializer.Serialize(stream, this, SettingsJsonContext.Default.SettingsService);
             }
 
             File.Move(tempPath, SettingsPath, overwrite: true);
         }
         catch (Exception ex)
         {
+            try
+            {
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
+            catch { }
+
             System.Diagnostics.Debug.WriteLine($"[SettingsService] Save failed: {ex}");
         }
     }
