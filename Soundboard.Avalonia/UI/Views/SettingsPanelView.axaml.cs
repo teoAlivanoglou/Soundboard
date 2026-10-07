@@ -12,13 +12,5 @@ namespace Soundboard.Avalonia.UI.Views
         {
             InitializeComponent();
         }
-
-        private void ResetAudioDriverButtonClicked(object? sender, RoutedEventArgs e)
-        {
-            var vm = (DataContext as SoundboardViewModel)
-                     ?? ((VisualRoot as Control)?.DataContext as SoundboardViewModel)
-                     ?? App.Host?.Services.GetService<SoundboardViewModel>();
-            vm?.ResetAudioDriver();
-        }
     }
 }

@@ -36,6 +36,28 @@ public partial class MainWindow : Window
                 Opacity = 1;
             }
         };
+
+        SizeChanged += (_, e) =>
+        {
+            if (WindowState == WindowState.Normal && viewModel != null)
+            {
+                viewModel.Settings.ApplicationUiSettings.WindowWidth = (int)e.NewSize.Width;
+                viewModel.Settings.ApplicationUiSettings.WindowHeight = (int)e.NewSize.Height;
+            }
+        };
+
+        Closing += (_, _) =>
+        {
+            if (viewModel != null)
+            {
+                if (WindowState == WindowState.Normal)
+                {
+                    viewModel.Settings.ApplicationUiSettings.WindowWidth = (int)Bounds.Width;
+                    viewModel.Settings.ApplicationUiSettings.WindowHeight = (int)Bounds.Height;
+                }
+                viewModel.Settings.Save();
+            }
+        };
     }
 
     public static async Task PickAndLoadFolderAsync(TopLevel topLevel, SoundboardViewModel viewModel)

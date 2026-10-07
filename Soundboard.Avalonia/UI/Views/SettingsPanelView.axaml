@@ -134,8 +134,7 @@
                             Classes="ActionButton"
                             Content="Reset Driver" Margin="12, 2, 0, 2"
                             VerticalAlignment="Center"
-                            Command="{Binding ResetAudioDriverCommand}"
-                            Click="ResetAudioDriverButtonClicked" />
+                            Command="{Binding ResetAudioDriverCommand}" />
                 </Grid>
             </Grid>
         </Grid>

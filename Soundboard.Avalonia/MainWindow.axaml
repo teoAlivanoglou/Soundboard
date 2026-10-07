@@ -7,6 +7,8 @@
         mc:Ignorable="d" d:DesignWidth="1240" d:DesignHeight="720"
         x:Class="Soundboard.Avalonia.MainWindow"
         Title="Soundboard.Avalonia"
+        Width="{Binding Settings.ApplicationUiSettings.WindowWidth, Mode=OneTime}"
+        Height="{Binding Settings.ApplicationUiSettings.WindowHeight, Mode=OneTime}"
         x:DataType="vm:SoundboardViewModel">
 
     <Design.DataContext>

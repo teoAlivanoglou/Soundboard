@@ -22,6 +22,7 @@ public partial class App : Application
             desktop.MainWindow = Host?.Services.GetService<MainWindow>() ?? new MainWindow();
             desktop.Exit += async (_, _) =>
             {
+                Host?.Services.GetService<Settings.SettingsService>()?.Save();
                 if (Host != null)
                 {
                     await Host.StopAsync();
