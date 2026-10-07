@@ -10,6 +10,12 @@ namespace Soundboard.Avalonia.Discovery;
 
 public class SoundDiscoveryService
 {
+    /// <summary>
+    /// When true, audio files are fully decoded into memory as float[] arrays for playback.
+    /// When false, audio is streamed on-demand from disk with near-zero RAM usage.
+    /// </summary>
+    public static bool EnableAudioCaching { get; set; } = false;
+
     private static readonly HashSet<string> ValidExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".mp3", ".wav", ".ogg", ".flac"
@@ -122,18 +128,25 @@ public class SoundDiscoveryService
             {
                 using var reader = new SoundFileReader(file);
                 var waveFormat = reader.WaveFormat;
+                var duration = reader.TotalTime;
 
-                var wholeFile = new List<float>((int)(reader.Length / sizeof(float)));
-                var readBuffer = new float[waveFormat.SampleRate * waveFormat.Channels]; // 1 second buffer
-                int samplesRead;
-                while ((samplesRead = reader.Read(readBuffer.AsSpan())) > 0)
+                float[]? audioData = null;
+                if (EnableAudioCaching)
                 {
-                    wholeFile.AddRange(readBuffer.AsSpan(0, samplesRead));
-                }
+                    var wholeFile = new List<float>((int)(reader.Length / sizeof(float)));
+                    var readBuffer = new float[waveFormat.SampleRate * waveFormat.Channels]; // 1 second buffer
+                    int samplesRead;
+                    while ((samplesRead = reader.Read(readBuffer.AsSpan())) > 0)
+                    {
+                        wholeFile.AddRange(readBuffer.AsSpan(0, samplesRead));
+                    }
+                    audioData = [.. wholeFile];
 
-                var duration = waveFormat.SampleRate > 0 && waveFormat.Channels > 0
-                    ? TimeSpan.FromSeconds((double)wholeFile.Count / (waveFormat.Channels * waveFormat.SampleRate))
-                    : TimeSpan.Zero;
+                    if (waveFormat.SampleRate > 0 && waveFormat.Channels > 0)
+                    {
+                        duration = TimeSpan.FromSeconds((double)wholeFile.Count / (waveFormat.Channels * waveFormat.SampleRate));
+                    }
+                }
 
                 soundAccumulator.Add(new RawSoundRecord(
                     Name: Path.GetFileNameWithoutExtension(file),
@@ -141,7 +154,7 @@ public class SoundDiscoveryService
                     CategoryName: currentCategoryName,
                     SubFolder: relativeFolder == "." ? "" : relativeFolder,
                     Duration: duration,
-                    AudioData: [.. wholeFile],
+                    AudioData: audioData,
                     WaveFormat: waveFormat
                 ));
             }
@@ -186,7 +199,7 @@ public class SoundDiscoveryService
         string CategoryName,
         string SubFolder,
         TimeSpan Duration,
-        float[] AudioData,
+        float[]? AudioData,
         NAudio.Wave.WaveFormat WaveFormat
     );
 }
