@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
+using NAudio.SoundFile;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using Soundboard.Avalonia.Discovery;
@@ -63,7 +64,7 @@ public class AudioPlaybackEngine : IDisposable
     {
         ISampleProvider rawProvider = sound.AudioData is { Length: > 0 }
             ? new CachedSoundSampleProvider(sound)
-            : new AutoDisposeFileReader(new AudioFileReader(sound.FilePath));
+            : new AutoDisposeFileReader(new SoundFileReader(sound.FilePath));
 
         var provider = ConvertToRightChannelCount(rawProvider);
 
@@ -202,7 +203,9 @@ public class AudioPlaybackEngine : IDisposable
             if (activeSounds != null && activeSounds.Count > 0)
             {
                 var now = DateTime.UtcNow;
-                var updates = new List<(SoundModel Sound, DateTime BeginTime, double Progress, bool IsPlaying)>(activeSounds.Count);
+                var updates =
+                    new List<(SoundModel Sound, DateTime BeginTime, double Progress, bool IsPlaying)>(
+                        activeSounds.Count);
                 var finishedSounds = new List<SoundModel>();
 
                 foreach (var (sound, beginTime) in activeSounds)
@@ -230,7 +233,8 @@ public class AudioPlaybackEngine : IDisposable
                         foreach (var sound in finishedSounds)
                         {
                             var visualDurationMs = Math.Max(sound.Duration.TotalMilliseconds, 250.0);
-                            if (_soundsLastPlayed.TryGetValue(sound, out var lastPlayed) && (now - lastPlayed).TotalMilliseconds >= visualDurationMs)
+                            if (_soundsLastPlayed.TryGetValue(sound, out var lastPlayed) &&
+                                (now - lastPlayed).TotalMilliseconds >= visualDurationMs)
                             {
                                 _soundsLastPlayed.Remove(sound);
                                 if (_soundsAndSampleProviders.Remove(sound, out var providers))
@@ -252,7 +256,8 @@ public class AudioPlaybackEngine : IDisposable
                     {
                         lock (_lock)
                         {
-                            if (_soundsLastPlayed.TryGetValue(sound, out var currentBeginTime) && currentBeginTime > beginTime)
+                            if (_soundsLastPlayed.TryGetValue(sound, out var currentBeginTime) &&
+                                currentBeginTime > beginTime)
                             {
                                 continue;
                             }
@@ -286,6 +291,7 @@ public class AudioPlaybackEngine : IDisposable
             _soundsAndSampleProviders.Clear();
             _soundsLastPlayed.Clear();
         }
+
         _outputDevice.Dispose();
 
         if (_cancellationTokenSource.IsCancellationRequested)

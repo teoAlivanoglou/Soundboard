@@ -1,9 +1,10 @@
 using System;
+using NAudio.SoundFile;
 using NAudio.Wave;
 
 namespace Soundboard.Avalonia.AudioEngine;
 
-public class AutoDisposeFileReader(AudioFileReader reader) : ISampleProvider, IDisposable
+public class AutoDisposeFileReader(SoundFileReader reader) : ISampleProvider, IDisposable
 {
     private bool _isDisposed;
 
@@ -23,7 +24,6 @@ public class AutoDisposeFileReader(AudioFileReader reader) : ISampleProvider, ID
 
         var read = reader.Read(buffer);
         if (read != 0) return read;
-
         Dispose();
         return read;
     }
