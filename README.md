@@ -16,7 +16,7 @@ Uses NAudio for playback, CommunityToolkit.Mvvm for MVVM.
 ## Critical
 
 - [x] **Unicode path support**: Support audio files and directories with non-ANSI / Unicode characters in paths (e.g. accents, special symbols) by passing .NET UTF-16 `FileStream`s into the reader instead of ANSI paths.
-- [ ] **FL Studio Vorbis-in-WAV format (`0x674F` / `0x6750`)**: Support decoding FL Studio WAV files that embed raw `OggS` Vorbis bitstreams in their data chunks via on-demand streaming `SubStream`.
+- [x] **FL Studio Vorbis-in-WAV format (`0x674F` / `0x6750`)**: Support decoding FL Studio WAV files that embed raw `OggS` Vorbis bitstreams in their data chunks via on-demand streaming `SubStream`.
 - [x] **Hook fade in/out**: Connect and fix fade in / fade out functionality during sound playback.
 
 ## Roadmap / Next
@@ -30,4 +30,6 @@ Uses NAudio for playback, CommunityToolkit.Mvvm for MVVM.
 - [ ] Category panel min/max sizing (quantized to fit integer number of category rows: 1 min, 4-5 max)
 - [ ] Resizable category panel via GridSplitter with row snapping
 - [ ] Indicate how many instances of a sound play at a time
+
+## Big bug with marquee textbox - changing light or dark mode causes them to go invisible until i scroll a lot to cause repaint
 

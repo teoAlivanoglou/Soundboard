@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NAudio.SoundFile;
+using Soundboard.Avalonia.AudioEngine;
 
 namespace Soundboard.Avalonia.Discovery;
 
@@ -127,7 +128,8 @@ public class SoundDiscoveryService
 
             try
             {
-                using var stream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var fileStream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var stream = VorbisWavHelper.WrapIfVorbisWav(fileStream);
                 using var reader = new SoundFileReader(stream);
                 var waveFormat = reader.WaveFormat;
                 var duration = reader.TotalTime;

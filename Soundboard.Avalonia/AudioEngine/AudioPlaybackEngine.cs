@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
@@ -108,12 +109,11 @@ public class AudioPlaybackEngine : IDisposable
             _ => throw new ArgumentOutOfRangeException(nameof(audioSettings.DriverType), audioSettings.DriverType,
                 null)
         };
-#else
-#pragma warning disable CA1416
+        
+#elif MACOS
         _outputDevice = (OperatingSystem.IsMacOS() && audioSettings.DriverType == DriverType.CoreAudio)
             ? new CoreAudioPlayer()
             : throw new PlatformNotSupportedException($"Driver {audioSettings.DriverType} is not supported on this platform.");
-#pragma warning restore CA1416
 #endif
         
         _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)audioSettings.SampleRate, 2));
@@ -147,7 +147,8 @@ public class AudioPlaybackEngine : IDisposable
         }
         else
         {
-            var stream = File.Open(sound.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var fileStream = File.Open(sound.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var stream = VorbisWavHelper.WrapIfVorbisWav(fileStream);
             rawProvider = new AutoDisposeFileReader(new SoundFileReader(stream), stream);
         }
 
