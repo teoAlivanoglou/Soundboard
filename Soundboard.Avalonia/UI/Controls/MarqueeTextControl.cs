@@ -284,7 +284,8 @@ public class MarqueeTextControl : Control
     {
         var text = Text ?? string.Empty;
         var isVertical = Orientation == Orientation.Vertical;
-        var width = !isVertical || double.IsInfinity(constraintWidth) || double.IsNaN(constraintWidth) || constraintWidth <= 0
+        var width = !isVertical || double.IsInfinity(constraintWidth) || double.IsNaN(constraintWidth) ||
+                    constraintWidth <= 0
             ? 10000.0
             : constraintWidth;
 
@@ -411,13 +412,10 @@ public class MarqueeTextControl : Control
         _phaseStartTime = DateTime.UtcNow;
         _lastFrameTime = DateTime.UtcNow;
 
-        if (_animationTimer == null)
-        {
-            _animationTimer = new DispatcherTimer(
-                TimeSpan.FromMilliseconds(16),
-                DispatcherPriority.Render,
-                OnAnimationTick);
-        }
+        _animationTimer ??= new DispatcherTimer(
+            TimeSpan.FromMilliseconds(16),
+            DispatcherPriority.Render,
+            OnAnimationTick);
 
         if (!_animationTimer.IsEnabled)
         {
@@ -452,6 +450,7 @@ public class MarqueeTextControl : Control
                 {
                     _phase = ScrollPhase.Scrolling;
                 }
+
                 break;
 
             case ScrollPhase.Scrolling:
@@ -464,6 +463,7 @@ public class MarqueeTextControl : Control
                     _phase = ScrollPhase.EndDelay;
                     _phaseStartTime = now;
                 }
+
                 InvalidateVisual();
                 break;
 
@@ -472,6 +472,7 @@ public class MarqueeTextControl : Control
                 {
                     _phase = ScrollPhase.Rewinding;
                 }
+
                 break;
 
             case ScrollPhase.Rewinding:
@@ -491,6 +492,7 @@ public class MarqueeTextControl : Control
                         StopAnimation();
                     }
                 }
+
                 InvalidateVisual();
                 break;
         }
@@ -504,6 +506,12 @@ public class MarqueeTextControl : Control
         if (Background != null)
         {
             context.DrawRectangle(Background, null, new Rect(Bounds.Size));
+        }
+
+        if (_textLayout == null)
+        {
+            EnsureTextLayout(Bounds.Width);
+            UpdateOverflow(Bounds.Size);
         }
 
         if (_textLayout == null)

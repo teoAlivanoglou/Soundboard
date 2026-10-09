@@ -25,9 +25,9 @@ public class AudioPlaybackEngine : IDisposable
 
     private readonly AudioDataCache _audioCache;
     private readonly SettingsService _settingsService;
-    private readonly object _lock = new();
-    private readonly Dictionary<SoundModel, List<ISampleProvider>> _soundsAndSampleProviders = new();
-    private readonly Dictionary<SoundModel, DateTime> _soundsLastPlayed = new();
+    private readonly Lock _lock = new();
+    private readonly Dictionary<SoundModel, List<ISampleProvider>> _soundsAndSampleProviders = [];
+    private readonly Dictionary<SoundModel, DateTime> _soundsLastPlayed = [];
     private CancellationTokenSource _cancellationTokenSource = new();
 
 
@@ -113,14 +113,16 @@ public class AudioPlaybackEngine : IDisposable
                 null)
         };
 
-#elif MACOS
-        _outputDevice = (OperatingSystem.IsMacOS() && audioSettings.DriverType == DriverType.CoreAudio)
+#else
+        _outputDevice = (OperatingSystem.IsMacOSVersionAtLeast(10, 5) && audioSettings.DriverType == DriverType.CoreAudio)
             ? new CoreAudioPlayer()
             : throw new PlatformNotSupportedException($"Driver {audioSettings.DriverType} is not supported on this platform.");
 #endif
 
-        _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)audioSettings.SampleRate, 2));
-        _mixer.ReadFully = true;
+        _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)audioSettings.SampleRate, 2))
+        {
+            ReadFully = true
+        };
 
         _mixer.MixerInputEnded += MixerOnMixerInputEnded;
 
@@ -135,10 +137,7 @@ public class AudioPlaybackEngine : IDisposable
 
     public void SetVolume(double volume)
     {
-        if (_volumeProvider != null)
-        {
-            _volumeProvider.Volume = (float)Math.Clamp(volume / 100.0, 0.0, 1.0);
-        }
+        _volumeProvider.Volume = (float)Math.Clamp(volume / 100.0, 0.0, 1.0);
     }
 
     public void PlaySound(SoundModel sound, int fadeDuration = 0)
