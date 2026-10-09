@@ -26,6 +26,7 @@ class Program
 
         // Register core services from referenced Soundboard project
         builder.Services.AddSingleton(SettingsService.Load());
+        builder.Services.AddSingleton<AudioDataCache>();
         builder.Services.AddSingleton<AudioPlaybackEngine>();
         builder.Services.AddSingleton<SoundDiscoveryService>();
         builder.Services.AddSingleton<SoundboardViewModel>();

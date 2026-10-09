@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -22,6 +23,7 @@ public class AudioPlaybackEngine : IDisposable
     private MixingSampleProvider _mixer;
     private VolumeSampleProvider _volumeProvider;
 
+    private readonly AudioDataCache _audioCache;
     private readonly SettingsService _settingsService;
     private readonly object _lock = new();
     private readonly Dictionary<SoundModel, List<ISampleProvider>> _soundsAndSampleProviders = new();
@@ -29,15 +31,16 @@ public class AudioPlaybackEngine : IDisposable
     private CancellationTokenSource _cancellationTokenSource = new();
 
 
-    public AudioPlaybackEngine(SettingsService settingsService)
+    public AudioPlaybackEngine(SettingsService settingsService, AudioDataCache audioCache)
     {
         _settingsService = settingsService;
+        _audioCache = audioCache;
 
         InitializeDriver();
 
         _ = UpdateTimers(_cancellationTokenSource.Token);
     }
-    
+
     public static IReadOnlyList<DriverType> GetAvailableDrivers()
     {
         var drivers = new List<DriverType>();
@@ -92,7 +95,7 @@ public class AudioPlaybackEngine : IDisposable
 
         return drivers;
     }
-    
+
     [MemberNotNull(nameof(_outputDevice), nameof(_mixer), nameof(_volumeProvider))]
     private void InitializeDriver()
     {
@@ -109,13 +112,13 @@ public class AudioPlaybackEngine : IDisposable
             _ => throw new ArgumentOutOfRangeException(nameof(audioSettings.DriverType), audioSettings.DriverType,
                 null)
         };
-        
+
 #elif MACOS
         _outputDevice = (OperatingSystem.IsMacOS() && audioSettings.DriverType == DriverType.CoreAudio)
             ? new CoreAudioPlayer()
             : throw new PlatformNotSupportedException($"Driver {audioSettings.DriverType} is not supported on this platform.");
 #endif
-        
+
         _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)audioSettings.SampleRate, 2));
         _mixer.ReadFully = true;
 
@@ -143,6 +146,13 @@ public class AudioPlaybackEngine : IDisposable
         ISampleProvider rawProvider;
         if (sound.AudioData is { Length: > 0 })
         {
+            _audioCache.Touch(sound);
+            rawProvider = new CachedSoundSampleProvider(sound);
+        }
+        else if (_audioCache.CanCache(sound) && AudioDecoder.TryDecode(sound.FilePath, out var data, out var format))
+        {
+            sound.WaveFormat = format;
+            _audioCache.Add(sound, data!);
             rawProvider = new CachedSoundSampleProvider(sound);
         }
         else
