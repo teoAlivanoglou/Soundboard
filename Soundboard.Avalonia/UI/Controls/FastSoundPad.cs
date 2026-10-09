@@ -1,71 +1,93 @@
+using System;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using Avalonia.Media.TextFormatting;
-using Avalonia.Remote.Protocol.Input;
 using Avalonia.Styling;
 using Microsoft.Extensions.DependencyInjection;
 using Soundboard.Avalonia.Discovery;
 using Soundboard.Avalonia.ViewModels;
-using System;
-using System.ComponentModel;
-using Avalonia.Media.Immutable;
-using Avalonia.Threading;
 using MouseButton = Avalonia.Input.MouseButton;
 
 namespace Soundboard.Avalonia.UI.Controls;
 
-public class FastSoundPad : Control
+public enum BorderEffect
 {
-    private static readonly CornerRadius PadCornerRadius = new(16);
-    private const double PaddingLeft = 14;
-    private const double PaddingTop = 10;
-    private const double PaddingRight = 10;
-    private const double PaddingBottom = 10;
-    private const double AccentThickness = 6.0;
+    AnimatedGradient,
+    Solid,
+    None
+}
 
+public partial class FastSoundPad : Control
+{
+    // Geometry & Layout Configuration
+    private CornerRadius _cornerRadius = new(16);
+    private double _paddingLeft = 14;
+    private double _paddingTop = 10;
+    private double _paddingRight = 10;
+    private double _paddingBottom = 10;
+    private double _accentThickness = 6.0;
+    private double _borderThickness = 2.0;
+
+    // Feature Flags & Effects
+    private bool _enableShadows = true;
+    private BorderEffect _borderEffect = BorderEffect.AnimatedGradient;
+    private bool _enableProgress = true;
+    private bool _enableText = true;
+    private bool _showCategory = true;
+    private bool _showTitle = true;
+    private bool _showFooter = true;
+
+    // Cache dirtiness
+    private bool _categoryDirty = true;
+    private bool _titleDirty = true;
+
+    // Runtime state
     private SoundModel? _boundSound;
     private bool _pointerDown;
 
+    // Theme brushes
     private IBrush _surfaceBrush = Brushes.White;
     private IBrush _borderBrush = Brushes.Gray;
     private IBrush _textPrimaryBrush = Brushes.Black;
     private IBrush _textMutedBrush = Brushes.Gray;
-    private Pen _borderPen = new(Brushes.Gray, 2);
     private bool _isLightTheme;
-
-    private double _glowProgress = 0.0; // 0.0 = off, 1.0 = fully glowing                                                  
-    private double _accentProgress = 0.0; // 0.0 = off, 1.0 = fully grown                                                  
-    private TimeSpan _lastFrameTime = TimeSpan.Zero;
-    private bool _isAnimating = false;
-
-    // Pre-allocated buffer for shadow layers (1 primary + 9 extra = 10 layers, zero GC allocations per frame)
-    private readonly BoxShadow[] _extraShadows = new BoxShadow[9];
-
-    // Glow fade durations in seconds                                                                                           
-    private const double GlowFadeInDuration = 0.15; // 150ms                                                                  
-    private const double GlowFadeOutDuration = 0.20; // 200ms       
-
-    // Accent grow durations in seconds                                                                                           
-    private const double AccentGrowDuration =  0.25; // 250ms                                                                  
-    private const double AccentShrinkDuration =  0.25; // 250ms       
 
     public FastSoundPad()
     {
         ClipToBounds = false;
         Cursor = new Cursor(StandardCursorType.Hand);
 
+        InitializeRendering();
+        InitializeAnimations();
+
         AddHandler(PointerPressedEvent, OnPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         AddHandler(PointerReleasedEvent, OnReleased, RoutingStrategies.Tunnel, handledEventsToo: true);
         AddHandler(PointerMovedEvent, OnMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
     }
 
+    #region Layout & Sizing Observation
+
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+        _categoryDirty = true;
+        _titleDirty = true;
+        RebuildImmutableText(e.NewSize, DataContext as SoundModel);
+    }
+
+    #endregion
+
+    #region Data Context & Property Observation
+
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
         _pointerDown = false;
+        _categoryDirty = true;
+        _titleDirty = true;
 
         if (_boundSound is not null)
             _boundSound.PropertyChanged -= OnSoundPropertyChanged;
@@ -73,71 +95,35 @@ public class FastSoundPad : Control
         _boundSound = DataContext as SoundModel;
 
         if (_boundSound is not null)
+        {
             _boundSound.PropertyChanged += OnSoundPropertyChanged;
+            if (_boundSound.IsPlaying)
+            {
+                StartAnimation(true);
+            }
+        }
 
+        RebuildImmutableText(Bounds.Size, _boundSound);
         InvalidateVisual();
     }
 
     private void OnSoundPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        // Re-render when playback state or text/category changes
         if (e.PropertyName == nameof(SoundModel.IsPlaying))
         {
-            StartGlowAnimation();
+            StartAnimation(_boundSound?.IsPlaying == true);
         }
+        else if (e.PropertyName == nameof(SoundModel.Name))
+        {
+            _titleDirty = true;
+        }
+
         InvalidateVisual();
     }
-    private void StartGlowAnimation()
-    {
-        if (_isAnimating) return;
-        _isAnimating = true;
-        _lastFrameTime = TimeSpan.Zero;
-        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(OnAnimationFrame);
-    }
-    private void OnAnimationFrame(TimeSpan currentTime)
-    {
-        if (!_isAnimating) return;
 
-        if (_lastFrameTime == TimeSpan.Zero)
-        {
-            _lastFrameTime = currentTime;
-            TopLevel.GetTopLevel(this)?.RequestAnimationFrame(OnAnimationFrame);
-            return;
-        }
+    #endregion
 
-        var dt = (currentTime - _lastFrameTime).TotalSeconds;
-        _lastFrameTime = currentTime;
-
-        var isPlaying = _boundSound?.IsPlaying == true;
-
-        // 1. Advance glow                                                                                                 
-        var glowSpeed = isPlaying ? 1.0 / GlowFadeInDuration : -1.0 / GlowFadeOutDuration;
-        _glowProgress = Math.Clamp(_glowProgress + glowSpeed * dt, 0.0, 1.0);
-
-        // 2. Advance accent (half speed)                                                                                  
-        var accentSpeed = isPlaying ? 1.0 / AccentGrowDuration : -1.0 / AccentShrinkDuration;
-        _accentProgress = Math.Clamp(_accentProgress + accentSpeed * dt, 0.0, 1.0);
-
-
-        // Redraw
-        InvalidateVisual();
-
-        // Check if target reached
-        var glowDone = isPlaying ? _glowProgress >= 1.0 : _glowProgress <= 0.0;
-        var accentDone = isPlaying ? _accentProgress >= 1.0 : _accentProgress <= 0.0;
-        if (!glowDone || !accentDone)
-        {
-            // Still transitioning
-            TopLevel.GetTopLevel(this)?.RequestAnimationFrame(OnAnimationFrame);
-        }
-        else
-        {
-            // Animation Complete
-            _isAnimating = false;
-        }
-    }
-
-    #region Pointer & Click Handlind
+    #region Pointer & Click Handling
 
     private void OnPressed(object? s, PointerPressedEventArgs e) => _pointerDown = true;
 
@@ -149,8 +135,7 @@ public class FastSoundPad : Control
         if (DataContext is not SoundModel sound) return;
         if (!wasDown || !new Rect(Bounds.Size).Contains(e.GetPosition(this))) return;
 
-        var vm = // (VisualRoot as Control)?.DataContext as SoundboardViewModel ??
-            App.Host?.Services.GetService<SoundboardViewModel>();
+        var vm = App.Host?.Services.GetService<SoundboardViewModel>();
 
         switch (e.InitialPressMouseButton)
         {
@@ -192,6 +177,7 @@ public class FastSoundPad : Control
         }
 
         UpdateThemeBrushes();
+        RequestFrameIfNeeded();
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -206,6 +192,9 @@ public class FastSoundPad : Control
     private void OnAppThemeChanged(object? sender, EventArgs e)
     {
         UpdateThemeBrushes();
+        _categoryDirty = true;
+        _titleDirty = true;
+        RebuildImmutableText(Bounds.Size, _boundSound);
         InvalidateVisual();
     }
 
@@ -230,7 +219,7 @@ public class FastSoundPad : Control
                 ? new SolidColorBrush(Color.Parse("#FFD8DCE6"))
                 : new SolidColorBrush(Color.Parse("#FF2B3142"));
 
-        _borderPen = new Pen(_borderBrush, 2);
+        _borderPen = new Pen(_borderBrush, _borderThickness);
 
         // 3. Text Primary Brush (#F1F3F7 Dark / #181B22 Light)
         if (Application.Current is not null &&
@@ -252,137 +241,4 @@ public class FastSoundPad : Control
     }
 
     #endregion
-
-    private readonly LinearGradientBrush _animatedBorderBrush = new()
-    {
-        GradientStops =
-        [
-            new GradientStop(Colors.Transparent, 0),
-            new GradientStop(Colors.Transparent, 1)
-        ]
-    };
-
-    public override void Render(DrawingContext context)
-    {
-        if (Bounds.Width <= 0 || Bounds.Height <= 0 || DataContext is not SoundModel sound || !IsVisible) return;
-
-        var size = Bounds.Size;
-        var fullRect = new Rect(size);
-
-        var categoryBrush = (sound.Category.BackgroundBrush as ISolidColorBrush);
-        var categoryColor = categoryBrush?.Color ?? Colors.Transparent;
-
-        var roundedRect = new RoundedRect(fullRect, PadCornerRadius);
-
-        //// Border animation
-        var ease = 1 - Math.Sqrt(1 - Math.Pow(_glowProgress, 2));
-
-        _animatedBorderBrush.GradientStops[0].Color = categoryColor;
-        _animatedBorderBrush.GradientStops[1].Color = ((SolidColorBrush)_borderBrush).Color;
-
-        var borderThickness = _borderPen.Thickness;
-        var shadowEdgePx = AccentThickness + borderThickness;
-        
-        const double initGradientWidthPx = 11.0;
-
-        var initStartX = shadowEdgePx / size.Width;
-        var initEndX = (shadowEdgePx + initGradientWidthPx) / size.Width;
-
-        var startX = initStartX + (0.0 - initStartX) * ease;
-        var startY = 0.0 + (0.8 - 0.0) * ease;
-
-        var endX = initEndX + (0.7 - initEndX) * ease;
-        var endY = 0.0 + (0.2 - 0.0) * ease;
-
-        _animatedBorderBrush.StartPoint = new RelativePoint(startX, startY, RelativeUnit.Relative);
-        _animatedBorderBrush.EndPoint = new RelativePoint(endX, endY, RelativeUnit.Relative);
-        _borderPen.Brush = _animatedBorderBrush;
-
-        // Accent
-        var accentShadow = new BoxShadow
-        {
-            IsInset = true,
-            OffsetX = AccentThickness * (1.0 - _accentProgress),
-            Color = categoryColor
-        };
-
-        // Glow
-        var maxBlur = _isLightTheme ? 20.0 : 24.0;
-        var maxOpacity = _isLightTheme ? 0.7 : 0.55;
-        var glowAlpha = (byte)Math.Clamp(categoryColor.A * maxOpacity * _glowProgress, 0, 255);
-        var glowColor = Color.FromArgb(glowAlpha, categoryColor.R, categoryColor.G, categoryColor.B);
-        
-        _extraShadows[0] = new BoxShadow
-        {
-            Blur = maxBlur * _glowProgress,
-            Spread = 0.1,
-            Color = glowColor
-        };
-
-        var boxShadows = new BoxShadows(accentShadow, _extraShadows);
-        context.DrawRectangle(_surfaceBrush, _borderPen, roundedRect, boxShadows);
-
-        // Content area dimensions
-        var contentWidth = Math.Max(0, size.Width - PaddingLeft - PaddingRight);
-        var contentHeight = Math.Max(0, size.Height - PaddingTop - PaddingBottom);
-
-        // Category Name - not (yet) using our marquee textbox
-        var categoryTypeface = new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.DemiBold);
-        var categoryLayout = new TextLayout(
-            sound.Category.Name,
-            categoryTypeface,
-            fontSize: 14,
-            foreground: categoryBrush,
-            textAlignment: TextAlignment.Left,
-            maxWidth: contentWidth,
-            maxHeight: 20,
-            textTrimming: TextTrimming.CharacterEllipsis);
-
-        categoryLayout.Draw(context, new Point(PaddingLeft, PaddingTop));
-
-        // Draw Footer: Duration (Bottom-Left) & #Index (Bottom-Right)
-        var footerTypeface = new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.Normal);
-        var durationStr = sound.Duration.ToString(@"m\:ss\.ff");
-        var indexStr = $"#{sound.Index:D2}";
-
-        var durationLayout = new TextLayout(
-            durationStr,
-            footerTypeface,
-            fontSize: 14,
-            foreground: _textMutedBrush,
-            textAlignment: TextAlignment.Left);
-
-        var indexLayout = new TextLayout(
-            indexStr,
-            footerTypeface,
-            fontSize: 14,
-            foreground: _textMutedBrush,
-            textAlignment: TextAlignment.Right,
-            maxWidth: contentWidth);
-
-        var footerY = size.Height - PaddingBottom - 16;
-        durationLayout.Draw(context, new Point(PaddingLeft, footerY));
-        indexLayout.Draw(context, new Point(PaddingLeft, footerY));
-
-        // Draw Sound Title (Middle, Centered Vertically)
-        var titleTypeface = new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.Normal);
-        var titleTop = PaddingTop + 24;
-        var titleHeight = Math.Max(10, footerY - titleTop - 4);
-
-        var titleLayout = new TextLayout(
-            sound.Name,
-            titleTypeface,
-            fontSize: 14,
-            foreground: _textPrimaryBrush,
-            textAlignment: TextAlignment.Left,
-            textWrapping: TextWrapping.Wrap,
-            textTrimming: TextTrimming.CharacterEllipsis,
-            maxWidth: contentWidth,
-            maxHeight: titleHeight,
-            lineHeight: 18);
-
-        // Vertically center title in middle area
-        var titleOffsetY = titleTop + Math.Max(0, (titleHeight - titleLayout.Height) / 2);
-        titleLayout.Draw(context, new Point(PaddingLeft, titleOffsetY));
-    }
 }
