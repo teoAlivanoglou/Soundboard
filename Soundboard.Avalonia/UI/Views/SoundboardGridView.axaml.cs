@@ -18,7 +18,7 @@ namespace Soundboard.Avalonia.UI.Views
             if (!e.WidthChanged) return;
 
             // Ignore sub-pixel jitter
-            if (Math.Abs(e.PreviousSize.Width - e.NewSize.Width) < 0.5) return;
+            if (Math.Abs(e.PreviousSize.Width - e.NewSize.Width) < 1.0) return;
 
             if (DataContext is ViewModels.SoundboardViewModel vm && e.NewSize.Width > 0)
             {

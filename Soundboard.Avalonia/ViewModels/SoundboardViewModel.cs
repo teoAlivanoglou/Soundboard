@@ -149,7 +149,10 @@ public partial class SoundboardViewModel : ObservableObject
         var columns = Math.Max(1, (int)((_lastGridWidth + gap) / (minSize + gap)));
         var itemSize = Math.Max(1.0, Math.Floor((_lastGridWidth - (columns - 1) * gap) / columns));
 
-        ItemSize = itemSize;
+        if (Math.Abs(ItemSize - itemSize) >= 0.5)
+        {
+            ItemSize = itemSize;
+        }
 
         // If columns didn't change and we're not forcing a rebuild, the rows are already correct!
         // We only needed to update ItemSize (which lets existing pads resize smoothly with 0 allocations).
@@ -166,7 +169,7 @@ public partial class SoundboardViewModel : ObservableObject
             .Select(chunk => new SoundRow(chunk))
             .ToList();
 
-        // Assigning SoundRows fires 1 PropertyChanged notification instead of 100 CollectionChanged(Add) events
+        // Assigning SoundRows automatically fires 1 PropertyChanged notification via source generator
         SoundRows = new ObservableCollection<SoundRow>(newRows);
     }
 

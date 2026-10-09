@@ -38,6 +38,7 @@
                     <DataTemplate DataType="vm:SoundRow">
                         <ItemsControl ItemsSource="{Binding Items}"
                                       ClipToBounds="False"
+                                      Height="{Binding $parent[views:SoundboardGridView].((vm:SoundboardViewModel)DataContext).ItemSize}"
                                       Margin="{Binding $parent[views:SoundboardGridView].((vm:SoundboardViewModel)DataContext).RowMargin}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -49,6 +50,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="discovery:SoundModel">
                                     <controls:SoundPad
+                                        IsVisible="{Binding IsVisible}"
                                         Width="{Binding $parent[views:SoundboardGridView].((vm:SoundboardViewModel)DataContext).ItemSize}"
                                         Height="{Binding $parent[views:SoundboardGridView].((vm:SoundboardViewModel)DataContext).ItemSize}" />
                                 </DataTemplate>

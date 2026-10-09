@@ -5,12 +5,10 @@
              xmlns:discovery="clr-namespace:Soundboard.Avalonia.Discovery"
              xmlns:avalonia="clr-namespace:Soundboard.Avalonia"
              xmlns:converters="clr-namespace:Soundboard.Avalonia.UI.Converters"
+             xmlns:controls="clr-namespace:Soundboard.Avalonia.UI.Controls"
              mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="200"
              x:Class="Soundboard.Avalonia.UI.Controls.SoundPad"
              x:DataType="discovery:SoundModel"
-             PointerEntered="InputElement_OnPointerEntered"
-             PointerExited="InputElement_OnPointerExited"
-             SizeChanged="Control_OnSizeChanged"
              Cursor="Hand"
              ClipToBounds="False">
     <Design.DataContext>
@@ -52,20 +50,13 @@
             </Setter>
         </Style>
 
-        <Style Selector="TextBlock.pad-title">
-            <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="VerticalAlignment" Value="Top" />
-            <Setter Property="UseLayoutRounding" Value="False" />
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-        </Style>
-
         <Style Selector="TextBlock.pad-footer">
             <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
             <Setter Property="FontFeatures" Value="tnum" />
             <Setter Property="VerticalAlignment" Value="Bottom" />
         </Style>
 
-        <Style Selector="Rectangle.playhead-layer">
+        <Style Selector="Border.playhead-layer">
             <Setter Property="Width" Value="{StaticResource PlayheadSize}" />
             <Setter Property="VerticalAlignment" Value="Stretch" />
             <Setter Property="HorizontalAlignment" Value="Left" />
@@ -116,26 +107,24 @@
                       Margin="{StaticResource PadInnerPadding}">
 
                     <!-- Category Name -->
-                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                               Text="{Binding Category.Name}"
-                               Foreground="{Binding Category.BackgroundBrush}"
-                               FontSize="{StaticResource PadCategoryFontSize}"
-                               FontWeight="DemiBold" />
-                    <Border Grid.Row="1"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="2"
-                            x:Name="TitleTextBoxBounds"
-                            UseLayoutRounding="False"
-                            Padding="0 8"
-                            ClipToBounds="True">
+                    <controls:MarqueeTextControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                                                 Text="{Binding Category.Name}"
+                                                 Orientation="Horizontal"
+                                                 Foreground="{Binding Category.BackgroundBrush}"
+                                                 FontSize="{StaticResource PadCategoryFontSize}"
+                                                 FontWeight="DemiBold"
+                                                 ShowEllipsis="False" />
 
-                        <!-- Sound Name: StackPanel provides unconstrained vertical measurement so Bounds.Height reflects full multiline text -->
-                        <StackPanel>
-                            <TextBlock x:Name="TitleTextBlock"
-                                       Classes="pad-title"
-                                       Text="{Binding Name}" />
-                        </StackPanel>
-                    </Border>
+                    <!-- Sound Name -->
+                    <controls:MarqueeTextControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                                 Margin="0,8"
+                                                 VerticalAlignment="Center"
+                                                 Text="{Binding Name}"
+                                                 Orientation="Vertical"
+                                                 FontSize="{StaticResource PadTitleMinFontSize}"
+                                                 LineHeight="18"
+                                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                                 ShowEllipsis="False" />
 
                     <!-- Duration -->
                     <TextBlock Grid.Row="2" Grid.Column="0"
@@ -164,24 +153,24 @@
 
                     <Grid x:Name="ProgressGrid" ColumnDefinitions="Auto,*">
 
-                        <Rectangle x:Name="ProgressFill" Grid.Column="0" VerticalAlignment="Stretch"
-                                   Fill="{Binding Category.BackgroundBrush}"
-                                   OpacityMask="{StaticResource ProgressFillOpacityMaskBrush}">
-                            <Rectangle.Width>
+                        <Border x:Name="ProgressFill" Grid.Column="0" VerticalAlignment="Stretch"
+                                Background="{Binding Category.BackgroundBrush}"
+                                OpacityMask="{StaticResource ProgressFillOpacityMaskBrush}">
+                            <Border.Width>
                                 <MultiBinding Converter="{StaticResource LerpConverter}">
                                     <Binding Path="#ProgressGrid.Bounds.Width" />
                                     <Binding Path="Progress" />
                                 </MultiBinding>
-                            </Rectangle.Width>
-                        </Rectangle>
+                            </Border.Width>
+                        </Border>
 
                         <!-- Playhead -->
-                        <Rectangle Grid.Column="1" Classes="playhead-layer" 
-                                   Fill="{Binding Category.BackgroundBrush}" Opacity="0.85" 
-                                   Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='PlayheadOuter'}" />
-                        <Rectangle Grid.Column="1" Classes="playhead-layer" 
-                                   Fill="{StaticResource LaserCoreBrush}"
-                                   Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='PlayheadInner'}" />
+                        <Border Grid.Column="1" Classes="playhead-layer" 
+                                Background="{Binding Category.BackgroundBrush}" Opacity="0.85" 
+                                Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='PlayheadOuter'}" />
+                        <Border Grid.Column="1" Classes="playhead-layer" 
+                                Background="{StaticResource LaserCoreBrush}"
+                                Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='PlayheadInner'}" />
                     </Grid>
                 </Border>
             </Grid>

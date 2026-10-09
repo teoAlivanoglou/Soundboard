@@ -28,14 +28,8 @@
 
         <views:CategoryBarView Grid.Row="0"
                                BorderThickness="0,0,0,1"
-                               BorderBrush="{DynamicResource PadBorderBrush}">
-            <views:CategoryBarView.MaxHeight>
-                <MultiBinding Converter="{StaticResource LerpConverter}">
-                    <Binding Path="#RootWindow.Bounds.Height" />
-                    <Binding Source="{StaticResource CategoryMaxHeightRatio}" />
-                </MultiBinding>
-            </views:CategoryBarView.MaxHeight>
-        </views:CategoryBarView>
+                               BorderBrush="{DynamicResource PadBorderBrush}"
+                               MaxHeight="200" />
 
         <views:SoundboardGridView Grid.Row="1"
                                   BorderThickness="0,0,0,1"

@@ -1,12 +1,14 @@
 using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Dialogs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
 using Soundboard.Avalonia.AudioEngine;
 using Soundboard.Avalonia.Discovery;
 using Soundboard.Avalonia.Settings;
 using Soundboard.Avalonia.UI.Fonts;
 using Soundboard.Avalonia.ViewModels;
+using System;
 
 
 namespace Soundboard.Avalonia;
@@ -44,12 +46,17 @@ class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            .With(new SkiaOptions
+            {
+                MaxGpuResourceSizeBytes = 256 * 1024 * 1024, // 256mb
+                UseStencilBuffers = true
+            })
 #if DEBUG
             .WithDeveloperTools()
+            .LogToTrace()
 #endif
             .ConfigureFonts(fontManager =>
             {
                 fontManager.AddFontCollection(new UIFontCollection());
-            })
-            .LogToTrace();
+            });
 }
