@@ -7,14 +7,14 @@ public partial class FastSoundPad
 {
     public FastSoundPad WithCornerRadius(CornerRadius radius)
     {
-        _cornerRadius = radius;
+        _metrics.CornerRadius = radius;
         InvalidateVisual();
         return this;
     }
 
     public FastSoundPad WithAccentThickness(double thickness)
     {
-        _accentThickness = thickness;
+        _metrics.AccentThickness = thickness;
         _accentOffset = thickness;
         if (_timeline is not null)
         {
@@ -26,21 +26,20 @@ public partial class FastSoundPad
 
     public FastSoundPad WithBorderThickness(double thickness)
     {
-        _borderThickness = thickness;
-        _borderPen = new Pen(_borderPen?.Brush ?? _borderBrush, _borderThickness);
+        _metrics.BorderThickness = thickness;
+        _borderPen = new Pen(_borderPen?.Brush ?? _palette.Border, _metrics.BorderThickness);
         InvalidateVisual();
         return this;
     }
 
     public FastSoundPad WithPadding(double left, double top, double right, double bottom)
     {
-        _paddingLeft = left;
-        _paddingTop = top;
-        _paddingRight = right;
-        _paddingBottom = bottom;
+        _metrics.PaddingLeft = left;
+        _metrics.PaddingTop = top;
+        _metrics.PaddingRight = right;
+        _metrics.PaddingBottom = bottom;
         _categoryDirty = true;
         _titleDirty = true;
-        RebuildImmutableText(Bounds.Size, DataContext as Discovery.SoundModel);
         InvalidateVisual();
         return this;
     }

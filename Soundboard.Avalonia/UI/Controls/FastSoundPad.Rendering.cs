@@ -1,8 +1,9 @@
-using System;
 using Avalonia;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Media.TextFormatting;
 using Soundboard.Avalonia.Discovery;
+using System;
 
 namespace Soundboard.Avalonia.UI.Controls;
 
@@ -12,13 +13,12 @@ public partial class FastSoundPad
     private LinearGradientBrush _animatedBorderBrush = null!;
 
     // Static immutable typefaces (never reallocated)
-    private readonly Typeface _categoryTypeface = new(FontFamily.Default, FontStyle.Normal, FontWeight.DemiBold);
-    private readonly Typeface _normalTypeface = new(FontFamily.Default, FontStyle.Normal, FontWeight.Normal);
+    private static readonly Typeface CategoryTypeface = new(FontFamily.Default, FontStyle.Normal, FontWeight.DemiBold);
+    private static readonly Typeface NormalTypeface = new(FontFamily.Default, FontStyle.Normal, FontWeight.Normal);
 
-    // Immutable text layouts (built strictly when DataContext/size changes, zero dirty flags during render)
+    // Immutable text layouts (built strictly when DataContext changes, zero dirty flags or rebuilds during render/resize)
     private TextLayout? _durationLayout;
     private TextLayout? _indexLayout;
-    private Point _footerPos;
 
     // Granularly dirty text layouts
     private TextLayout? _categoryLayout;
@@ -40,18 +40,19 @@ public partial class FastSoundPad
 
     public override void Render(DrawingContext context)
     {
-        if (Bounds.Width <= 0 || Bounds.Height <= 0 || DataContext is not SoundModel sound || !IsVisible) 
+        if (Bounds.Width <= 0 || Bounds.Height <= 0 || DataContext is not SoundModel sound || !IsVisible)
             return;
 
         var size = Bounds.Size;
-        var roundedRect = new RoundedRect(new Rect(size), _cornerRadius);
+        var roundedRect = new RoundedRect(new Rect(size), _metrics.CornerRadius);
         var categoryBrush = sound.Category.BackgroundBrush as ISolidColorBrush;
         var categoryColor = categoryBrush?.Color ?? Colors.Transparent;
 
-        DrawShadows(context, roundedRect, categoryColor);
+        // DrawShadows(context, roundedRect, categoryColor);
         DrawSurface(context, roundedRect, categoryColor);
-        DrawProgress(context, size, sound);
         DrawText(context, size, sound, categoryBrush);
+        DrawProgress(context, size, sound);
+        // DrawProgressPlayhead(context, size, sound);
         DrawBorder(context, roundedRect, size, categoryColor);
     }
 
@@ -61,13 +62,13 @@ public partial class FastSoundPad
     {
         if (!_enableShadows || _glowOpacity <= 0.0) return;
 
-        var maxOpacity = _isLightTheme ? 0.7 : 0.55;
+        var maxOpacity = _palette.IsLightTheme ? 0.7 : 0.55;
         var glowAlpha = (byte)Math.Clamp(categoryColor.A * maxOpacity * _glowOpacity, 0, 255);
         var glowColor = Color.FromArgb(glowAlpha, categoryColor.R, categoryColor.G, categoryColor.B);
 
         var glowShadow = new BoxShadow
         {
-            Blur = _isLightTheme ? _glowBlur * (20.0 / 24.0) : _glowBlur,
+            Blur = _palette.IsLightTheme ? _glowBlur * (20.0 / 24.0) : _glowBlur,
             Spread = 0.1,
             Color = glowColor
         };
@@ -88,7 +89,7 @@ public partial class FastSoundPad
             Color = categoryColor
         };
 
-        context.DrawRectangle(_surfaceBrush, null, roundedRect, new BoxShadows(accentShadow));
+        context.DrawRectangle(_palette.Surface, null, roundedRect, new BoxShadows(accentShadow));
     }
 
     #endregion
@@ -99,7 +100,70 @@ public partial class FastSoundPad
     {
         if (!_enableProgress || !sound.IsPlaying) return;
 
-        // Ready for progress bar and laser playhead rendering (Pass 2)
+        // Will use it for clipping
+        var roundedRect = new RoundedRect(new Rect(size), _metrics.CornerRadius);
+
+        var progressToSize = new Size(size.Width * sound.Progress, size.Height);
+        var newRect = new Rect(progressToSize);
+
+
+        var categoryColor = ((ImmutableSolidColorBrush)sound.BackgroundBrush).Color;
+        var newBrush = new SolidColorBrush(new Color(124, categoryColor.R, categoryColor.G, categoryColor.B));
+        using (context.PushClip(roundedRect))
+        {
+            context.DrawRectangle(newBrush, null, newRect);
+        }
+    }
+
+    #endregion
+
+    #region Pipeline Step 3b: Playback Progress Playhead
+
+    // Static cached warm-white laser filament from Colors.axaml (#FFFBE8)
+    private static readonly IBrush LaserCoreBrush = new SolidColorBrush(Color.Parse("#FFFBE8"));
+
+    private void DrawProgressPlayhead(DrawingContext context, Size size, SoundModel sound)
+    {
+        if (!_enableProgress || !sound.IsPlaying) return;
+
+        var categoryBrush = sound.Category.BackgroundBrush as ISolidColorBrush;
+        var categoryColor = categoryBrush?.Color ?? Colors.White;
+        var isLight = _palette.IsLightTheme;
+
+        const double playheadWidth = 2.0;
+
+        // Pixel-snap X to eliminate subpixel shimmering/jittering
+        var playheadX = Math.Round(size.Width * sound.Progress);
+        var playheadRect = new Rect(0, 0, playheadWidth, size.Height);
+
+        var innerAlpha = (byte)((isLight ? 0.95 : 1.00) * 255);
+        var outerAlpha = (byte)((isLight ? 0.90 : 0.85) * 255);
+
+        var boxShadows = new BoxShadows(
+            new BoxShadow
+            {
+                Color = Color.FromArgb(outerAlpha, categoryColor.R, categoryColor.G, categoryColor.B),
+                Blur = 9,
+                Spread = 0,
+                IsInset = false
+            },
+            [
+                new BoxShadow
+                {
+                    Color = Color.FromArgb(innerAlpha, categoryColor.R, categoryColor.G, categoryColor.B),
+                    Blur = 4,
+                    Spread = 0,
+                    IsInset = false
+                }
+            ]);
+
+        var roundedRect = new RoundedRect(new Rect(size), _metrics.CornerRadius);
+
+        using (context.PushClip(roundedRect))
+        using (context.PushTransform(Matrix.CreateTranslation(playheadX, 0)))
+        {
+            context.DrawRectangle(LaserCoreBrush, null, playheadRect, boxShadows);
+        }
     }
 
     #endregion
@@ -110,8 +174,8 @@ public partial class FastSoundPad
     {
         if (!_enableText) return;
 
-        var contentWidth = Math.Max(0, size.Width - _paddingLeft - _paddingRight);
-        var footerY = size.Height - _paddingBottom - 16;
+        var contentWidth = Math.Max(0, size.Width - _metrics.PaddingLeft - _metrics.PaddingRight);
+        var footerY = size.Height - _metrics.PaddingBottom - 16;
 
         // 1. Category Name (Top-Left, Granular Dirty)
         if (_showCategory)
@@ -120,7 +184,7 @@ public partial class FastSoundPad
             {
                 _categoryLayout = new TextLayout(
                     sound.Category.Name,
-                    _categoryTypeface,
+                    CategoryTypeface,
                     fontSize: 14,
                     foreground: categoryBrush,
                     textAlignment: TextAlignment.Left,
@@ -128,7 +192,7 @@ public partial class FastSoundPad
                     maxHeight: 20,
                     textTrimming: TextTrimming.CharacterEllipsis);
 
-                _categoryPos = new Point(_paddingLeft, _paddingTop);
+                _categoryPos = new Point(_metrics.PaddingLeft, _metrics.PaddingTop);
                 _categoryDirty = false;
             }
 
@@ -138,23 +202,23 @@ public partial class FastSoundPad
         // 2. Footer: Duration & Index (Immutable Text - No Dirty Flags)
         if (_showFooter)
         {
-            DrawImmutableText(context);
+            DrawImmutableText(context, size);
         }
 
         // 3. Sound Title (Middle, Granular Dirty)
         if (_showTitle)
         {
-            if (_titleDirty)
-            {
-                var titleTop = _showCategory ? _paddingTop + 24 : _paddingTop;
-                var bottomLimit = _showFooter ? footerY - 4 : size.Height - _paddingBottom;
-                var titleHeight = Math.Max(10, bottomLimit - titleTop);
+            var titleTop = _showCategory ? _metrics.PaddingTop + 24 : _metrics.PaddingTop;
+            var bottomLimit = _showFooter ? footerY - 4 : size.Height - _metrics.PaddingBottom;
+            var titleHeight = Math.Max(10, bottomLimit - titleTop);
 
+            if (_titleDirty || _titleLayout is null)
+            {
                 _titleLayout = new TextLayout(
                     sound.Name,
-                    _normalTypeface,
+                    NormalTypeface,
                     fontSize: 14,
-                    foreground: _textPrimaryBrush,
+                    foreground: _palette.TextPrimary,
                     textAlignment: TextAlignment.Left,
                     textWrapping: TextWrapping.Wrap,
                     textTrimming: TextTrimming.CharacterEllipsis,
@@ -162,54 +226,60 @@ public partial class FastSoundPad
                     maxHeight: titleHeight,
                     lineHeight: 18);
 
-                var titleOffsetY = titleTop + Math.Max(0, (titleHeight - _titleLayout.Height) / 2);
-                _titlePos = new Point(_paddingLeft, titleOffsetY);
                 _titleDirty = false;
             }
 
-            _titleLayout?.Draw(context, _titlePos);
+            var titleOffsetY = titleTop + Math.Max(0, (titleHeight - _titleLayout.Height) / 2);
+            _titlePos = new Point(_metrics.PaddingLeft, titleOffsetY);
+
+            _titleLayout.Draw(context, _titlePos);
         }
     }
 
     /// <summary>
-    /// Draws static, immutable footer text (Duration & Index). Never checks dirty flags during render loop.
+    /// Draws static, immutable footer text (Duration & Index). Position calculated on the fly without reallocating layouts.
     /// </summary>
-    private void DrawImmutableText(DrawingContext context)
+    private void DrawImmutableText(DrawingContext context, Size size)
     {
-        _durationLayout?.Draw(context, _footerPos);
-        _indexLayout?.Draw(context, _footerPos);
+        if (_durationLayout is null && _indexLayout is null) return;
+
+        var footerY = size.Height - _metrics.PaddingBottom - 16;
+        var durationX = _metrics.PaddingLeft;
+
+        _durationLayout?.Draw(context, new Point(durationX, footerY));
+
+        if (_indexLayout is not null)
+        {
+            var indexX = Math.Max(durationX, size.Width - _metrics.PaddingRight - _indexLayout.Width);
+            _indexLayout.Draw(context, new Point(indexX, footerY));
+        }
     }
 
-    private void RebuildImmutableText(Size size, SoundModel? sound)
+    private void BuildImmutableText(SoundModel? sound)
     {
-        if (sound is null || size.Width <= 0 || size.Height <= 0)
+        if (sound is null)
         {
             _durationLayout = null;
             _indexLayout = null;
             return;
         }
 
-        var contentWidth = Math.Max(0, size.Width - _paddingLeft - _paddingRight);
-        var footerY = size.Height - _paddingBottom - 16;
-        _footerPos = new Point(_paddingLeft, footerY);
-
         var durationStr = sound.Duration.ToString(@"m\:ss\.ff");
         var indexStr = $"#{sound.Index:D2}";
 
         _durationLayout = new TextLayout(
             durationStr,
-            _normalTypeface,
+            NormalTypeface,
             fontSize: 14,
-            foreground: _textMutedBrush,
+            foreground: _palette.TextMuted,
             textAlignment: TextAlignment.Left);
 
         _indexLayout = new TextLayout(
             indexStr,
-            _normalTypeface,
+            NormalTypeface,
             fontSize: 14,
-            foreground: _textMutedBrush,
-            textAlignment: TextAlignment.Right,
-            maxWidth: contentWidth);
+            foreground: _palette.TextMuted,
+            textAlignment: TextAlignment.Left);
     }
 
     #endregion
@@ -224,7 +294,7 @@ public partial class FastSoundPad
                 return;
 
             case BorderEffect.Solid:
-                _borderPen.Brush = _borderBrush;
+                _borderPen.Brush = _palette.Border;
                 context.DrawRectangle(null, _borderPen, roundedRect);
                 break;
 
@@ -232,11 +302,11 @@ public partial class FastSoundPad
             default:
                 if (_borderFade <= 0.0)
                 {
-                    _borderPen.Brush = _borderBrush;
+                    _borderPen.Brush = _palette.Border;
                 }
                 else
                 {
-                    var borderCol = (_borderBrush as ISolidColorBrush)?.Color ?? Colors.Gray;
+                    var borderCol = (_palette.Border as ISolidColorBrush)?.Color ?? Colors.Gray;
                     var fade = _borderFade;
                     var a = (byte)(borderCol.A + (categoryColor.A - borderCol.A) * fade);
                     var r = (byte)(borderCol.R + (categoryColor.R - borderCol.R) * fade);
@@ -247,7 +317,7 @@ public partial class FastSoundPad
                     _animatedBorderBrush.GradientStops[1].Color = borderCol;
 
                     var borderThickness = _borderPen.Thickness;
-                    var shadowEdgePx = _accentThickness + borderThickness;
+                    var shadowEdgePx = _metrics.AccentThickness + borderThickness;
 
                     const double initGradientWidthPx = 11.0;
 
@@ -272,4 +342,14 @@ public partial class FastSoundPad
     }
 
     #endregion
+
+
+    static Color ColorWithAlpha(Color color, byte alpha)
+    {
+        return Color.FromArgb(alpha, color.R, color.G, color.B);
+    }
+    static Color ColorWithAlpha(Color color, double alpha)
+    {
+        return Color.FromArgb((byte)(alpha*255), color.R, color.G, color.B);
+    }
 }

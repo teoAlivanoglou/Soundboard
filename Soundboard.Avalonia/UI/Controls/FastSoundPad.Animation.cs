@@ -12,24 +12,25 @@ public enum PadState
 public partial class FastSoundPad
 {
     // Animated values (actual numbers, not normalized 0-1)
-    private double _accentOffset = 6.0;   // 6.0px (idle) to 0.0px (playing)
-    private double _borderSweep = 0.0;    // 0.0 (idle corner) to 1.0 (playing full spread)
-    private double _borderFade = 0.0;     // 0.0 (idle plain border) to 1.0 (playing visible gradient)
-    private double _glowBlur = 0.0;       // 0.0px (idle) to 24.0px (playing)
-    private double _glowOpacity = 0.0;    // 0.0 (idle) to 1.0 (playing)
+    private double _accentOffset = 6.0; // 6.0px (idle) to 0.0px (playing)
+    private double _borderSweep = 0.0; // 0.0 (idle corner) to 1.0 (playing full spread)
+    private double _borderFade = 0.0; // 0.0 (idle plain border) to 1.0 (playing visible gradient)
+    private double _glowBlur = 0.0; // 0.0px (idle) to 24.0px (playing)
+    private double _glowOpacity = 0.0; // 0.0 (idle) to 1.0 (playing)
 
-    private AnimationTimeline _timeline = null!;
+    private AnimationTimeline? _timeline = null!;
     private TimeSpan _lastFrameTime = TimeSpan.Zero;
     private bool _isFrameScheduled;
 
     private void InitializeAnimations()
     {
-        _accentOffset = _accentThickness;
+        _accentOffset = _metrics.AccentThickness;
 
         _timeline = new AnimationTimeline()
             // When playback starts:
             .OnState(PadState.Playing, state => state
-                .Animate(v => _accentOffset = v, from: _accentThickness, to: 0.0, duration: 150.Ms(), easing: Easing.EaseOutCubic)
+                .Animate(v => _accentOffset = v, from: _metrics.AccentThickness, to: 0.0, duration: 150.Ms(),
+                    easing: Easing.EaseOutCubic)
                 .Animate(v => _borderSweep = v, from: 0.0, to: 1.0, duration: 150.Ms(), easing: Easing.EaseOutQuad)
                 .Animate(v => _borderFade = v, from: 0.0, to: 1.0, duration: 150.Ms())
                 .Animate(v => _glowBlur = v, from: 0.0, to: 24.0, duration: 150.Ms(), easing: Easing.EaseOutQuad)
@@ -37,11 +38,14 @@ public partial class FastSoundPad
             // When playback stops:
             .OnState(PadState.Stopped, state => state
                 // Stage 1: Retract accent & border sweep immediately
-                .Animate(v => _accentOffset = v, from: 0.0, to: _accentThickness, duration: 200.Ms(), easing: Easing.EaseInQuad)
+                .Animate(v => _accentOffset = v, from: 0.0, to: _metrics.AccentThickness, duration: 200.Ms(),
+                    easing: Easing.EaseInQuad)
                 .Animate(v => _borderSweep = v, from: 1.0, to: 0.0, duration: 200.Ms(), easing: Easing.EaseInQuad)
                 // Stage 2: Fade out glow & border color starting with delay
-                .Animate(v => _glowBlur = v, from: 24.0, to: 0.0, duration: 180.Ms(), easing: Easing.EaseOutQuad, delay: 80.Ms())
-                .Animate(v => _glowOpacity = v, from: 1.0, to: 0.0, duration: 180.Ms(), easing: Easing.EaseOutQuad, delay: 80.Ms())
+                .Animate(v => _glowBlur = v, from: 24.0, to: 0.0, duration: 180.Ms(), easing: Easing.EaseOutQuad,
+                    delay: 80.Ms())
+                .Animate(v => _glowOpacity = v, from: 1.0, to: 0.0, duration: 180.Ms(), easing: Easing.EaseOutQuad,
+                    delay: 80.Ms())
                 .Animate(v => _borderFade = v, from: 1.0, to: 0.0, duration: 150.Ms(), delay: 100.Ms()));
     }
 

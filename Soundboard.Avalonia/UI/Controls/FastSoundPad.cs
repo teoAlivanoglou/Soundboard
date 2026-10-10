@@ -20,17 +20,68 @@ public enum BorderEffect
     None
 }
 
+public record struct PadMetrics()
+{
+    public CornerRadius CornerRadius { get; set; } = new(16);
+    public double PaddingLeft { get; set; } = 14;
+    public double PaddingTop { get; set; } = 10;
+    public double PaddingRight { get; set; } = 10;
+    public double PaddingBottom { get; set; } = 10;
+    public double AccentThickness { get; set; } = 6.0;
+    public double BorderThickness { get; set; } = 2.0;
+
+    public static readonly PadMetrics Default = new();
+}
+
+public readonly record struct PadPalette(
+    IBrush Surface,
+    IBrush Border,
+    IBrush TextPrimary,
+    IBrush TextMuted,
+    bool IsLightTheme)
+{
+    private static PadPalette? s_dark;
+    private static PadPalette? s_light;
+
+    public static PadPalette Get(ThemeVariant theme)
+    {
+        if (theme == ThemeVariant.Light && s_light is not null) return s_light.Value;
+        if (theme == ThemeVariant.Dark && s_dark is not null) return s_dark.Value;
+
+        var palette = Create(theme);
+        if (theme == ThemeVariant.Light) s_light = palette;
+        else s_dark = palette;
+
+        return palette;
+    }
+
+    private static PadPalette Create(ThemeVariant theme)
+    {
+        var isLight = theme == ThemeVariant.Light;
+        var app = Application.Current;
+
+        var surface = app?.TryFindResource("PadSurfaceBrush", theme, out var s) is true && s is IBrush sb
+            ? sb
+            : (isLight ? Brushes.White : new SolidColorBrush(Color.Parse("#FF1A1D26")));
+
+        var border = app?.TryFindResource("PadBorderBrush", theme, out var b) == true && b is IBrush bb
+            ? bb
+            : (isLight ? new SolidColorBrush(Color.Parse("#FFD8DCE6")) : new SolidColorBrush(Color.Parse("#FF2B3142")));
+
+        var textPrimary = app?.TryFindResource("TextPrimaryBrush", theme, out var tp) == true && tp is IBrush tpb
+            ? tpb
+            : (isLight ? new SolidColorBrush(Color.Parse("#FF181B22")) : new SolidColorBrush(Color.Parse("#FFF1F3F7")));
+
+        var textMuted = app?.TryFindResource("TextMutedBrush", theme, out var tm) == true && tm is IBrush tmb
+            ? tmb
+            : (isLight ? new SolidColorBrush(Color.Parse("#FF64748B")) : new SolidColorBrush(Color.Parse("#FF828A9C")));
+
+        return new PadPalette(surface, border, textPrimary, textMuted, isLight);
+    }
+}
+
 public partial class FastSoundPad : Control
 {
-    // Geometry & Layout Configuration
-    private CornerRadius _cornerRadius = new(16);
-    private double _paddingLeft = 14;
-    private double _paddingTop = 10;
-    private double _paddingRight = 10;
-    private double _paddingBottom = 10;
-    private double _accentThickness = 6.0;
-    private double _borderThickness = 2.0;
-
     // Feature Flags & Effects
     private bool _enableShadows = true;
     private BorderEffect _borderEffect = BorderEffect.AnimatedGradient;
@@ -48,12 +99,9 @@ public partial class FastSoundPad : Control
     private SoundModel? _boundSound;
     private bool _pointerDown;
 
-    // Theme brushes
-    private IBrush _surfaceBrush = Brushes.White;
-    private IBrush _borderBrush = Brushes.Gray;
-    private IBrush _textPrimaryBrush = Brushes.Black;
-    private IBrush _textMutedBrush = Brushes.Gray;
-    private bool _isLightTheme;
+    private PadMetrics _metrics = PadMetrics.Default;
+    private PadPalette _palette;
+
 
     public FastSoundPad()
     {
@@ -73,9 +121,18 @@ public partial class FastSoundPad : Control
     protected override void OnSizeChanged(SizeChangedEventArgs e)
     {
         base.OnSizeChanged(e);
-        _categoryDirty = true;
-        _titleDirty = true;
-        RebuildImmutableText(e.NewSize, DataContext as SoundModel);
+
+        // Only dirty text layouts if the width actually changed (horizontal resizing / column adjustments)
+        if (e.WidthChanged)
+        {
+            _categoryDirty = true;
+            _titleDirty = true;
+        }
+        else if (e.HeightChanged)
+        {
+            // Vertical resize only affects title vertical boundary
+            _titleDirty = true;
+        }
     }
 
     #endregion
@@ -103,7 +160,7 @@ public partial class FastSoundPad : Control
             }
         }
 
-        RebuildImmutableText(Bounds.Size, _boundSound);
+        BuildImmutableText(_boundSound);
         InvalidateVisual();
     }
 
@@ -194,50 +251,15 @@ public partial class FastSoundPad : Control
         UpdateThemeBrushes();
         _categoryDirty = true;
         _titleDirty = true;
-        RebuildImmutableText(Bounds.Size, _boundSound);
+        BuildImmutableText(_boundSound);
         InvalidateVisual();
     }
 
     private void UpdateThemeBrushes()
     {
         var theme = Application.Current?.ActualThemeVariant ?? ThemeVariant.Dark;
-        _isLightTheme = theme == ThemeVariant.Light;
-
-        // 1. Surface Brush (#1A1D26 Dark / #FFFFFF Light)
-        if (Application.Current is not null &&
-            Application.Current.TryFindResource("PadSurfaceBrush", theme, out var s) && s is IBrush sb)
-            _surfaceBrush = sb;
-        else
-            _surfaceBrush = theme == ThemeVariant.Light ? Brushes.White : new SolidColorBrush(Color.Parse("#FF1A1D26"));
-
-        // 2. Border Brush (#2B3142 Dark / #D8DCE6 Light)
-        if (Application.Current is not null &&
-            Application.Current.TryFindResource("PadBorderBrush", theme, out var b) && b is IBrush bb)
-            _borderBrush = bb;
-        else
-            _borderBrush = theme == ThemeVariant.Light
-                ? new SolidColorBrush(Color.Parse("#FFD8DCE6"))
-                : new SolidColorBrush(Color.Parse("#FF2B3142"));
-
-        _borderPen = new Pen(_borderBrush, _borderThickness);
-
-        // 3. Text Primary Brush (#F1F3F7 Dark / #181B22 Light)
-        if (Application.Current is not null &&
-            Application.Current.TryFindResource("TextPrimaryBrush", theme, out var tp) && tp is IBrush tpb)
-            _textPrimaryBrush = tpb;
-        else
-            _textPrimaryBrush = theme == ThemeVariant.Light
-                ? new SolidColorBrush(Color.Parse("#FF181B22"))
-                : new SolidColorBrush(Color.Parse("#FFF1F3F7"));
-
-        // 4. Text Muted Brush (#828A9C Dark / #64748B Light)
-        if (Application.Current is not null &&
-            Application.Current.TryFindResource("TextMutedBrush", theme, out var tm) && tm is IBrush tmb)
-            _textMutedBrush = tmb;
-        else
-            _textMutedBrush = theme == ThemeVariant.Light
-                ? new SolidColorBrush(Color.Parse("#FF64748B"))
-                : new SolidColorBrush(Color.Parse("#FF828A9C"));
+        _palette = PadPalette.Get(theme);
+        _borderPen = new Pen(_palette.Border, _metrics.BorderThickness);
     }
 
     #endregion
