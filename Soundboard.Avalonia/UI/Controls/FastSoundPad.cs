@@ -40,17 +40,17 @@ public readonly record struct PadPalette(
     IBrush TextMuted,
     bool IsLightTheme)
 {
-    private static PadPalette? s_dark;
-    private static PadPalette? s_light;
+    private static PadPalette? _dark;
+    private static PadPalette? _light;
 
     public static PadPalette Get(ThemeVariant theme)
     {
-        if (theme == ThemeVariant.Light && s_light is not null) return s_light.Value;
-        if (theme == ThemeVariant.Dark && s_dark is not null) return s_dark.Value;
+        if (theme == ThemeVariant.Light && _light is not null) return _light.Value;
+        if (theme == ThemeVariant.Dark && _dark is not null) return _dark.Value;
 
         var palette = Create(theme);
-        if (theme == ThemeVariant.Light) s_light = palette;
-        else s_dark = palette;
+        if (theme == ThemeVariant.Light) _light = palette;
+        else _dark = palette;
 
         return palette;
     }
@@ -92,7 +92,6 @@ public partial class FastSoundPad : Control
     private bool _showFooter = true;
 
     // Cache dirtiness
-    private bool _categoryDirty = true;
     private bool _titleDirty = true;
 
     // Runtime state
@@ -108,6 +107,7 @@ public partial class FastSoundPad : Control
         ClipToBounds = false;
         Cursor = new Cursor(StandardCursorType.Hand);
 
+        UpdateThemeBrushes();
         InitializeRendering();
         InitializeAnimations();
 
@@ -118,19 +118,25 @@ public partial class FastSoundPad : Control
 
     #region Layout & Sizing Observation
 
+    private const double TitleCharWidthThreshold = 14.0 * 0.55;
+    private double _lastTitleWidth;
+    private double _lastTitleHeight;
+
     protected override void OnSizeChanged(SizeChangedEventArgs e)
     {
         base.OnSizeChanged(e);
 
-        // Only dirty text layouts if the width actually changed (horizontal resizing / column adjustments)
-        if (e.WidthChanged)
+        var contentWidth = Math.Max(0, e.NewSize.Width - _metrics.PaddingLeft - _metrics.PaddingRight);
+        var contentHeight = Math.Max(0, e.NewSize.Height - _metrics.PaddingTop - _metrics.PaddingBottom);
+
+        if (Math.Abs(_lastTitleWidth - contentWidth) >= TitleCharWidthThreshold)
         {
-            _categoryDirty = true;
+            _lastTitleWidth = contentWidth;
             _titleDirty = true;
         }
-        else if (e.HeightChanged)
+        else if (Math.Abs(_lastTitleHeight - contentHeight) >= 18.0)
         {
-            // Vertical resize only affects title vertical boundary
+            _lastTitleHeight = contentHeight;
             _titleDirty = true;
         }
     }
@@ -143,7 +149,6 @@ public partial class FastSoundPad : Control
     {
         base.OnDataContextChanged(e);
         _pointerDown = false;
-        _categoryDirty = true;
         _titleDirty = true;
 
         if (_boundSound is not null)
@@ -234,6 +239,7 @@ public partial class FastSoundPad : Control
         }
 
         UpdateThemeBrushes();
+        BuildImmutableText(_boundSound);
         RequestFrameIfNeeded();
     }
 
@@ -249,7 +255,8 @@ public partial class FastSoundPad : Control
     private void OnAppThemeChanged(object? sender, EventArgs e)
     {
         UpdateThemeBrushes();
-        _categoryDirty = true;
+        CategoryCache.Clear();
+
         _titleDirty = true;
         BuildImmutableText(_boundSound);
         InvalidateVisual();

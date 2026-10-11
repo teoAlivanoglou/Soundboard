@@ -38,7 +38,6 @@ public partial class FastSoundPad
         _metrics.PaddingTop = top;
         _metrics.PaddingRight = right;
         _metrics.PaddingBottom = bottom;
-        _categoryDirty = true;
         _titleDirty = true;
         InvalidateVisual();
         return this;
@@ -81,7 +80,6 @@ public partial class FastSoundPad
     public FastSoundPad WithCategory(bool enabled = true)
     {
         _showCategory = enabled;
-        _categoryDirty = true;
         _titleDirty = true;
         InvalidateVisual();
         return this;

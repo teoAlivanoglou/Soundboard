@@ -2,10 +2,25 @@ using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using Avalonia.Media.TextFormatting;
+using Microsoft.Win32.SafeHandles;
+using SkiaSharp;
 using Soundboard.Avalonia.Discovery;
 using System;
+using System.Collections.Generic;
 
 namespace Soundboard.Avalonia.UI.Controls;
+
+public readonly record struct CategoryCacheKey(string Name, Color Color);
+
+public sealed class CategoryCacheEntry
+{
+    public TextLayout NaturalLayout { get; init; } = null!;
+    public double NaturalWidth { get; init; }
+
+    // Stores ONLY the single most-recent elided layout for the current grid width
+    public TextLayout? ElidedLayout { get; set; }
+    public int ElidedWidth { get; set; }
+}
 
 public partial class FastSoundPad
 {
@@ -20,11 +35,14 @@ public partial class FastSoundPad
     private TextLayout? _durationLayout;
     private TextLayout? _indexLayout;
 
+    // Cache holding both natural layouts and elided layouts
+    private static readonly Dictionary<CategoryCacheKey, CategoryCacheEntry> CategoryCache = new();
+
+
     // Granularly dirty text layouts
-    private TextLayout? _categoryLayout;
     private TextLayout? _titleLayout;
-    private Point _categoryPos;
     private Point _titlePos;
+
 
     private void InitializeRendering()
     {
@@ -180,23 +198,8 @@ public partial class FastSoundPad
         // 1. Category Name (Top-Left, Granular Dirty)
         if (_showCategory)
         {
-            if (_categoryDirty)
-            {
-                _categoryLayout = new TextLayout(
-                    sound.Category.Name,
-                    CategoryTypeface,
-                    fontSize: 14,
-                    foreground: categoryBrush,
-                    textAlignment: TextAlignment.Left,
-                    maxWidth: contentWidth,
-                    maxHeight: 20,
-                    textTrimming: TextTrimming.CharacterEllipsis);
-
-                _categoryPos = new Point(_metrics.PaddingLeft, _metrics.PaddingTop);
-                _categoryDirty = false;
-            }
-
-            _categoryLayout?.Draw(context, _categoryPos);
+            var layout = GetCategoryLayout(sound, contentWidth);
+            layout.Draw(context, new Point(_metrics.PaddingLeft, _metrics.PaddingTop));
         }
 
         // 2. Footer: Duration & Index (Immutable Text - No Dirty Flags)
@@ -241,6 +244,11 @@ public partial class FastSoundPad
     /// </summary>
     private void DrawImmutableText(DrawingContext context, Size size)
     {
+        if ((_durationLayout is null || _indexLayout is null) && _boundSound is not null)
+        {
+            BuildImmutableText(_boundSound);
+        }
+
         if (_durationLayout is null && _indexLayout is null) return;
 
         var footerY = size.Height - _metrics.PaddingBottom - 16;
@@ -348,8 +356,60 @@ public partial class FastSoundPad
     {
         return Color.FromArgb(alpha, color.R, color.G, color.B);
     }
+
     static Color ColorWithAlpha(Color color, double alpha)
     {
-        return Color.FromArgb((byte)(alpha*255), color.R, color.G, color.B);
+        return Color.FromArgb((byte)(alpha * 255), color.R, color.G, color.B);
+    }
+
+
+    private TextLayout GetCategoryLayout(SoundModel sound, double contentWidth)
+    {
+        var key = new CategoryCacheKey(sound.Category.Name, sound.Category.BackgroundBrush.Color);
+
+        if (!CategoryCache.TryGetValue(key, out var entry))
+        {
+            // Not cached yet
+            var naturalLayout = new TextLayout(
+                sound.Category.Name,
+                CategoryTypeface,
+                fontSize: 14,
+                foreground: sound.Category.BackgroundBrush,
+                textAlignment: TextAlignment.Left,
+                maxHeight: 20);
+
+            entry = new CategoryCacheEntry
+            {
+                NaturalLayout = naturalLayout,
+                NaturalWidth = naturalLayout.Width
+            };
+            CategoryCache[key] = entry;
+        }
+
+
+        // Case 1, fits inside the content area
+        if (contentWidth >= entry.NaturalWidth)
+        {
+            return entry.NaturalLayout;
+        }
+
+        // Case 2, overflows
+        var intWidth = (int)contentWidth;
+        if (entry.ElidedLayout is null || entry.ElidedWidth != intWidth)
+        {
+            entry.ElidedLayout = new TextLayout(
+                sound.Category.Name,
+                CategoryTypeface,
+                fontSize: 14,
+                foreground: sound.Category.BackgroundBrush,
+                textAlignment: TextAlignment.Left,
+                maxWidth: contentWidth,
+                maxHeight: 20,
+                textTrimming: TextTrimming.CharacterEllipsis);
+
+            entry.ElidedWidth = intWidth;
+        }
+
+        return entry.ElidedLayout;
     }
 }
