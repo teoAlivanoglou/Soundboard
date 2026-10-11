@@ -38,6 +38,22 @@
             <SolidColorBrush x:Key="TextMutedBrush" Color="#FF64748B" />
             <SolidColorBrush x:Key="ActionButtonBrush" Color="#FFD4DAE6" />
             <SolidColorBrush x:Key="ActionButtonForeground" Color="#FF0F172A" />
+
+            <!-- Sidebar, Search Box & TreeView (Light) -->
+            <SolidColorBrush x:Key="TreeRowPointerOverBrush" Color="#FFE8ECF4" />
+            <SolidColorBrush x:Key="TreeRowSelectedBrush" Color="#FFE2E8F5" />
+            <SolidColorBrush x:Key="TreeRowSelectedBorderBrush" Color="#FFB8C5DE" />
+            <SolidColorBrush x:Key="TreeRowSelectedPointerOverBrush" Color="#FFD9E2F2" />
+            <SolidColorBrush x:Key="TreeRowSelectedPointerOverBorderBrush" Color="#FFA6B8D6" />
+            <SolidColorBrush x:Key="HeaderButtonPointerOverBrush" Color="#FFC8D1E2" />
+            <SolidColorBrush x:Key="HeaderButtonPressedBrush" Color="#FFBDC7DA" />
+            <SolidColorBrush x:Key="SearchBoxBackgroundBrush" Color="#FFFFFFFF" />
+            <SolidColorBrush x:Key="SearchBoxPointerOverBackgroundBrush" Color="#FFF8FAFC" />
+            <SolidColorBrush x:Key="SearchBoxPointerOverBorderBrush" Color="#FFBAC3D6" />
+            <SolidColorBrush x:Key="CategoryDisabledLedBrush" Color="#FFCCD2DF" />
+            <SolidColorBrush x:Key="AccentFocusBrush" Color="#FF3B82F6" />
+            <SolidColorBrush x:Key="TreeRowTextBrush" Color="#FF3D4758" />
+            <SolidColorBrush x:Key="TreeRowTextHoverBrush" Color="#FF0F172A" />
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="Dark">
@@ -48,6 +64,22 @@
             <SolidColorBrush x:Key="TextMutedBrush" Color="#FF828A9C" />
             <SolidColorBrush x:Key="ActionButtonBrush" Color="#FF202430" />
             <SolidColorBrush x:Key="ActionButtonForeground" Color="#FFE2E8F0" />
+
+            <!-- Sidebar, Search Box & TreeView (Dark) -->
+            <SolidColorBrush x:Key="TreeRowPointerOverBrush" Color="#FF161C27" />
+            <SolidColorBrush x:Key="TreeRowSelectedBrush" Color="#FF1C2436" />
+            <SolidColorBrush x:Key="TreeRowSelectedBorderBrush" Color="#FF293750" />
+            <SolidColorBrush x:Key="TreeRowSelectedPointerOverBrush" Color="#FF222C40" />
+            <SolidColorBrush x:Key="TreeRowSelectedPointerOverBorderBrush" Color="#FF35486B" />
+            <SolidColorBrush x:Key="HeaderButtonPointerOverBrush" Color="#FF242D40" />
+            <SolidColorBrush x:Key="HeaderButtonPressedBrush" Color="#FF181E2B" />
+            <SolidColorBrush x:Key="SearchBoxBackgroundBrush" Color="#FF141824" />
+            <SolidColorBrush x:Key="SearchBoxPointerOverBackgroundBrush" Color="#FF161B28" />
+            <SolidColorBrush x:Key="SearchBoxPointerOverBorderBrush" Color="#FF35435C" />
+            <SolidColorBrush x:Key="CategoryDisabledLedBrush" Color="#FF232936" />
+            <SolidColorBrush x:Key="AccentFocusBrush" Color="#FF4C82FB" />
+            <SolidColorBrush x:Key="TreeRowTextBrush" Color="#FFC0CAE0" />
+            <SolidColorBrush x:Key="TreeRowTextHoverBrush" Color="#FFFFFFFF" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

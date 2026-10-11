@@ -31,8 +31,15 @@ Uses NAudio for playback, CommunityToolkit.Mvvm for MVVM.
 - [ ] Category panel min/max sizing (quantized to fit integer number of category rows: 1 min, 4-5 max)
 - [ ] Resizable category panel via GridSplitter with row snapping
 - [ ] Indicate how many instances of a sound play at a time
-- [ ] **AudioPlaybackEngine VSync synchronization**: Replace background thread 50Hz `Task.Delay(20)` polling loop with display VSync-aligned progress calculation (`TopLevel.RequestAnimationFrame`) to eliminate playhead jitter and timer drift.
+- [ ] **AudioPlaybackEngine VSync synchronization**: Replace background thread 50Hz `Task.Delay(4)` polling loop with display VSync-aligned progress calculation (`TopLevel.RequestAnimationFrame`) to eliminate playhead jitter and timer drift.
+- [ ] Restore Marquee (scrolling/animating) functionality in SoundPad texts
 
-## Big bug with marquee textbox - changing light or dark mode causes them to go invisible until i scroll a lot to cause repaint
+## TODO Next: Sidebar Refactor
+
+- [ ] Complete the categories sidebar UI (search filtering, expand/collapse all behaviors, layout polish)
+- [ ] Modify the categories model to be hierarchical / tree-like (nested categories, parent-child relations, root category representation)
+- [ ] Hook everything up to the ViewModel and sound filtering engine
+
+<del> ## Big bug with marquee textbox - changing light or dark mode causes them to go invisible until i scroll a lot to cause repaint </del>
 
 
