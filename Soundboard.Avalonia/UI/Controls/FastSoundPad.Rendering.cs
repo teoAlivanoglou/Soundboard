@@ -228,6 +228,14 @@ public partial class FastSoundPad
                     maxHeight: titleHeight,
                     lineHeight: 18);
 
+                _titleWrapped = _titleLayout.TextLines.Count > 1 ||
+                                (_titleLayout.TextLines.Count > 0 && _titleLayout.TextLines[0].HasCollapsed);
+
+                if (!_titleWrapped)
+                {
+                    _titleUnwrappedWidth = _titleLayout.Width;
+                }
+
                 _titleDirty = false;
             }
 

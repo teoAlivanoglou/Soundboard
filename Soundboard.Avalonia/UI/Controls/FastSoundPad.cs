@@ -97,6 +97,8 @@ public partial class FastSoundPad : Control
 
     // Cache dirtiness
     private bool _titleDirty = true;
+    private bool _titleWrapped;
+    private double _titleUnwrappedWidth;
 
     // Runtime state
     private SoundModel? _boundSound;
@@ -105,11 +107,12 @@ public partial class FastSoundPad : Control
     private PadMetrics _metrics = PadMetrics.Default;
     private PadPalette _palette;
 
+    private static readonly Cursor HandCursor = new(StandardCursorType.Hand);
 
     public FastSoundPad()
     {
         ClipToBounds = false;
-        Cursor = new Cursor(StandardCursorType.Hand);
+        Cursor = HandCursor;
 
         UpdateThemeBrushes();
         InitializeRendering();
@@ -133,6 +136,12 @@ public partial class FastSoundPad : Control
         var contentWidth = Math.Max(0, e.NewSize.Width - _metrics.PaddingLeft - _metrics.PaddingRight);
         var contentHeight = Math.Max(0, e.NewSize.Height - _metrics.PaddingTop - _metrics.PaddingBottom);
 
+        if (!_titleWrapped && _titleLayout is not null && contentWidth >= _titleUnwrappedWidth)
+        {
+            _lastTitleWidth = contentWidth;
+            return;
+        }
+
         if (Math.Abs(_lastTitleWidth - contentWidth) >= TitleCharWidthThreshold)
         {
             _lastTitleWidth = contentWidth;
@@ -154,13 +163,15 @@ public partial class FastSoundPad : Control
         base.OnDataContextChanged(e);
         _pointerDown = false;
         _titleDirty = true;
+        _titleWrapped = true; // force first layout
+        _titleLayout = null;
 
         if (_boundSound is not null)
             _boundSound.PropertyChanged -= OnSoundPropertyChanged;
 
         _boundSound = DataContext as SoundModel;
 
-        if (_boundSound is not null)
+        if (_boundSound is not null && VisualRoot is not null)
         {
             _boundSound.PropertyChanged += OnSoundPropertyChanged;
             if (_boundSound.IsPlaying)
@@ -242,8 +253,14 @@ public partial class FastSoundPad : Control
             Application.Current.ActualThemeVariantChanged += OnAppThemeChanged;
         }
 
+        if (_boundSound is not null)
+        {
+            _boundSound.PropertyChanged -= OnSoundPropertyChanged;
+            _boundSound.PropertyChanged += OnSoundPropertyChanged;
+        }
+
         UpdateThemeBrushes();
-        BuildImmutableText(_boundSound);
+        // BuildImmutableText(_boundSound);
         RequestFrameIfNeeded();
     }
 
@@ -253,7 +270,11 @@ public partial class FastSoundPad : Control
         if (Application.Current is not null)
         {
             Application.Current.ActualThemeVariantChanged -= OnAppThemeChanged;
+
         }
+
+        if (_boundSound is not null)
+            _boundSound.PropertyChanged -= OnSoundPropertyChanged;
     }
 
     private void OnAppThemeChanged(object? sender, EventArgs e)
