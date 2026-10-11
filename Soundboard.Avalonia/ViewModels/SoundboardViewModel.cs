@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Media.TextFormatting;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -26,6 +27,10 @@ public partial class SoundboardViewModel : ObservableObject
     public ObservableCollection<SoundModel> SoundItems { get; set; } = [];
     public ObservableCollection<CategoryModel> Categories { get; set; } = [];
     [ObservableProperty] public partial ObservableCollection<SoundRow> SoundRows { get; set; } = [];
+
+    // ObservableCollection<SoundModel> VisibleSoundItems { get; } = [];
+    [ObservableProperty] public partial ObservableCollection<SoundModel> VisibleSoundItems { get; set; } = [];
+
     [ObservableProperty] public partial double ItemSize { get; set; } = 140;
     [ObservableProperty] public partial Thickness RowMargin { get; set; } = new(0, 0, 0, 8);
 
@@ -70,7 +75,8 @@ public partial class SoundboardViewModel : ObservableObject
         SoundItems.Add(new SoundModel("Deep Sub Bass", "", catBass, "", TimeSpan.FromSeconds(3.8), index: 2));
         SoundItems.Add(new SoundModel("Hyper Synth Lead", "", catLead, "", TimeSpan.FromMilliseconds(850), index: 3));
         SoundItems.Add(new SoundModel("Snappy Rimshot", "", catDrums, "", TimeSpan.FromMilliseconds(120), index: 4));
-        UpdateLayoutAndRows(800);
+        // UpdateLayoutAndRows(800);
+        UpdateVisibleSounds();
         HookThemeChanges();
     }
 
@@ -100,7 +106,8 @@ public partial class SoundboardViewModel : ObservableObject
                 is nameof(ApplicationUiSettings.MinButtonSize)
                 or nameof(ApplicationUiSettings.ButtonGap))
             {
-                UpdateLayoutAndRows(forceRebuild: true);
+                // UpdateLayoutAndRows(forceRebuild: true);
+                UpdateVisibleSounds();
             }
         };
 
@@ -128,6 +135,12 @@ public partial class SoundboardViewModel : ObservableObject
                 }
             };
         }
+    }
+
+    public void UpdateVisibleSounds()
+    {
+        var filtered = SoundItems.Where(s => s.Category.IsEnabled).ToList();
+        VisibleSoundItems = new ObservableCollection<SoundModel>(filtered);
     }
 
 
@@ -191,7 +204,8 @@ public partial class SoundboardViewModel : ObservableObject
         SoundItems.Clear();
         SoundItems.Add(warningSound);
 
-        UpdateLayoutAndRows(forceRebuild: true);
+        // UpdateLayoutAndRows(forceRebuild: true);
+        UpdateVisibleSounds();
     }
 
     public void ReadSounds(string filesystemUrl)
@@ -221,9 +235,10 @@ public partial class SoundboardViewModel : ObservableObject
             SoundItems.Add(sound);
         }
 
-        UpdateLayoutAndRows(forceRebuild: true);
+        // UpdateLayoutAndRows(forceRebuild: true);
+        UpdateVisibleSounds();
     }
-
+    
     public async Task ReadSoundsAsync(string filesystemUrl)
     {
         _lastChosenDirectory = filesystemUrl;
@@ -251,7 +266,8 @@ public partial class SoundboardViewModel : ObservableObject
             SoundItems.Add(sound);
         }
 
-        UpdateLayoutAndRows(forceRebuild: true);
+        // UpdateLayoutAndRows(forceRebuild: true);
+        UpdateVisibleSounds();
     }
 
 
@@ -264,7 +280,8 @@ public partial class SoundboardViewModel : ObservableObject
             sound.IsVisible = sound.Category.IsEnabled;
         }
 
-        UpdateLayoutAndRows(forceRebuild: true);
+        // UpdateLayoutAndRows(forceRebuild: true);
+        UpdateVisibleSounds();
     }
 
     [RelayCommand]
