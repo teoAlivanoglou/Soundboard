@@ -1,8 +1,9 @@
-using System;
-using System.Collections.Generic;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using CommunityToolkit.Mvvm.ComponentModel;
 using NAudio.Wave;
+using System;
+using System.Collections.Generic;
 
 namespace Soundboard.Avalonia.Discovery;
 
@@ -19,7 +20,7 @@ public partial class SoundModel : ObservableObject
     public CategoryModel Category { get; init; }
     public string SubFolder { get; init; }
     public string FilePath { get; init; }
-    public IBrush BackgroundBrush => Category.BackgroundBrush;
+    public ImmutableSolidColorBrush BackgroundBrush => Category.BackgroundBrush;
     public float[]? AudioData { get; set; }
     public WaveFormat? WaveFormat { get; set; }
 

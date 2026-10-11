@@ -1,14 +1,15 @@
-using System;
-using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Styling;
 using Microsoft.Extensions.DependencyInjection;
 using Soundboard.Avalonia.Discovery;
 using Soundboard.Avalonia.ViewModels;
+using System;
+using System.ComponentModel;
 using MouseButton = Avalonia.Input.MouseButton;
 
 namespace Soundboard.Avalonia.UI.Controls;
@@ -34,10 +35,10 @@ public record struct PadMetrics()
 }
 
 public readonly record struct PadPalette(
-    IBrush Surface,
-    IBrush Border,
-    IBrush TextPrimary,
-    IBrush TextMuted,
+    ImmutableSolidColorBrush Surface,
+    ImmutableSolidColorBrush Border,
+    ImmutableSolidColorBrush TextPrimary,
+    ImmutableSolidColorBrush TextMuted,
     bool IsLightTheme)
 {
     private static PadPalette? _dark;
@@ -55,28 +56,31 @@ public readonly record struct PadPalette(
         return palette;
     }
 
+    private static readonly ImmutableSolidColorBrush ErrorBrush = new(Colors.Magenta);
+
+    private static ImmutableSolidColorBrush ResolveBrush(Application? app, string resourceKey, ThemeVariant theme)
+    {
+        return app?.TryFindResource(resourceKey, theme, out var res) is true && res switch
+        {
+            ImmutableSolidColorBrush immutable => immutable,
+            ISolidColorBrush solid => new ImmutableSolidColorBrush(solid.Color),
+            Color color => new ImmutableSolidColorBrush(color),
+            _ => null
+        } is { } brush
+            ? brush
+            : ErrorBrush;
+    }
+
     private static PadPalette Create(ThemeVariant theme)
     {
-        var isLight = theme == ThemeVariant.Light;
         var app = Application.Current;
 
-        var surface = app?.TryFindResource("PadSurfaceBrush", theme, out var s) is true && s is IBrush sb
-            ? sb
-            : (isLight ? Brushes.White : new SolidColorBrush(Color.Parse("#FF1A1D26")));
-
-        var border = app?.TryFindResource("PadBorderBrush", theme, out var b) == true && b is IBrush bb
-            ? bb
-            : (isLight ? new SolidColorBrush(Color.Parse("#FFD8DCE6")) : new SolidColorBrush(Color.Parse("#FF2B3142")));
-
-        var textPrimary = app?.TryFindResource("TextPrimaryBrush", theme, out var tp) == true && tp is IBrush tpb
-            ? tpb
-            : (isLight ? new SolidColorBrush(Color.Parse("#FF181B22")) : new SolidColorBrush(Color.Parse("#FFF1F3F7")));
-
-        var textMuted = app?.TryFindResource("TextMutedBrush", theme, out var tm) == true && tm is IBrush tmb
-            ? tmb
-            : (isLight ? new SolidColorBrush(Color.Parse("#FF64748B")) : new SolidColorBrush(Color.Parse("#FF828A9C")));
-
-        return new PadPalette(surface, border, textPrimary, textMuted, isLight);
+        return new PadPalette(
+            Surface: ResolveBrush(app, "PadSurfaceBrush", theme),
+            Border: ResolveBrush(app, "PadBorderBrush", theme),
+            TextPrimary: ResolveBrush(app, "TextPrimaryBrush", theme),
+            TextMuted: ResolveBrush(app, "TextMutedBrush", theme),
+            IsLightTheme: theme == ThemeVariant.Light);
     }
 }
 

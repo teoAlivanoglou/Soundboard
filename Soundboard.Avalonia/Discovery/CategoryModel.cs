@@ -1,9 +1,10 @@
-using System;
 using Avalonia;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Soundboard.Avalonia.Utils;
+using System;
 
 namespace Soundboard.Avalonia.Discovery;
 
@@ -12,14 +13,14 @@ public partial class CategoryModel : ObservableObject
     [ObservableProperty] public partial string Name { get; set; }
     [ObservableProperty] public partial int SoundCount { get; set; }
     [ObservableProperty] public partial bool IsEnabled { get; set; }
-    [ObservableProperty] public partial ISolidColorBrush BackgroundBrushDark { get; set; }
-    [ObservableProperty] public partial ISolidColorBrush BackgroundBrushLight { get; set; }
+    [ObservableProperty] public partial ImmutableSolidColorBrush BackgroundBrushDark { get; set; }
+    [ObservableProperty] public partial ImmutableSolidColorBrush BackgroundBrushLight { get; set; }
 
                                                                                                                                                                                    
     /// <summary>                                                                                                                                                                 
     /// Returns the theme-appropriate brush for the current active theme variant.                                                                                                 
     /// </summary>                                                                                                                                                                
-    public ISolidColorBrush BackgroundBrush =>                                                                                                                                    
+    public ImmutableSolidColorBrush BackgroundBrush =>                                                                                                                                    
         Application.Current?.ActualThemeVariant == ThemeVariant.Light                                                                                                             
             ? BackgroundBrushLight                                                                                                                                                
             : BackgroundBrushDark; 
@@ -47,7 +48,7 @@ public partial class CategoryModel : ObservableObject
     {
     }
 
-    public CategoryModel(string name, int soundCount, ISolidColorBrush backgroundBrushDark, ISolidColorBrush backgroundBrushLight, bool isAll = false)
+    public CategoryModel(string name, int soundCount, ImmutableSolidColorBrush backgroundBrushDark, ImmutableSolidColorBrush backgroundBrushLight, bool isAll = false)
     {
         Name = name;
         SoundCount = soundCount;

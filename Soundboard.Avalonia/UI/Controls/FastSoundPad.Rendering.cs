@@ -63,12 +63,12 @@ public partial class FastSoundPad
 
         var size = Bounds.Size;
         var roundedRect = new RoundedRect(new Rect(size), _metrics.CornerRadius);
-        var categoryBrush = sound.Category.BackgroundBrush as ISolidColorBrush;
-        var categoryColor = categoryBrush?.Color ?? Colors.Transparent;
+        var categoryBrush = sound.Category.BackgroundBrush;
+        var categoryColor = categoryBrush.Color;
 
         // DrawShadows(context, roundedRect, categoryColor);
         DrawSurface(context, roundedRect, categoryColor);
-        DrawText(context, size, sound, categoryBrush);
+        DrawText(context, size, sound);
         DrawProgress(context, size, sound);
         // DrawProgressPlayhead(context, size, sound);
         DrawBorder(context, roundedRect, size, categoryColor);
@@ -125,7 +125,7 @@ public partial class FastSoundPad
         var newRect = new Rect(progressToSize);
 
 
-        var categoryColor = ((ImmutableSolidColorBrush)sound.BackgroundBrush).Color;
+        var categoryColor = sound.BackgroundBrush.Color;
         var newBrush = new SolidColorBrush(new Color(124, categoryColor.R, categoryColor.G, categoryColor.B));
         using (context.PushClip(roundedRect))
         {
@@ -138,14 +138,13 @@ public partial class FastSoundPad
     #region Pipeline Step 3b: Playback Progress Playhead
 
     // Static cached warm-white laser filament from Colors.axaml (#FFFBE8)
-    private static readonly IBrush LaserCoreBrush = new SolidColorBrush(Color.Parse("#FFFBE8"));
+    private static readonly ImmutableSolidColorBrush LaserCoreBrush = new(Color.Parse("#FFFBE8"));
 
     private void DrawProgressPlayhead(DrawingContext context, Size size, SoundModel sound)
     {
         if (!_enableProgress || !sound.IsPlaying) return;
 
-        var categoryBrush = sound.Category.BackgroundBrush as ISolidColorBrush;
-        var categoryColor = categoryBrush?.Color ?? Colors.White;
+        var categoryColor = sound.BackgroundBrush.Color;
         var isLight = _palette.IsLightTheme;
 
         const double playheadWidth = 2.0;
@@ -188,7 +187,7 @@ public partial class FastSoundPad
 
     #region Pipeline Step 4: Text Elements
 
-    private void DrawText(DrawingContext context, Size size, SoundModel sound, IBrush? categoryBrush)
+    private void DrawText(DrawingContext context, Size size, SoundModel sound)
     {
         if (!_enableText) return;
 
@@ -314,7 +313,7 @@ public partial class FastSoundPad
                 }
                 else
                 {
-                    var borderCol = (_palette.Border as ISolidColorBrush)?.Color ?? Colors.Gray;
+                    var borderCol = _palette.Border.Color;
                     var fade = _borderFade;
                     var a = (byte)(borderCol.A + (categoryColor.A - borderCol.A) * fade);
                     var r = (byte)(borderCol.R + (categoryColor.R - borderCol.R) * fade);
