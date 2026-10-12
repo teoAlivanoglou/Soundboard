@@ -99,7 +99,7 @@
         </Border>
 
         <!-- Main Workspace: Resizable Sidebar on Left, Content Grid on Right -->
-        <Grid>
+        <Grid x:Name="MainWorkspaceGrid">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="240" MinWidth="160" MaxWidth="500" />
                 <ColumnDefinition Width="Auto" />

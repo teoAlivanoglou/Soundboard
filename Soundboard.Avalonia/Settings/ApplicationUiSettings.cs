@@ -9,4 +9,5 @@ public partial class ApplicationUiSettings : ObservableObject
     [ObservableProperty] public partial int MaxFolderLevel { get; set; } = 6;
     [ObservableProperty] public partial int WindowWidth { get; set; } = 800;
     [ObservableProperty] public partial int WindowHeight { get; set; } = 600;
+    [ObservableProperty] public partial int SidebarWidth { get; set; } = 240;
 }

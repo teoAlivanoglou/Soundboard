@@ -305,50 +305,51 @@
     <Grid RowDefinitions="Auto,Auto,*">
 
         <!-- Top Section -->
-        <Grid Grid.Row="0"
-              ColumnDefinitions="*,Auto,Auto,Auto,Auto"
-              ColumnSpacing="4"
-              VerticalAlignment="Center"
-              Margin="12, 8">
+        <Border Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource PadBorderBrush}">
+            <Grid Grid.Row="0"
+                  ColumnDefinitions="*,Auto,Auto,Auto,Auto"
+                  ColumnSpacing="4"
+                  VerticalAlignment="Center"
+                  Margin="12, 8">
 
-            <TextBlock Grid.Column="0"
-                       VerticalAlignment="Center"
-                       Text="CATEGORIES"
-                       Foreground="{DynamicResource TextMutedBrush}"
-                       FontSize="11"
-                       FontWeight="SemiBold"
-                       LetterSpacing="0.6" />
+                <TextBlock Grid.Column="0"
+                           VerticalAlignment="Center"
+                           Text="CATEGORIES"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           FontSize="11"
+                           FontWeight="SemiBold"
+                           LetterSpacing="0.6" />
 
-            <Button Grid.Column="1"
-                    Classes="SidebarHeaderButton"
-                    Click="OnSelectAllClick"
-                    Content="All" />
-            <Button Grid.Column="2"
-                    Classes="SidebarHeaderButton"
-                    Click="OnSelectNoneClick"
-                    Content="None" />
-            <Button Grid.Column="3"
-                    Classes="SidebarHeaderIconButton"
-                    Click="OnExpandAllClick"
-                    ToolTip.Tip="Expand All"
-                    Content="&#xE696;" />
-            <Button Grid.Column="4"
-                    Classes="SidebarHeaderIconButton"
-                    Click="OnCollapseAllClick"
-                    ToolTip.Tip="Collapse All"
-                    Content="&#xE694;" />
-        </Grid>
+                <Button Grid.Column="1"
+                        Classes="SidebarHeaderButton"
+                        Click="OnSelectAllClick"
+                        Content="All" />
+                <Button Grid.Column="2"
+                        Classes="SidebarHeaderButton"
+                        Click="OnSelectNoneClick"
+                        Content="None" />
+                <Button Grid.Column="3"
+                        Classes="SidebarHeaderIconButton"
+                        Click="OnExpandAllClick"
+                        ToolTip.Tip="Expand All"
+                        Content="&#xE696;" />
+                <Button Grid.Column="4"
+                        Classes="SidebarHeaderIconButton"
+                        Click="OnCollapseAllClick"
+                        ToolTip.Tip="Collapse All"
+                        Content="&#xE694;" />
+            </Grid></Border>
 
-        <!-- SearchBar -->
-        <Border Grid.Row="1"
-                BorderThickness="0,1"
-                Padding="12, 8"
-                BorderBrush="{DynamicResource PadBorderBrush}">
-
-            <TextBox x:Name="CategoryFilterTextBox"
-                     PlaceholderText="Filter categories…"
-                     Classes="SidebarSearchBox" />
-        </Border>
+        <!-- ~1~ SearchBar @1@ -->
+        <!-- <Border Grid.Row="1" -->
+        <!--         BorderThickness="0,1,0,0" -->
+        <!--         Padding="12, 8" -->
+        <!--         BorderBrush="{DynamicResource PadBorderBrush}"> -->
+        <!-- -->
+        <!--     <TextBox x:Name="CategoryFilterTextBox" -->
+        <!--              PlaceholderText="Filter categories…" -->
+        <!--              Classes="SidebarSearchBox" /> -->
+        <!-- </Border> -->
 
         <!-- Pure Recursive ItemsControl Hierarchy (Winning Architecture) -->
         <ScrollViewer Grid.Row="2"
@@ -357,7 +358,5 @@
                       Padding="4, 6">
             <ItemsControl ItemsSource="{Binding Categories}" />
         </ScrollViewer>
-
     </Grid>
-
 </UserControl>

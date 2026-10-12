@@ -33,6 +33,8 @@ public partial class MainWindow : Window
         if (viewModel != null)
         {
             DataContext = viewModel;
+            var savedSidebarWidth = Math.Clamp(viewModel.Settings.ApplicationUiSettings.SidebarWidth, 160, 500);
+            MainWorkspaceGrid.ColumnDefinitions[0].Width = new GridLength(savedSidebarWidth);
         }
 
         Opacity = 0;
@@ -70,6 +72,10 @@ public partial class MainWindow : Window
                     viewModel.Settings.ApplicationUiSettings.WindowWidth = (int)Bounds.Width;
                     viewModel.Settings.ApplicationUiSettings.WindowHeight = (int)Bounds.Height;
                 }
+
+                var sidebarCol = MainWorkspaceGrid.ColumnDefinitions[0];
+                var currentSidebarWidth = sidebarCol.ActualWidth > 0 ? sidebarCol.ActualWidth : sidebarCol.Width.Value;
+                viewModel.Settings.ApplicationUiSettings.SidebarWidth = (int)Math.Clamp(Math.Round(currentSidebarWidth), 160, 500);
                 viewModel.Settings.Save();
             }
         };
