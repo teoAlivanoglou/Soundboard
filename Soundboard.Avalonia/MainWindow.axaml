@@ -28,48 +28,118 @@
     <Design.DataContext>
         <vm:SoundboardViewModel />
     </Design.DataContext>
+    <DockPanel Background="{DynamicResource WindowBackgroundBrush}" ClipToBounds="False">
 
-    <!-- Main Workspace: Resizable Sidebar on Left, Content Grid on Right -->
-    <Grid Background="{DynamicResource WindowBackgroundBrush}">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240" MinWidth="160" MaxWidth="500" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <!-- Real-Time Font Diagnostics Toolbar (Temporary for evaluation) -->
+        <Border DockPanel.Dock="Top"
+                Background="{DynamicResource PadSurfaceBrush}"
+                BorderBrush="{DynamicResource PadBorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="12, 8">
+            <Grid ColumnDefinitions="Auto, Auto, *">
+                <!-- Column 0: Font Family Options -->
+                <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                    <TextBlock Text="FONT FAMILY"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               LetterSpacing="0.5"
+                               Margin="0,0,0,3" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <RadioButton Content="System Stack" Tag="SystemStack" GroupName="FontFamilyGroup"
+                                     IsChecked="True" FontSize="11"
+                                     IsCheckedChanged="OnFontFamilyChanged" />
+                        <RadioButton Content="Segoe UI" Tag="SegoeUI" GroupName="FontFamilyGroup"
+                                     FontSize="11"
+                                     IsCheckedChanged="OnFontFamilyChanged" />
+                        <RadioButton Content="IBM Plex Sans" Tag="IBMPlex" GroupName="FontFamilyGroup"
+                                     FontSize="11"
+                                     IsCheckedChanged="OnFontFamilyChanged" />
+                        <RadioButton Content="Inter (Static)" Tag="InterStatic" GroupName="FontFamilyGroup"
+                                     FontSize="11"
+                                     IsCheckedChanged="OnFontFamilyChanged" />
+                    </StackPanel>
+                </StackPanel>
 
-        <!-- Sidebar -->
-        <views:CategorySidebarView Grid.Column="0" />
+                <!-- Column 1: Font Weight Offset -->
+                <StackPanel Grid.Column="1" Margin="0,0,24,0">
+                    <TextBlock Text="WEIGHT OFFSET"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               LetterSpacing="0.5"
+                               Margin="0,0,0,3" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <RadioButton Content="-100 (Light / Medium)" Tag="-100" GroupName="WeightOffsetGroup"
+                                     FontSize="11"
+                                     IsCheckedChanged="OnWeightOffsetChanged" />
+                        <RadioButton Content="Default (Regular / SemiBold)" Tag="0" GroupName="WeightOffsetGroup"
+                                     IsChecked="True" FontSize="11"
+                                     IsCheckedChanged="OnWeightOffsetChanged" />
+                        <RadioButton Content="+100 (Medium / Bold)" Tag="100" GroupName="WeightOffsetGroup"
+                                     FontSize="11"
+                                     IsCheckedChanged="OnWeightOffsetChanged" />
+                    </StackPanel>
+                </StackPanel>
 
-        <!-- Resizer Splitter with 1px border line and 5px hit-test zone -->
-        <GridSplitter Grid.Column="1"
-                      Width="5"
-                      Background="Transparent"
-                      Cursor="SizeWestEast"
-                      ResizeDirection="Columns">
-            <GridSplitter.Template>
-                <ControlTemplate>
-                    <Border Background="Transparent" Width="5">
-                        <Rectangle Width="1"
-                                   Fill="{DynamicResource PadBorderBrush}"
-                                   HorizontalAlignment="Center" />
-                    </Border>
-                </ControlTemplate>
-            </GridSplitter.Template>
-        </GridSplitter>
+                <!-- Column 2: Live Status Readout -->
+                <Border Grid.Column="2"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Background="{DynamicResource WindowBackgroundBrush}"
+                        CornerRadius="4"
+                        Padding="8, 3">
+                    <TextBlock x:Name="FontStatusTextBlock"
+                               FontSize="10"
+                               FontFeatures="tnum"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               Text="Initializing..." />
+                </Border>
+            </Grid>
+        </Border>
 
-        <!-- Right Side: Soundboard Grid, Settings Panel, Bottom Bar -->
-        <Grid Grid.Column="2" RowDefinitions="*,Auto,Auto">
-            <views:SoundboardGridView Grid.Row="0"
-                                      BorderThickness="0,0,0,1"
-                                      BorderBrush="{DynamicResource PadBorderBrush}" />
+        <!-- Main Workspace: Resizable Sidebar on Left, Content Grid on Right -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240" MinWidth="160" MaxWidth="500" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-            <views:SettingsPanelView Grid.Row="1"
-                                     IsVisible="{Binding SettingsVisible}"
-                                     BorderThickness="0,0,0,1"
-                                     BorderBrush="{DynamicResource PadBorderBrush}" />
+            <!-- Sidebar -->
+            <views:CategorySidebarView Grid.Column="0" />
 
-            <views:BottomBarView Grid.Row="2" />
+            <!-- Resizer Splitter with 1px border line and 5px hit-test zone -->
+            <GridSplitter Grid.Column="1"
+                          Width="5"
+                          Background="Transparent"
+                          Cursor="SizeWestEast"
+                          ResizeDirection="Columns">
+                <GridSplitter.Template>
+                    <ControlTemplate>
+                        <Border Background="Transparent" Width="5">
+                            <Rectangle Width="1"
+                                       Fill="{DynamicResource PadBorderBrush}"
+                                       HorizontalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </GridSplitter.Template>
+            </GridSplitter>
+
+            <!-- Right Side: Soundboard Grid, Settings Panel, Bottom Bar -->
+            <Grid Grid.Column="2" RowDefinitions="*,Auto,Auto">
+                <views:SoundboardGridView Grid.Row="0"
+                                          BorderThickness="0,0,0,1"
+                                          BorderBrush="{DynamicResource PadBorderBrush}" />
+
+                <views:SettingsPanelView Grid.Row="1"
+                                         IsVisible="{Binding SettingsVisible}"
+                                         BorderThickness="0,0,0,1"
+                                         BorderBrush="{DynamicResource PadBorderBrush}" />
+
+                <views:BottomBarView Grid.Row="2" />
+            </Grid>
         </Grid>
-    </Grid>
+    </DockPanel>
 
 </Window>

@@ -171,13 +171,25 @@ public partial class FastSoundPad : Control
 
         _boundSound = DataContext as SoundModel;
 
-        if (_boundSound is not null && VisualRoot is not null)
+        if (_boundSound is not null)
         {
-            _boundSound.PropertyChanged += OnSoundPropertyChanged;
+            if (VisualRoot is not null)
+            {
+                _boundSound.PropertyChanged += OnSoundPropertyChanged;
+            }
+
             if (_boundSound.IsPlaying)
             {
                 StartAnimation(true);
             }
+            else
+            {
+                ResetAnimationState();
+            }
+        }
+        else
+        {
+            ResetAnimationState();
         }
 
         BuildImmutableText(_boundSound);
@@ -257,11 +269,27 @@ public partial class FastSoundPad : Control
         {
             _boundSound.PropertyChanged -= OnSoundPropertyChanged;
             _boundSound.PropertyChanged += OnSoundPropertyChanged;
+
+            if (_boundSound.IsPlaying)
+            {
+                StartAnimation(true);
+            }
+            else
+            {
+                ResetAnimationState();
+            }
+        }
+        else
+        {
+            ResetAnimationState();
         }
 
         UpdateThemeBrushes();
         // BuildImmutableText(_boundSound);
         RequestFrameIfNeeded();
+
+        GlobalFontFamilyChanged -= OnGlobalFontFamilyChanged;
+        GlobalFontFamilyChanged += OnGlobalFontFamilyChanged;
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -273,8 +301,18 @@ public partial class FastSoundPad : Control
 
         }
 
+        GlobalFontFamilyChanged -= OnGlobalFontFamilyChanged;
+
         if (_boundSound is not null)
             _boundSound.PropertyChanged -= OnSoundPropertyChanged;
+    }
+
+    private void OnGlobalFontFamilyChanged()
+    {
+        _titleDirty = true;
+        _titleLayout = null;
+        BuildImmutableText(_boundSound);
+        InvalidateVisual();
     }
 
     private void OnAppThemeChanged(object? sender, EventArgs e)
