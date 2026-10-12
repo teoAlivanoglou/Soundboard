@@ -19,29 +19,57 @@
         <system:Double x:Key="CategoryMaxHeightRatio">0.33</system:Double>
     </Window.Resources>
 
+    <Window.Styles>
+        <Style Selector="GridSplitter:pointerover Rectangle">
+            <Setter Property="Fill" Value="{DynamicResource AccentFocusBrush}" />
+        </Style>
+    </Window.Styles>
+
     <Design.DataContext>
         <vm:SoundboardViewModel />
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,*,Auto,Auto" ClipToBounds="False"
-          Background="{DynamicResource WindowBackgroundBrush}">
+    <!-- Main Workspace: Resizable Sidebar on Left, Content Grid on Right -->
+    <Grid Background="{DynamicResource WindowBackgroundBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240" MinWidth="160" MaxWidth="500" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-        <views:CategoryBarView Grid.Row="0"
-                               BorderThickness="0,0,0,1"
-                               BorderBrush="{DynamicResource PadBorderBrush}"
-                               MaxHeight="200" />
+        <!-- Sidebar -->
+        <views:CategorySidebarView Grid.Column="0" />
 
-        <views:SoundboardGridView Grid.Row="1"
-                                  BorderThickness="0,0,0,1"
-                                  BorderBrush="{DynamicResource PadBorderBrush}" />
-        
-        <views:SettingsPanelView Grid.Row="2"
-                                 IsVisible="{Binding SettingsVisible}"
-                                 BorderThickness="0,1,0,1"
-                                 BorderBrush="{DynamicResource PadBorderBrush}" />
+        <!-- Resizer Splitter with 1px border line and 5px hit-test zone -->
+        <GridSplitter Grid.Column="1"
+                      Width="5"
+                      Background="Transparent"
+                      Cursor="SizeWestEast"
+                      ResizeDirection="Columns">
+            <GridSplitter.Template>
+                <ControlTemplate>
+                    <Border Background="Transparent" Width="5">
+                        <Rectangle Width="1"
+                                   Fill="{DynamicResource PadBorderBrush}"
+                                   HorizontalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </GridSplitter.Template>
+        </GridSplitter>
 
-        <views:BottomBarView Grid.Row="3" />
+        <!-- Right Side: Soundboard Grid, Settings Panel, Bottom Bar -->
+        <Grid Grid.Column="2" RowDefinitions="*,Auto,Auto">
+            <views:SoundboardGridView Grid.Row="0"
+                                      BorderThickness="0,0,0,1"
+                                      BorderBrush="{DynamicResource PadBorderBrush}" />
 
+            <views:SettingsPanelView Grid.Row="1"
+                                     IsVisible="{Binding SettingsVisible}"
+                                     BorderThickness="0,0,0,1"
+                                     BorderBrush="{DynamicResource PadBorderBrush}" />
+
+            <views:BottomBarView Grid.Row="2" />
+        </Grid>
     </Grid>
 
 </Window>
