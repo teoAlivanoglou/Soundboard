@@ -21,4 +21,8 @@
     <system:Double x:Key="PadTitleMinFontSize">14</system:Double>
 
     <system:Double x:Key="ViewEdgeFadeHeight">12</system:Double>
+
+    <system:Double x:Key="SidebarCategoryFontSize">12</system:Double>
+    <system:Double x:Key="SidebarCountFontSize">11</system:Double>
+    <FontWeight x:Key="SidebarCategoryFontWeight">Normal</FontWeight>
 </ResourceDictionary>

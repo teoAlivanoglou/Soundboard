@@ -57,24 +57,61 @@ public partial class SoundboardViewModel : ObservableObject
         _audioEngine = null;
         _soundDiscoveryService = new SoundDiscoveryService();
 
-        var catAll = CategoryModel.GetAll(4);
-        var catBass = new CategoryModel("Basses", 2, ColorPalette.GetColor(0));
-        var catLead = new CategoryModel("Leads", 1, ColorPalette.GetColor(1));
-        var catDrums = new CategoryModel("Drums", 1, ColorPalette.GetColor(2));
+        var colorIdx = 0;
 
-        Categories.Add(catAll);
-        Categories.Add(catBass);
-        Categories.Add(catLead);
+        // 1. Top-level loose sounds (root)
+        var catRoot = new CategoryModel("(root)", 1, ColorPalette.GetColor(colorIdx++)) { RelativePath = "" };
+
+        // 2. Drums: has both direct sounds and subfolder (demonstrating child "(root)")
+        var drumsColor = ColorPalette.GetColor(colorIdx++);
+        var catDrums = new CategoryModel("Drums", 3, drumsColor) { RelativePath = "Drums" };
+        var catDrumsRoot = new CategoryModel("(root)", 2, drumsColor) { Parent = catDrums, RelativePath = "Drums" };
+        var catDrumsAcoustic = new CategoryModel("Acoustic", 1, ColorPalette.GetColor(colorIdx++)) { Parent = catDrums, RelativePath = "Drums/Acoustic" };
+        catDrums.Children.Add(catDrumsRoot);
+        catDrums.Children.Add(catDrumsAcoustic);
+
+        // 3. Synths: folder with only subcategories (0 direct sounds -> uncolored container)
+        var catSynths = new CategoryModel("Synths", 3) { RelativePath = "Synths" };
+        var catBass = new CategoryModel("Basses", 2, ColorPalette.GetColor(colorIdx++)) { Parent = catSynths, RelativePath = "Synths/Basses" };
+        var catLead = new CategoryModel("Leads", 1, ColorPalette.GetColor(colorIdx++)) { Parent = catSynths, RelativePath = "Synths/Leads" };
+        catSynths.Children.Add(catBass);
+        catSynths.Children.Add(catLead);
+
+        // 4. Consolidated linear chain: "Packs / AZPEX - CROCODILE V2 DRUM KIT" (0 direct sounds -> uncolored container)
+        var catCroc = new CategoryModel("AZPEX - CROCODILE V2 DRUM KIT", 1)
+        {
+            Prefix = "Packs / ",
+            RelativePath = "Packs/AZPEX - CROCODILE V2 DRUM KIT"
+        };
+        var catCrocBasses = new CategoryModel("Basses", 1, ColorPalette.GetColor(colorIdx++))
+        {
+            Parent = catCroc,
+            RelativePath = "Packs/AZPEX - CROCODILE V2 DRUM KIT/Basses"
+        };
+        catCroc.Children.Add(catCrocBasses);
+
+        // 5. FX: simple leaf category (no subfolders)
+        var catFX = new CategoryModel("FX", 1, ColorPalette.GetColor(colorIdx++)) { RelativePath = "FX" };
+
+        Categories.Add(catRoot);
         Categories.Add(catDrums);
+        Categories.Add(catSynths);
+        Categories.Add(catCroc);
+        Categories.Add(catFX);
 
-        SoundItems.Add(new SoundModel("Cleanest 808", "", catBass, "", TimeSpan.FromSeconds(2.4), index: 1)
+        SoundItems.Add(new SoundModel("Intro Chime", "", catRoot, "", TimeSpan.FromSeconds(1.2), index: 1));
+        SoundItems.Add(new SoundModel("808 Boom", "", catDrumsRoot, "Drums", TimeSpan.FromSeconds(2.0), index: 2));
+        SoundItems.Add(new SoundModel("Punchy Clap", "", catDrumsRoot, "Drums", TimeSpan.FromMilliseconds(450), index: 3));
+        SoundItems.Add(new SoundModel("Snappy Rimshot", "", catDrumsAcoustic, "Drums/Acoustic", TimeSpan.FromMilliseconds(120), index: 4));
+        SoundItems.Add(new SoundModel("Cleanest 808", "", catBass, "Synths/Basses", TimeSpan.FromSeconds(2.4), index: 5)
         {
             IsPlaying = true,
             Progress = 0.35
         });
-        SoundItems.Add(new SoundModel("Deep Sub Bass", "", catBass, "", TimeSpan.FromSeconds(3.8), index: 2));
-        SoundItems.Add(new SoundModel("Hyper Synth Lead", "", catLead, "", TimeSpan.FromMilliseconds(850), index: 3));
-        SoundItems.Add(new SoundModel("Snappy Rimshot", "", catDrums, "", TimeSpan.FromMilliseconds(120), index: 4));
+        SoundItems.Add(new SoundModel("Deep Sub Bass", "", catBass, "Synths/Basses", TimeSpan.FromSeconds(3.8), index: 6));
+        SoundItems.Add(new SoundModel("Hyper Synth Lead", "", catLead, "Synths/Leads", TimeSpan.FromMilliseconds(850), index: 7));
+        SoundItems.Add(new SoundModel("AZPEX [ BASS ] ARCH", "", catCrocBasses, "Packs/AZPEX - CROCODILE V2 DRUM KIT/Basses", TimeSpan.FromSeconds(2.1), index: 8));
+        SoundItems.Add(new SoundModel("Laser Zap", "", catFX, "FX", TimeSpan.FromMilliseconds(620), index: 9));
         // UpdateLayoutAndRows(800);
         UpdateVisibleSounds();
         HookThemeChanges();
@@ -128,7 +165,6 @@ public partial class SoundboardViewModel : ObservableObject
         {
             Application.Current.ActualThemeVariantChanged += (_, _) =>
             {
-                CategoryModel.All.NotifyThemeChanged();
                 foreach (var category in Categories)
                 {
                     category.NotifyThemeChanged();
@@ -198,7 +234,6 @@ public partial class SoundboardViewModel : ObservableObject
         var warningSound = SoundModel.FromStream("Please Select a Folder", stream, defaultCategory, index: 1);
 
         Categories.Clear();
-        Categories.Add(CategoryModel.GetAll(1));
         Categories.Add(defaultCategory);
 
         SoundItems.Clear();

@@ -5,25 +5,42 @@ using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Soundboard.Avalonia.Utils;
 using System;
+using System.Collections.Generic;
 
 namespace Soundboard.Avalonia.Discovery;
 
 public partial class CategoryModel : ObservableObject
 {
     [ObservableProperty] public partial string Name { get; set; }
+    public string RelativePath { get; set; } = string.Empty;
+
     [ObservableProperty] public partial int SoundCount { get; set; }
+    [ObservableProperty] public partial int DirectSoundCount { get; set; }
+    
     [ObservableProperty] public partial bool IsEnabled { get; set; }
+    [ObservableProperty] public partial bool IsExpanded { get; set; } = true;
+
     [ObservableProperty] public partial ImmutableSolidColorBrush BackgroundBrushDark { get; set; }
     [ObservableProperty] public partial ImmutableSolidColorBrush BackgroundBrushLight { get; set; }
 
-                                                                                                                                                                                   
+    public CategoryModel? Parent { get; set; }
+    public List<CategoryModel> Children { get; set; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPrefix))]
+    public partial string Prefix { get; set; } = string.Empty;
+
+    public bool HasPrefix => !string.IsNullOrEmpty(Prefix);
+    public bool IsRootLabel => Name == "(root)";
+    public bool HasColor => Color.HasValue;
+
     /// <summary>                                                                                                                                                                 
     /// Returns the theme-appropriate brush for the current active theme variant.                                                                                                 
     /// </summary>                                                                                                                                                                
-    public ImmutableSolidColorBrush BackgroundBrush =>                                                                                                                                    
-        Application.Current?.ActualThemeVariant == ThemeVariant.Light                                                                                                             
-            ? BackgroundBrushLight                                                                                                                                                
-            : BackgroundBrushDark; 
+    public ImmutableSolidColorBrush BackgroundBrush =>
+        Application.Current?.ActualThemeVariant == ThemeVariant.Light
+            ? BackgroundBrushLight
+            : BackgroundBrushDark;
 
     public Color? Color { get; init; }
     public bool IsAll { get; init; }
@@ -37,6 +54,12 @@ public partial class CategoryModel : ObservableObject
         return All;
     }
 
+    public CategoryModel(string name, int soundCount)
+        : this(name, soundCount, new ImmutableSolidColorBrush(Colors.Transparent), new ImmutableSolidColorBrush(Colors.Transparent))
+    {
+        Color = null;
+    }
+
     public CategoryModel(string name, int soundCount, Color color, bool isAll = false)
         : this(name, soundCount, HelmlabColorConversion.GetDualModeBrushes(color), isAll)
     {
@@ -48,7 +71,8 @@ public partial class CategoryModel : ObservableObject
     {
     }
 
-    public CategoryModel(string name, int soundCount, ImmutableSolidColorBrush backgroundBrushDark, ImmutableSolidColorBrush backgroundBrushLight, bool isAll = false)
+    public CategoryModel(string name, int soundCount, ImmutableSolidColorBrush backgroundBrushDark,
+        ImmutableSolidColorBrush backgroundBrushLight, bool isAll = false)
     {
         Name = name;
         SoundCount = soundCount;
@@ -61,6 +85,10 @@ public partial class CategoryModel : ObservableObject
     public void NotifyThemeChanged()
     {
         OnPropertyChanged(nameof(BackgroundBrush));
+        foreach (var child in Children)
+        {
+            child.NotifyThemeChanged();
+        }
     }
 
     /// <summary>

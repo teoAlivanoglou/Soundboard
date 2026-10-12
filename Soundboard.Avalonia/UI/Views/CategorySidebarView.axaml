@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Soundboard.Avalonia.ViewModels"
              xmlns:discovery="clr-namespace:Soundboard.Avalonia.Discovery"
-             mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="600"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="600"
              x:Class="Soundboard.Avalonia.UI.Views.CategorySidebarView"
              x:DataType="vm:SoundboardViewModel"
              Background="{DynamicResource WindowBackgroundBrush}">
@@ -13,12 +13,91 @@
         <vm:SoundboardViewModel />
     </Design.DataContext>
 
-    <UserControl.Resources>
-        <!-- Compact TreeView metrics -->
-        <x:Double x:Key="TreeViewItemIndent">12</x:Double>
-        <x:Double x:Key="TreeViewItemExpandCollapseChevronSize">14</x:Double>
-        <Thickness x:Key="TreeViewItemExpandCollapseChevronMargin">2,0,4,0</Thickness>
-    </UserControl.Resources>
+    <UserControl.DataTemplates>
+        <!-- Recursive DataTemplate for CategoryModel (applies to root & all nested children) -->
+        <DataTemplate DataType="discovery:CategoryModel">
+            <StackPanel>
+                <!-- Row Container -->
+                <Border Classes="cat-row-root"
+                        MinHeight="28"
+                        CornerRadius="4"
+                        Margin="4, 2">
+                    <Grid ColumnDefinitions="Auto, *">
+                        <!-- Left Zone: Chevron / Expander (Interactive 20x28 hit zone) -->
+                        <Border Grid.Column="0"
+                                Classes="cat-left-zone"
+                                Width="20"
+                                Height="28"
+                                Background="Transparent"
+                                Cursor="Hand"
+                                PointerPressed="OnLeftZonePointerPressed">
+                            <TextBlock Classes="cat-chevron"
+                                       Classes.expanded="{Binding IsExpanded}"
+                                       IsVisible="{Binding Children.Count}"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Transitions>
+                                    <Transitions>
+                                        <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                                    </Transitions>
+                                </TextBlock.Transitions>
+                            </TextBlock>
+                        </Border>
+
+                        <!-- Right Zone: Category Content (Interactive row body) -->
+                        <Border Grid.Column="1"
+                                Classes="cat-right-zone"
+                                CornerRadius="4"
+                                Background="Transparent"
+                                Cursor="Hand"
+                                PointerPressed="OnCategoryRowPointerPressed">
+                            <Grid Classes="cat-content"
+                                  Classes.disabled="{Binding !IsEnabled}"
+                                  ColumnDefinitions="Auto, *, Auto"
+                                  MinHeight="28"
+                                  VerticalAlignment="Stretch"
+                                  HorizontalAlignment="Stretch">
+
+                                <!-- LED Accent Bar (Style D - Hardware Synth) -->
+                                <Border Classes="cat-led-bar"
+                                        Grid.Column="0"
+                                        IsVisible="{Binding HasColor}"
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
+                                        Height="14" Width="3"
+                                        CornerRadius="1.5" />
+
+                                <!-- Category Name with optional compact prefix -->
+                                <DockPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock DockPanel.Dock="Left"
+                                               Classes="cat-prefix"
+                                               Text="{Binding Prefix}"
+                                               IsVisible="{Binding HasPrefix}" />
+                                    <TextBlock Classes="cat-name"
+                                               Classes.root-label="{Binding IsRootLabel}"
+                                               Text="{Binding Name}" />
+                                </DockPanel>
+
+                                <!-- Sound Count Badge (16px right margin guarantees scrollbar clearance) -->
+                                <TextBlock Classes="cat-count"
+                                           Grid.Column="2"
+                                           Margin="8,0,16,0"
+                                           Text="{Binding SoundCount}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Nested Children with natural hierarchical indentation -->
+                <ItemsControl ItemsSource="{Binding Children}"
+                              IsVisible="{Binding IsExpanded}"
+                              Margin="12, 0, 0, 0" />
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.DataTemplates>
 
     <UserControl.Styles>
         <!-- Mini Header Text Buttons (All, None) -->
@@ -94,76 +173,17 @@
             <Setter Property="Background" Value="{DynamicResource SearchBoxPointerOverBackgroundBrush}" />
         </Style>
 
-        <!-- TreeViewItem Row Base Metrics -->
-        <Style Selector="TreeViewItem">
-            <Setter Property="MinHeight" Value="26" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Margin" Value="0, 1" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <!-- Chevron Icon Default and Expanded States -->
+        <Style Selector="TextBlock.cat-chevron">
+            <Setter Property="Text" Value="&#xE06F;" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
         </Style>
-        <Style Selector="TreeViewItem /template/ Border#PART_LayoutRoot">
-            <Setter Property="MinHeight" Value="26" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Margin" Value="4, 0" />
-        </Style>
-        <Style Selector="TreeViewItem /template/ Panel#PART_ExpandCollapseChevronContainer">
-            <Setter Property="Margin" Value="2, 0, 4, 0" />
-            <Setter Property="Width" Value="14" />
-        </Style>
-
-        <!-- Custom Chevron with Lucide IconFont (Right = E06F, Down = E06D) -->
-        <Style Selector="TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron">
-            <Setter Property="Width" Value="14" />
-            <Setter Property="Height" Value="14" />
-            <Setter Property="Margin" Value="0" />
-            <Setter Property="Template">
-                <ControlTemplate TargetType="ToggleButton">
-                    <Border Background="Transparent"
-                            Width="{TemplateBinding Width}"
-                            Height="{TemplateBinding Height}"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-                        <TextBlock x:Name="ChevronGlyph"
-                                   FontFamily="{StaticResource IconFont}"
-                                   FontSize="10"
-                                   Text="&#xE06F;"
-                                   Foreground="{DynamicResource TextMutedBrush}"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
-                </ControlTemplate>
-            </Setter>
-        </Style>
-        <Style Selector="TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron:checked /template/ TextBlock#ChevronGlyph">
+        <Style Selector="TextBlock.cat-chevron.expanded">
             <Setter Property="Text" Value="&#xE06D;" />
-        </Style>
-        <Style Selector="TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron:pointerover /template/ TextBlock#ChevronGlyph">
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-        </Style>
-
-        <!-- TreeViewItem Row Hover State -->
-        <Style Selector="TreeViewItem:pointerover /template/ Border#PART_LayoutRoot">
-            <Setter Property="Background" Value="{DynamicResource TreeRowPointerOverBrush}" />
-        </Style>
-
-        <!-- Remove TreeViewItem Selection Effect completely (Transparent background, no border) -->
-        <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-        </Style>
-        <Style Selector="TreeViewItem:selected:pointerover /template/ Border#PART_LayoutRoot">
-            <Setter Property="Background" Value="{DynamicResource TreeRowPointerOverBrush}" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-        </Style>
-        <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot > ContentPresenter#PART_HeaderPresenter">
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         </Style>
 
         <!-- Category Row Enabled/Disabled Styles & Transitions -->
-        <Style Selector="Grid.category-row">
+        <Style Selector="Grid.cat-content">
             <Setter Property="Opacity" Value="1.0" />
             <Setter Property="Transitions">
                 <Transitions>
@@ -181,9 +201,10 @@
             </Setter>
         </Style>
 
-        <!-- Category Name Style (Dimmer in idle, pure white on hover) -->
+        <!-- Category Name Base Style -->
         <Style Selector="TextBlock.cat-name">
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="{DynamicResource SidebarCategoryFontSize}" />
+            <Setter Property="FontWeight" Value="{DynamicResource SidebarCategoryFontWeight}" />
             <Setter Property="Foreground" Value="{DynamicResource TreeRowTextBrush}" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -194,18 +215,20 @@
             </Setter>
         </Style>
 
-        <!-- Hover State on TreeViewItem: Name brightens to pure white (Dark) / deep black (Light) -->
-        <Style Selector="TreeViewItem:pointerover TextBlock.cat-name">
-            <Setter Property="Foreground" Value="{DynamicResource TreeRowTextHoverBrush}" />
+        <!-- Compact Prefix Style -->
+        <Style Selector="TextBlock.cat-prefix">
+            <Setter Property="FontSize" Value="{DynamicResource SidebarCategoryFontSize}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
-        <!-- Category Sound Count Badge Style -->
+        <!-- Sound Count Badge Base Style -->
         <Style Selector="TextBlock.cat-count">
-            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontSize" Value="{DynamicResource SidebarCountFontSize}" />
             <Setter Property="FontFeatures" Value="tnum" />
             <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Margin" Value="0, 0, 6, 0" />
+            <Setter Property="Margin" Value="0, 0, 16, 0" />
             <Setter Property="Opacity" Value="0.75" />
             <Setter Property="Transitions">
                 <Transitions>
@@ -215,28 +238,67 @@
             </Setter>
         </Style>
 
-        <!-- Hover State on TreeViewItem: Count badge brightens slightly when enabled -->
-        <Style Selector="TreeViewItem:pointerover TextBlock.cat-count">
+        <!-- Root Label Style (italics, muted) -->
+        <Style Selector="TextBlock.cat-name.root-label">
+            <Setter Property="FontStyle" Value="Italic" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="FontSize" Value="11" />
+        </Style>
+
+        <!-- Disabled Category Base Styles -->
+        <Style Selector="Grid.cat-content.disabled">
+            <Setter Property="Opacity" Value="0.35" />
+        </Style>
+        <Style Selector="Grid.cat-content.disabled Border.cat-led-bar">
+            <Setter Property="Background" Value="{DynamicResource TextMutedBrush}" />
+        </Style>
+        <Style Selector="Grid.cat-content.disabled TextBlock.cat-name">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        </Style>
+        <Style Selector="Grid.cat-content.disabled TextBlock.cat-count">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
             <Setter Property="Opacity" Value="1.0" />
         </Style>
 
-        <!-- Disabled Category: Decoration (LED), text (name), and count ALL share the exact same color and uniform opacity -->
-        <Style Selector="Grid.category-row.disabled">
-            <Setter Property="Opacity" Value="0.35" />
+        <!-- =========================================================================
+             DECOUPLED HOVER STATES (DECLARED AFTER BASE STYLES TO ENSURE PRECEDENCE):
+             1. Hovering the chevron zone ONLY brightens the chevron glyph.
+             2. Hovering the right zone ONLY brightens the category name and count badge.
+             Neither triggers the other.
+             ========================================================================= -->
+
+        <!-- Left Zone Hover: ONLY the chevron glyph brightens -->
+        <Style Selector="Border.cat-left-zone:pointerover TextBlock.cat-chevron">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         </Style>
-        <Style Selector="Grid.category-row.disabled Border.cat-led-bar">
-            <Setter Property="Background" Value="{DynamicResource TextMutedBrush}" />
+
+        <!-- Right Zone Hover: ONLY category name and count badge brighten -->
+        <Style Selector="Border.cat-right-zone:pointerover TextBlock.cat-name">
+            <Setter Property="Foreground" Value="{DynamicResource TreeRowTextHoverBrush}" />
         </Style>
-        <Style Selector="Grid.category-row.disabled TextBlock.cat-name">
-            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
-        </Style>
-        <Style Selector="Grid.category-row.disabled TextBlock.cat-count">
-            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        <Style Selector="Border.cat-right-zone:pointerover TextBlock.cat-count">
             <Setter Property="Opacity" Value="1.0" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         </Style>
-        <!-- Ensure disabled items never turn white on hover -->
-        <Style Selector="TreeViewItem:pointerover Grid.category-row.disabled TextBlock.cat-name">
+
+        <!-- Root Label remains muted on hover -->
+        <Style Selector="Border.cat-right-zone:pointerover TextBlock.cat-name.root-label">
             <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        </Style>
+
+        <!-- Disabled rows do not brighten on hover -->
+        <Style Selector="Border.cat-right-zone:pointerover Grid.cat-content.disabled TextBlock.cat-name">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        </Style>
+
+        <!-- Styling option: Row background hover effect.
+             DO NOT REMOVE even if currently unused - preserved for user/theme customization options.
+             To activate, add the 'row-hover' class to Border.cat-right-zone (or Border.cat-row-root). -->
+        <Style Selector="Border.cat-right-zone.row-hover:pointerover">
+            <Setter Property="Background" Value="{DynamicResource TreeRowPointerOverBrush}" />
+        </Style>
+        <Style Selector="Border.cat-row-root.full-row-hover:pointerover">
+            <Setter Property="Background" Value="{DynamicResource TreeRowPointerOverBrush}" />
         </Style>
     </UserControl.Styles>
 
@@ -288,42 +350,13 @@
                      Classes="SidebarSearchBox" />
         </Border>
 
-        <!-- Category Tree View -->
-        <TreeView Grid.Row="2"
-                  ItemsSource="{Binding Categories}"
-                  Background="Transparent"
-                  BorderThickness="0"
-                  Padding="4, 6">
-            <TreeView.ItemTemplate>
-                <DataTemplate DataType="discovery:CategoryModel">
-                    <Grid Classes="category-row"
-                          Classes.disabled="{Binding !IsEnabled}"
-                          ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8"
-                          VerticalAlignment="Center"
-                          Background="Transparent"
-                          Cursor="Hand"
-                          PointerPressed="OnCategoryRowPointerPressed">
-
-                        <!-- LED Accent Bar (Style D - uncolored when disabled) -->
-                        <Border Classes="cat-led-bar"
-                                Grid.Column="0"
-                                VerticalAlignment="Center"
-                                Height="14" Width="3"
-                                CornerRadius="1.5" />
-                        
-                        <!-- Category Name -->
-                        <TextBlock Classes="cat-name"
-                                   Grid.Column="1"
-                                   Text="{Binding Name}" />
-                        
-                        <!-- Sound Count Badge -->
-                        <TextBlock Classes="cat-count"
-                                   Grid.Column="2"
-                                   Text="{Binding SoundCount}" />
-                    </Grid>
-                </DataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
+        <!-- Pure Recursive ItemsControl Hierarchy (Winning Architecture) -->
+        <ScrollViewer Grid.Row="2"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="4, 6">
+            <ItemsControl ItemsSource="{Binding Categories}" />
+        </ScrollViewer>
 
     </Grid>
 

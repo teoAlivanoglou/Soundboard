@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -21,6 +22,24 @@ namespace Soundboard.Avalonia.UI.Views
                    ?? App.Host?.Services.GetService<SoundboardViewModel>();
         }
 
+        private static void SetEnabledRecursive(CategoryModel category, bool isEnabled)
+        {
+            category.IsEnabled = isEnabled;
+            foreach (var child in category.Children)
+            {
+                SetEnabledRecursive(child, isEnabled);
+            }
+        }
+
+        private static void SetExpandedRecursive(CategoryModel category, bool isExpanded)
+        {
+            category.IsExpanded = isExpanded;
+            foreach (var child in category.Children)
+            {
+                SetExpandedRecursive(child, isExpanded);
+            }
+        }
+
         private void OnSelectAllClick(object? sender, RoutedEventArgs e)
         {
             var vm = GetViewModel();
@@ -28,7 +47,7 @@ namespace Soundboard.Avalonia.UI.Views
             {
                 foreach (var cat in vm.Categories)
                 {
-                    cat.IsEnabled = true;
+                    SetEnabledRecursive(cat, true);
                 }
                 vm.UpdateSoundVisibility();
             }
@@ -41,7 +60,7 @@ namespace Soundboard.Avalonia.UI.Views
             {
                 foreach (var cat in vm.Categories)
                 {
-                    cat.IsEnabled = false;
+                    SetEnabledRecursive(cat, false);
                 }
                 vm.UpdateSoundVisibility();
             }
@@ -49,38 +68,64 @@ namespace Soundboard.Avalonia.UI.Views
 
         private void OnExpandAllClick(object? sender, RoutedEventArgs e)
         {
-            // Ready for hierarchical model expansion
+            var vm = GetViewModel();
+            if (vm != null)
+            {
+                foreach (var cat in vm.Categories)
+                {
+                    SetExpandedRecursive(cat, true);
+                }
+            }
         }
 
         private void OnCollapseAllClick(object? sender, RoutedEventArgs e)
         {
-            // Ready for hierarchical model collapse
+            var vm = GetViewModel();
+            if (vm != null)
+            {
+                foreach (var cat in vm.Categories)
+                {
+                    SetExpandedRecursive(cat, false);
+                }
+            }
+        }
+
+        private void OnLeftZonePointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            var pointerPoint = e.GetCurrentPoint(sender as Visual);
+            if (!pointerPoint.Properties.IsLeftButtonPressed)
+                return;
+
+            if (sender is Control { DataContext: CategoryModel category })
+            {
+                if (category.Children.Count > 0)
+                {
+                    category.IsExpanded = !category.IsExpanded;
+                }
+                else
+                {
+                    var vm = GetViewModel();
+                    var newState = !category.IsEnabled;
+                    SetEnabledRecursive(category, newState);
+                    vm?.UpdateSoundVisibility();
+                }
+                e.Handled = true;
+            }
         }
 
         private void OnCategoryRowPointerPressed(object? sender, PointerPressedEventArgs e)
         {
+            var pointerPoint = e.GetCurrentPoint(sender as Visual);
+            if (!pointerPoint.Properties.IsLeftButtonPressed)
+                return;
+
             if (sender is Control { DataContext: CategoryModel category })
             {
                 var vm = GetViewModel();
-
-                if (category.IsAll)
-                {
-                    var newState = !category.IsEnabled;
-                    category.IsEnabled = newState;
-                    if (vm != null)
-                    {
-                        foreach (var cat in vm.Categories)
-                        {
-                            cat.IsEnabled = newState;
-                        }
-                    }
-                }
-                else
-                {
-                    category.IsEnabled = !category.IsEnabled;
-                }
-
+                var newState = !category.IsEnabled;
+                SetEnabledRecursive(category, newState);
                 vm?.UpdateSoundVisibility();
+                e.Handled = true;
             }
         }
     }

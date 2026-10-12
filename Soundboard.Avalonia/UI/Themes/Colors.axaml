@@ -52,7 +52,7 @@
             <SolidColorBrush x:Key="SearchBoxPointerOverBorderBrush" Color="#FFBAC3D6" />
             <SolidColorBrush x:Key="CategoryDisabledLedBrush" Color="#FFCCD2DF" />
             <SolidColorBrush x:Key="AccentFocusBrush" Color="#FF3B82F6" />
-            <SolidColorBrush x:Key="TreeRowTextBrush" Color="#FF3D4758" />
+            <SolidColorBrush x:Key="TreeRowTextBrush" Color="#FF525E75" />
             <SolidColorBrush x:Key="TreeRowTextHoverBrush" Color="#FF0F172A" />
         </ResourceDictionary>
 
