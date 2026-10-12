@@ -8,7 +8,7 @@ namespace Soundboard.Avalonia.Discovery;
 
 public static class ColorPalette
 {
-    private static readonly Color[] PrimaryColors =
+    public static readonly Color[] PrimaryColors =
     [
         Color.FromHex("#FFFBBF24"), // Warm Gold               
         Color.FromHex("#FF34D399"), // Cool Mint Green         

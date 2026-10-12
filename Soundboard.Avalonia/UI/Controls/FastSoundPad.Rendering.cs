@@ -155,18 +155,11 @@ public partial class FastSoundPad
     {
         if (!_enableShadows || _glowOpacity <= 0.0) return;
 
-        var maxOpacity = _palette.IsLightTheme ? 0.7 : 0.55;
-        var glowAlpha = (byte)Math.Clamp(categoryColor.A * maxOpacity * _glowOpacity, 0, 255);
-        var glowColor = Color.FromArgb(glowAlpha, categoryColor.R, categoryColor.G, categoryColor.B);
-
-        var glowShadow = new BoxShadow
+        var shadow = GetGlowShadow(categoryColor, _palette.IsLightTheme, _glowBlur, _glowOpacity);
+        if (shadow.Count > 0)
         {
-            Blur = _palette.IsLightTheme ? _glowBlur * (20.0 / 24.0) : _glowBlur,
-            Spread = 0.1,
-            Color = glowColor
-        };
-
-        context.DrawRectangle(null, null, roundedRect, new BoxShadows(glowShadow));
+            context.DrawRectangle(null, null, roundedRect, shadow);
+        }
     }
 
     #endregion
@@ -175,14 +168,14 @@ public partial class FastSoundPad
 
     private void DrawSurface(DrawingContext context, RoundedRect roundedRect, Color categoryColor)
     {
-        var accentShadow = new BoxShadow
+        if (_accentOffset <= 0.01)
         {
-            IsInset = true,
-            OffsetX = _accentOffset,
-            Color = categoryColor
-        };
+            context.DrawRectangle(_palette.Surface, null, roundedRect);
+            return;
+        }
 
-        context.DrawRectangle(_palette.Surface, null, roundedRect, new BoxShadows(accentShadow));
+        var accentShadow = GetAccentShadow(categoryColor, _accentOffset);
+        context.DrawRectangle(_palette.Surface, null, roundedRect, accentShadow);
     }
 
     #endregion
@@ -199,12 +192,10 @@ public partial class FastSoundPad
         var progressToSize = new Size(size.Width * sound.Progress, size.Height);
         var newRect = new Rect(progressToSize);
 
-
-        var categoryColor = sound.BackgroundBrush.Color;
-        var newBrush = new SolidColorBrush(new Color(124, categoryColor.R, categoryColor.G, categoryColor.B));
+        var brush = GetProgressBrush(sound.BackgroundBrush.Color);
         using (context.PushClip(roundedRect))
         {
-            context.DrawRectangle(newBrush, null, newRect);
+            context.DrawRectangle(brush, null, newRect);
         }
     }
 
@@ -228,27 +219,7 @@ public partial class FastSoundPad
         var playheadX = Math.Round(size.Width * sound.Progress);
         var playheadRect = new Rect(0, 0, playheadWidth, size.Height);
 
-        var innerAlpha = (byte)((isLight ? 0.95 : 1.00) * 255);
-        var outerAlpha = (byte)((isLight ? 0.90 : 0.85) * 255);
-
-        var boxShadows = new BoxShadows(
-            new BoxShadow
-            {
-                Color = Color.FromArgb(outerAlpha, categoryColor.R, categoryColor.G, categoryColor.B),
-                Blur = 9,
-                Spread = 0,
-                IsInset = false
-            },
-            [
-                new BoxShadow
-                {
-                    Color = Color.FromArgb(innerAlpha, categoryColor.R, categoryColor.G, categoryColor.B),
-                    Blur = 4,
-                    Spread = 0,
-                    IsInset = false
-                }
-            ]);
-
+        var boxShadows = GetPlayheadShadow(categoryColor, isLight);
         var roundedRect = new RoundedRect(new Rect(size), _metrics.CornerRadius);
 
         using (context.PushClip(roundedRect))

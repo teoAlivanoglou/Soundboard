@@ -89,6 +89,12 @@ public class AnimationTimeline<TState> where TState : struct, Enum
         return this;
     }
 
+    public void Stop()
+    {
+        _isRunning = false;
+        _activeTracks = null;
+    }
+
     public void Play(TState state)
     {
         if (!_stateTracks.TryGetValue(state, out var tracks))

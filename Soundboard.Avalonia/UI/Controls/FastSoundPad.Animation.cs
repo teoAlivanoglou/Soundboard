@@ -49,16 +49,29 @@ public partial class FastSoundPad
                 .Animate(v => _borderFade = v, from: 1.0, to: 0.0, duration: 150.Ms(), delay: 100.Ms()));
     }
 
+    public void ResetAnimationState()
+    {
+        _timeline?.Stop();
+        _accentOffset = _metrics.AccentThickness;
+        _borderSweep = 0.0;
+        _borderFade = 0.0;
+        _glowBlur = 0.0;
+        _glowOpacity = 0.0;
+        _borderPen.Brush = _palette.Border;
+        _isFrameScheduled = false;
+        _lastFrameTime = TimeSpan.Zero;
+    }
+
     private void StartAnimation(bool isPlaying)
     {
         _lastFrameTime = TimeSpan.Zero;
-        _timeline.Play(isPlaying ? PadState.Playing : PadState.Stopped);
+        _timeline?.Play(isPlaying ? PadState.Playing : PadState.Stopped);
         RequestFrameIfNeeded();
     }
 
     private void RequestFrameIfNeeded()
     {
-        if (!_isFrameScheduled && _timeline.IsRunning)
+        if (!_isFrameScheduled && _timeline?.IsRunning == true)
         {
             var topLevel = TopLevel.GetTopLevel(this);
             if (topLevel != null)
@@ -72,7 +85,7 @@ public partial class FastSoundPad
     private void OnAnimationFrame(TimeSpan currentTime)
     {
         _isFrameScheduled = false;
-        if (!_timeline.IsRunning) return;
+        if (_timeline?.IsRunning != true) return;
 
         if (_lastFrameTime == TimeSpan.Zero)
         {
