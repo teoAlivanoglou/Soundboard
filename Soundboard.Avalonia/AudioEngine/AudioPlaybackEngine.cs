@@ -27,9 +27,7 @@ public class AudioPlaybackEngine : IDisposable
     private readonly SettingsService _settingsService;
     private readonly Lock _lock = new();
     private readonly Dictionary<SoundModel, List<ISampleProvider>> _soundsAndSampleProviders = [];
-    private readonly Dictionary<SoundModel, DateTime> _soundsLastPlayed = [];
-    private CancellationTokenSource _cancellationTokenSource = new();
-
+    private readonly Dictionary<ISampleProvider, SoundModel> _providerToSound = [];
 
     public AudioPlaybackEngine(SettingsService settingsService, AudioDataCache audioCache)
     {
@@ -37,8 +35,6 @@ public class AudioPlaybackEngine : IDisposable
         _audioCache = audioCache;
 
         InitializeDriver();
-
-        _ = UpdateTimers(_cancellationTokenSource.Token);
     }
 
     public static IReadOnlyList<DriverType> GetAvailableDrivers()
@@ -178,16 +174,21 @@ public class AudioPlaybackEngine : IDisposable
                 _soundsAndSampleProviders[sound].Add(provider);
             }
 
-            _soundsLastPlayed[sound] = DateTime.UtcNow;
+            _providerToSound[provider] = sound;
         }
 
         if (Dispatcher.UIThread.CheckAccess())
         {
+            sound.PlaybackStartTime = DateTime.UtcNow;
             sound.IsPlaying = true;
         }
         else
         {
-            Dispatcher.UIThread.Post(() => sound.IsPlaying = true);
+            Dispatcher.UIThread.Post(() =>
+            {
+                sound.PlaybackStartTime = DateTime.UtcNow;
+                sound.IsPlaying = true;
+            });
         }
 
         AddMixerInput(provider);
@@ -234,9 +235,14 @@ public class AudioPlaybackEngine : IDisposable
             if (_soundsAndSampleProviders.Remove(sound, out var providers))
             {
                 soundSampleProviders = providers;
+                if (fadeDuration <= 0)
+                {
+                    foreach (var provider in providers)
+                    {
+                        _providerToSound.Remove(provider);
+                    }
+                }
             }
-
-            _soundsLastPlayed.Remove(sound);
         }
 
         if (soundSampleProviders != null)
@@ -260,6 +266,7 @@ public class AudioPlaybackEngine : IDisposable
 
         if (Dispatcher.UIThread.CheckAccess())
         {
+            sound.PlaybackStartTime = null;
             sound.IsPlaying = false;
             sound.Progress = 0;
         }
@@ -267,6 +274,7 @@ public class AudioPlaybackEngine : IDisposable
         {
             Dispatcher.UIThread.Post(() =>
             {
+                sound.PlaybackStartTime = null;
                 sound.IsPlaying = false;
                 sound.Progress = 0;
             });
@@ -289,102 +297,50 @@ public class AudioPlaybackEngine : IDisposable
 
     private void MixerOnMixerInputEnded(object? sender, SampleProviderEventArgs e)
     {
-        // Task.Run(() => MessageBox.Show($"Sound stopped at exactly {DateTime.UtcNow}"));
-    }
-
-    private async Task UpdateTimers(CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
+        // Offload lock acquisition and disposable cleanup off the real-time audio thread
+        ThreadPool.QueueUserWorkItem(_ =>
         {
-            List<KeyValuePair<SoundModel, DateTime>>? activeSounds = null;
+            SoundModel? finishedSound = null;
             lock (_lock)
             {
-                if (_soundsLastPlayed.Count > 0)
+                if (_providerToSound.Remove(e.SampleProvider, out var sound))
                 {
-                    activeSounds = [.. _soundsLastPlayed];
-                }
-            }
-
-            if (activeSounds != null && activeSounds.Count > 0)
-            {
-                var now = DateTime.UtcNow;
-                var updates =
-                    new List<(SoundModel Sound, DateTime BeginTime, double Progress, bool IsPlaying)>(
-                        activeSounds.Count);
-                var finishedSounds = new List<SoundModel>();
-
-                foreach (var (sound, beginTime) in activeSounds)
-                {
-                    var elapsed = now - beginTime;
-                    var visualDurationMs = Math.Max(sound.Duration.TotalMilliseconds, 250.0);
-                    if (elapsed.TotalMilliseconds <= visualDurationMs)
+                    if (_soundsAndSampleProviders.TryGetValue(sound, out var list))
                     {
-                        var progress = visualDurationMs > 0
-                            ? elapsed.TotalMilliseconds / visualDurationMs
-                            : 0;
-                        updates.Add((sound, beginTime, progress, true));
+                        list.Remove(e.SampleProvider);
+                        if (list.Count == 0)
+                        {
+                            _soundsAndSampleProviders.Remove(sound);
+                            finishedSound = sound;
+                        }
                     }
                     else
                     {
-                        updates.Add((sound, beginTime, 0, false));
-                        finishedSounds.Add(sound);
+                        // Sound was already removed from _soundsAndSampleProviders by StopSound (during fade-out)
+                        finishedSound = sound;
                     }
                 }
+            }
 
-                if (finishedSounds.Count > 0)
-                {
-                    lock (_lock)
-                    {
-                        foreach (var sound in finishedSounds)
-                        {
-                            var visualDurationMs = Math.Max(sound.Duration.TotalMilliseconds, 250.0);
-                            if (_soundsLastPlayed.TryGetValue(sound, out var lastPlayed) &&
-                                (now - lastPlayed).TotalMilliseconds >= visualDurationMs)
-                            {
-                                _soundsLastPlayed.Remove(sound);
-                                if (_soundsAndSampleProviders.Remove(sound, out var providers))
-                                {
-                                    foreach (var p in providers)
-                                    {
-                                        _mixer.RemoveMixerInput(p);
-                                        if (p is IDisposable d) d.Dispose();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            if (e.SampleProvider is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
 
+            if (finishedSound != null)
+            {
                 Dispatcher.UIThread.Post(() =>
                 {
-                    foreach (var (sound, beginTime, progress, isPlaying) in updates)
-                    {
-                        lock (_lock)
-                        {
-                            if (_soundsLastPlayed.TryGetValue(sound, out var currentBeginTime) &&
-                                currentBeginTime > beginTime)
-                            {
-                                continue;
-                            }
-                        }
-
-                        sound.Progress = progress;
-                        sound.IsPlaying = isPlaying;
-                    }
+                    finishedSound.IsPlaying = false;
+                    finishedSound.Progress = 0;
+                    finishedSound.PlaybackStartTime = null;
                 });
-
-                await Task.Delay(20, cancellationToken);
             }
-            else
-            {
-                await Task.Delay(100, cancellationToken);
-            }
-        }
+        });
     }
 
     public void Dispose()
     {
-        _cancellationTokenSource.Cancel();
         _outputDevice.Dispose();
     }
 
@@ -394,18 +350,10 @@ public class AudioPlaybackEngine : IDisposable
         lock (_lock)
         {
             _soundsAndSampleProviders.Clear();
-            _soundsLastPlayed.Clear();
+            _providerToSound.Clear();
         }
 
         _outputDevice.Dispose();
-
-        if (_cancellationTokenSource.IsCancellationRequested)
-        {
-            _cancellationTokenSource.Dispose();
-            _cancellationTokenSource = new CancellationTokenSource();
-            _ = UpdateTimers(_cancellationTokenSource.Token);
-        }
-
         InitializeDriver();
     }
 }

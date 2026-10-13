@@ -189,7 +189,12 @@ public partial class FastSoundPad
         // Will use it for clipping
         var roundedRect = new RoundedRect(new Rect(size), _metrics.CornerRadius);
 
-        var progressToSize = new Size(size.Width * sound.Progress, size.Height);
+        var progress = sound.PlaybackStartTime.HasValue                                                                            
+            ? Math.Clamp((DateTime.UtcNow - sound.PlaybackStartTime.Value).TotalMilliseconds / Math.Max(sound.Duration.            
+                TotalMilliseconds, 250.0), 0.0, 1.0)                                                                                         
+            : sound.Progress; 
+        
+        var progressToSize = new Size(size.Width * progress, size.Height);
         var newRect = new Rect(progressToSize);
 
         var brush = GetProgressBrush(sound.BackgroundBrush.Color);
@@ -215,8 +220,12 @@ public partial class FastSoundPad
 
         const double playheadWidth = 2.0;
 
+        var progress = sound.PlaybackStartTime.HasValue
+            ? Math.Clamp((DateTime.UtcNow - sound.PlaybackStartTime.Value).TotalMilliseconds / Math.Max(sound.Duration.TotalMilliseconds, 250.0), 0.0, 1.0)
+            : sound.Progress;
+
         // Pixel-snap X to eliminate subpixel shimmering/jittering
-        var playheadX = Math.Round(size.Width * sound.Progress);
+        var playheadX = Math.Round(size.Width * progress);
         var playheadRect = new Rect(0, 0, playheadWidth, size.Height);
 
         var boxShadows = GetPlayheadShadow(categoryColor, isLight);

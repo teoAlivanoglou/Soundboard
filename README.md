@@ -28,18 +28,18 @@ Uses NAudio for playback, CommunityToolkit.Mvvm for MVVM.
 - [ ] Cleanup
 - [x] Volume
 - [x] Audio data LRU cache (bounded in-memory cache with byte/count budget and large-file streaming fallback)
-- [ ] Category panel min/max sizing (quantized to fit integer number of category rows: 1 min, 4-5 max)
-- [ ] Resizable category panel via GridSplitter with row snapping
+- [ ] <del>Category panel min/max sizing (quantized to fit integer number of category rows: 1 min, 4-5 max) </del>
+- [ ] <del>Resizable category panel via GridSplitter with row snapping</del>
 - [ ] Indicate how many instances of a sound play at a time
-- [ ] **AudioPlaybackEngine VSync synchronization**: Replace background thread 50Hz `Task.Delay(4)` polling loop with display VSync-aligned progress calculation (`TopLevel.RequestAnimationFrame`) to eliminate playhead jitter and timer drift.
+- [x] **AudioPlaybackEngine VSync synchronization**: Replace background thread 50Hz `Task.Delay(4)` polling loop with display VSync-aligned progress calculation (`TopLevel.RequestAnimationFrame`) to eliminate playhead jitter and timer drift.
 - [ ] Restore Marquee (scrolling/animating) functionality in SoundPad texts
 
 ## TODO Next: Sidebar Refactor
 
 - [ ] Complete the categories sidebar UI (search filtering, expand/collapse all behaviors, layout polish)
-- [ ] Modify the categories model to be hierarchical / tree-like (nested categories, parent-child relations, root category representation)
+- [x] Modify the categories model to be hierarchical / tree-like (nested categories, parent-child relations, root category representation)
 - [ ] Hook everything up to the ViewModel and sound filtering engine
 
-<del> ## Big bug with marquee textbox - changing light or dark mode causes them to go invisible until i scroll a lot to cause repaint </del>
+## <del> Big bug with marquee textbox - changing light or dark mode causes them to go invisible until i scroll a lot to cause repaint </del>
 
 

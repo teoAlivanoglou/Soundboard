@@ -8,7 +8,6 @@ public enum PadState
     Playing,
     Stopped
 }
-
 public partial class FastSoundPad
 {
     // Animated values (actual numbers, not normalized 0-1)
@@ -21,6 +20,8 @@ public partial class FastSoundPad
     private AnimationTimeline? _timeline = null!;
     private TimeSpan _lastFrameTime = TimeSpan.Zero;
     private bool _isFrameScheduled;
+
+    private bool ShouldAnimate => (_timeline?.IsRunning == true) || (_boundSound?.IsPlaying == true);
 
     private void InitializeAnimations()
     {
@@ -71,7 +72,7 @@ public partial class FastSoundPad
 
     private void RequestFrameIfNeeded()
     {
-        if (!_isFrameScheduled && _timeline?.IsRunning == true)
+        if (!_isFrameScheduled && ShouldAnimate)
         {
             var topLevel = TopLevel.GetTopLevel(this);
             if (topLevel != null)
@@ -85,7 +86,7 @@ public partial class FastSoundPad
     private void OnAnimationFrame(TimeSpan currentTime)
     {
         _isFrameScheduled = false;
-        if (_timeline?.IsRunning != true) return;
+        if (!ShouldAnimate) return;
 
         if (_lastFrameTime == TimeSpan.Zero)
         {
@@ -97,10 +98,10 @@ public partial class FastSoundPad
         var dt = (currentTime - _lastFrameTime).TotalSeconds;
         _lastFrameTime = currentTime;
 
-        var isRunning = _timeline.Update(dt);
+        _timeline?.Update(dt);
         InvalidateVisual();
 
-        if (isRunning)
+        if (ShouldAnimate)
         {
             RequestFrameIfNeeded();
         }

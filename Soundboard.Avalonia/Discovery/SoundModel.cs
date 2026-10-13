@@ -12,11 +12,13 @@ public partial class SoundModel : ObservableObject
     [ObservableProperty] public partial string Name { get; set; }
     [ObservableProperty] public partial bool IsPlaying { get; set; }
     [ObservableProperty] public partial bool IsVisible { get; set; } = true;
+    [ObservableProperty] public partial DateTime? PlaybackStartTime { get; set; }                                                                    
     [ObservableProperty] public partial double Progress { get; set; }
     [ObservableProperty] public partial TimeSpan Duration { get; set; }
+    [ObservableProperty] public partial int Index { get; set; }
 
-    [ObservableProperty] public partial int Index { get; set; } = 1;
-
+    
+    
     public CategoryModel Category { get; init; }
     public string SubFolder { get; init; }
     public string FilePath { get; init; }
