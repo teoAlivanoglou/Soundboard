@@ -125,7 +125,6 @@ public class DelayFadeOutSampleProvider : ISampleProvider, IDisposable
         {
             if (_fadeOutSamples > 0 && _position >= _fadeOutStart + _fadeOutSamples)
             {
-                Dispose();
                 return 0;
             }
         }
@@ -133,7 +132,6 @@ public class DelayFadeOutSampleProvider : ISampleProvider, IDisposable
         var sourceSamplesRead = _source.Read(buffer);
         if (sourceSamplesRead == 0)
         {
-            Dispose();
             return 0;
         }
 
@@ -177,8 +175,7 @@ public class DelayFadeOutSampleProvider : ISampleProvider, IDisposable
 
             if (samplesToProcess < sourceSamplesRead)
             {
-                buffer.Slice(samplesToProcess).Clear();
-                Dispose();
+                buffer[samplesToProcess..].Clear();
                 return samplesToProcess;
             }
         }

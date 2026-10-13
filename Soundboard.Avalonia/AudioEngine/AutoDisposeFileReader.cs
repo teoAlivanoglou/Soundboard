@@ -24,9 +24,7 @@ public class AutoDisposeFileReader(SoundFileReader reader, IDisposable? streamTo
             return 0;
 
         var read = reader.Read(buffer);
-        if (read != 0) return read;
-        Dispose();
-        return read;
+        return read != 0 ? read : 0;
     }
 
     public WaveFormat WaveFormat { get; private set; } = reader.WaveFormat;
