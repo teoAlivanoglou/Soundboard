@@ -1,0 +1,23 @@
+{
+  "profiles": {
+    "SonicPad": {
+      "commandName": "Project"
+    },
+    "SonicPad_Debug": {
+      "commandName": "Project",
+      "commandLineArgs": "-d"
+    },
+    "SonicPad_Debug_Wasapi": {
+      "commandName": "Project",
+      "commandLineArgs": "-do wasapi"
+    },
+    "SonicPad_Debug_Waveoutevent": {
+      "commandName": "Project",
+      "commandLineArgs": "-do waveoutevent"
+    },
+    "SonicPad_Debug_DirectSound": {
+      "commandName": "Project",
+      "commandLineArgs": "-do directsound"
+    }
+  }
+}

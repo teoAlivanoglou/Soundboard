@@ -80,4 +80,30 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) and '$(PublishAot)' == ''">
+		<PublishAot>true</PublishAot>
+	</PropertyGroup>
+
+	<!-- Automatically assemble macOS .app bundle on macOS publish -->
+	<Target Name="CreateMacAppBundle" AfterTargets="Publish;CopyNativeBinary" Condition="$([MSBuild]::IsOSPlatform('OSX')) or $([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('osx'))">
+		<PropertyGroup>
+			<AppBundlePublishDir Condition="'$(PublishDir)' != ''">$([System.IO.Path]::GetFullPath('$(PublishDir)'))</AppBundlePublishDir>
+			<AppBundlePublishDir>$([MSBuild]::EnsureTrailingSlash('$(AppBundlePublishDir)'))</AppBundlePublishDir>
+			<AppBundleDir>$(AppBundlePublishDir)SonicPad.app</AppBundleDir>
+			<AppBundleContents>$(AppBundleDir)/Contents</AppBundleContents>
+			<AppBundleMacOS>$(AppBundleContents)/MacOS</AppBundleMacOS>
+			<AppBundleResources>$(AppBundleContents)/Resources</AppBundleResources>
+		</PropertyGroup>
+		<Message Importance="high" Text="==&gt; Creating macOS application bundle: $(AppBundleDir)" />
+		<RemoveDir Directories="$(AppBundleDir)" />
+		<MakeDir Directories="$(AppBundleMacOS);$(AppBundleResources)" />
+		<Copy SourceFiles="$(MSBuildProjectDirectory)/Info.plist" DestinationFolder="$(AppBundleContents)" Condition="Exists('$(MSBuildProjectDirectory)/Info.plist')" />
+		<!-- Copy native dependencies and published files -->
+		<Exec Command="find &quot;$(AppBundlePublishDir)&quot; -maxdepth 1 -type f ! -name &quot;.*&quot; -exec cp -f {} &quot;$(AppBundleMacOS)/&quot; \;" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+		<!-- Ensure the genuine Native AOT executable is copied, prioritizing $(NativeBinary) if present -->
+		<Exec Command="if [ -n &quot;$(NativeBinary)&quot; ] &amp;&amp; [ -f &quot;$(NativeBinary)&quot; ]; then cp -f &quot;$(NativeBinary)&quot; &quot;$(AppBundleMacOS)/SonicPad&quot;; fi &amp;&amp; chmod +x &quot;$(AppBundleMacOS)/SonicPad&quot;" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+		<Exec Command="which codesign &gt;/dev/null 2&gt;&amp;1 &amp;&amp; codesign --force --deep --sign - &quot;$(AppBundleDir)&quot; || true" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+		<Message Importance="high" Text="==&gt; Successfully created macOS application bundle: $(AppBundleDir)" />
+	</Target>
 </Project>
