@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:SonicPad.UI.Views"
+             xmlns:discovery="clr-namespace:SonicPad.Discovery"
+             xmlns:vm="clr-namespace:SonicPad.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800"
+             x:Class="SonicPad.UI.Views.CategoryBarView"
+             x:DataType="vm:SonicPadViewModel">
+
+    <Design.DataContext>
+        <vm:SonicPadViewModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="Border.cat-pill">
+            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PadBorderBrush}" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <Style Selector="Border.cat-pill:pointerover">
+            <Setter Property="Opacity" Value="0.8" />
+        </Style>
+
+        <Style Selector="Border.cat-pill.active" x:DataType="discovery:CategoryModel">
+            <Setter Property="Opacity" Value="1.0" />
+            <Setter Property="BorderBrush" Value="{Binding BackgroundBrush}" />
+        </Style>
+
+    </UserControl.Styles>
+
+
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Categories}" Padding="16,12,8,4">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="discovery:CategoryModel">
+
+                        <!-- Pill -->
+                        <Border Classes="cat-pill"
+                                Classes.active="{Binding IsEnabled}"
+                                Cursor="Hand"
+                                Margin="0,0,8,8"
+                                Background="{DynamicResource PadSurfaceBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="10,6"
+                                ClipToBounds="False"
+                                PointerPressed="InputElement_OnPointerPressed">
+
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <Ellipse Width="8" Height="8"
+                                         Fill="{Binding BackgroundBrush}" />
+                                <TextBlock Text="{Binding Name}"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding  SoundCount, StringFormat='({0})'}"
+                                           Foreground="{DynamicResource TextMutedBrush}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Top edge fade shadow -->
+        <Border Height="{StaticResource ViewEdgeFadeHeight}"
+                VerticalAlignment="Top"
+                IsHitTestVisible="False"
+                Background="{DynamicResource WindowBackgroundBrush}"
+                OpacityMask="{StaticResource TopEdgeFadeOpacityMaskBrush}" />
+
+        <!-- Bottom edge fade shadow -->
+        <Border Height="{StaticResource ViewEdgeFadeHeight}"
+                VerticalAlignment="Bottom"
+                IsHitTestVisible="False"
+                Background="{DynamicResource WindowBackgroundBrush}"
+                OpacityMask="{StaticResource BottomEdgeFadeOpacityMaskBrush}" />
+    </Grid>
+
+</UserControl>

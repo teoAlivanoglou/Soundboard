@@ -1,0 +1,28 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:SonicPad.UI.Controls"
+                    xmlns:system="clr-namespace:System;assembly=System.Runtime">
+
+    <CornerRadius x:Key="PadOuterCornerRadius">16</CornerRadius>
+    <CornerRadius x:Key="PadInnerCornerRadius">15</CornerRadius>
+    <Thickness x:Key="PadBorderThickness">2</Thickness>
+
+    <system:Double x:Key="PadAccentCornerRadius">4</system:Double>
+    <system:Double x:Key="PadAccentThickness">6</system:Double>
+
+    <Thickness x:Key="PadInnerPadding">14,10,10,10</Thickness>
+
+    <system:Double x:Key="PlayheadSize">2</system:Double>
+
+    <system:Double x:Key="PadCategoryFontSize">14</system:Double>
+    <system:Double x:Key="PadDurationFontSize">14</system:Double>
+    <system:Double x:Key="PadNumberFontSize">14</system:Double>
+    <system:Double x:Key="PadTitleMaxFontSize">16</system:Double>
+    <system:Double x:Key="PadTitleMinFontSize">14</system:Double>
+
+    <system:Double x:Key="ViewEdgeFadeHeight">12</system:Double>
+
+    <system:Double x:Key="SidebarCategoryFontSize">12</system:Double>
+    <system:Double x:Key="SidebarCountFontSize">11</system:Double>
+    <FontWeight x:Key="SidebarCategoryFontWeight">Normal</FontWeight>
+</ResourceDictionary>

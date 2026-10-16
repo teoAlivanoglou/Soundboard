@@ -1,0 +1,189 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:discovery="clr-namespace:SonicPad.Discovery"
+             xmlns:avalonia="clr-namespace:SonicPad"
+             xmlns:converters="clr-namespace:SonicPad.UI.Converters"
+             xmlns:controls="clr-namespace:SonicPad.UI.Controls"
+             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="200"
+             x:Class="SonicPad.UI.Controls.SoundPad"
+             x:DataType="discovery:SoundModel"
+             Cursor="Hand"
+             ClipToBounds="False">
+    <Design.DataContext>
+        <discovery:SoundModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="Border.glow">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseOut" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.glow.playing">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.02" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <Style Selector="Border.progress">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="CubicEaseOut" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.progress.playing">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.02" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <Style Selector="TextBlock.pad-footer">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="FontFeatures" Value="tnum" />
+            <Setter Property="VerticalAlignment" Value="Bottom" />
+        </Style>
+
+        <Style Selector="Border.playhead-layer">
+            <Setter Property="Width" Value="{StaticResource PlayheadSize}" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+    </UserControl.Styles>
+
+    <Panel ClipToBounds="False">
+
+        <!-- Glow Underlay (completely hidden when not playing to skip GPU draw calls and drop shadow shaders) -->
+        <Border Classes="glow"
+                Classes.playing="{Binding IsPlaying}"
+                IsVisible="{Binding IsPlaying}"
+                ClipToBounds="False"
+                IsHitTestVisible="False"
+                Background="{DynamicResource PadSurfaceBrush}"
+                CornerRadius="{StaticResource PadOuterCornerRadius}">
+            <Border.Effect>
+                <MultiBinding Converter="{StaticResource OuterGlowConverter}" ConverterParameter="Pad">
+                    <Binding Path="IsPlaying" />
+                    <Binding Path="Category.BackgroundBrush" />
+                </MultiBinding>
+            </Border.Effect>
+        </Border>
+
+        <!-- Main Pad Surface -->
+        <Border ClipToBounds="False"
+                Background="{DynamicResource PadSurfaceBrush}"
+                CornerRadius="{StaticResource PadOuterCornerRadius}"
+                BorderThickness="{StaticResource PadBorderThickness}"
+                BorderBrush="{DynamicResource PadBorderBrush}">
+            <Border.Transitions>
+                <Transitions>
+                    <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.15" Easing="CubicEaseInOut" />
+                </Transitions>
+            </Border.Transitions>
+            <Border.BoxShadow>
+                <MultiBinding Converter="{StaticResource ShadowConverter}" ConverterParameter="{StaticResource PadAccentThickness}">
+                    <Binding Path="Category.BackgroundBrush" />
+                    <Binding Path="IsPlaying" />
+                </MultiBinding>
+            </Border.BoxShadow>
+
+            <Grid>
+
+                <!-- Content -->
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*,Auto"
+                      HorizontalAlignment="Stretch"
+                      Margin="{StaticResource PadInnerPadding}">
+
+                    <!-- Category Name -->
+                    <controls:MarqueeTextControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                                                 Text="{Binding Category.Name}"
+                                                 Orientation="Horizontal"
+                                                 Foreground="{Binding Category.BackgroundBrush}"
+                                                 FontSize="{StaticResource PadCategoryFontSize}"
+                                                 FontWeight="DemiBold"
+                                                 ShowEllipsis="False" />
+
+                    <!-- Sound Name -->
+                    <controls:MarqueeTextControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                                 Margin="0,8"
+                                                 VerticalAlignment="Center"
+                                                 Text="{Binding Name}"
+                                                 Orientation="Vertical"
+                                                 FontSize="{StaticResource PadTitleMinFontSize}"
+                                                 LineHeight="18"
+                                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                                 ShowEllipsis="False" />
+
+                    <!-- Duration -->
+                    <TextBlock Grid.Row="2" Grid.Column="0"
+                               Classes="pad-footer"
+                               Text="{Binding Duration, StringFormat='{}{0:m\\:ss\\.ff}'}"
+                               FontSize="{StaticResource PadDurationFontSize}"
+                               HorizontalAlignment="Left" />
+
+                    <!-- Number -->
+                    <TextBlock Grid.Row="2" Grid.Column="1"
+                               Classes="pad-footer"
+                               Text="{Binding Index, StringFormat='#{0:D2}'}"
+                               FontSize="{StaticResource PadNumberFontSize}"
+                               HorizontalAlignment="Right" />
+
+                </Grid>
+
+
+                <!-- Playhead and progress -->
+                <Border Classes="progress"
+                        Classes.playing="{Binding IsPlaying}"
+                        IsVisible="{Binding IsPlaying}"
+                        ClipToBounds="True"
+                        IsHitTestVisible="False"
+                        CornerRadius="{StaticResource PadInnerCornerRadius}">
+
+                    <Grid x:Name="ProgressGrid" ColumnDefinitions="Auto,*">
+
+                        <Border x:Name="ProgressFill" Grid.Column="0" VerticalAlignment="Stretch"
+                                Background="{Binding Category.BackgroundBrush}"
+                                OpacityMask="{StaticResource ProgressFillOpacityMaskBrush}">
+                            <Border.Width>
+                                <MultiBinding Converter="{StaticResource LerpConverter}">
+                                    <Binding Path="#ProgressGrid.Bounds.Width" />
+                                    <Binding Path="Progress" />
+                                </MultiBinding>
+                            </Border.Width>
+                        </Border>
+
+                        <!-- Playhead -->
+                        <Border Grid.Column="1" Classes="playhead-layer" 
+                                Background="{Binding Category.BackgroundBrush}" Opacity="0.85" 
+                                Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='PlayheadOuter'}" />
+                        <Border Grid.Column="1" Classes="playhead-layer" 
+                                Background="{StaticResource LaserCoreBrush}"
+                                Effect="{Binding Category.BackgroundBrush, Converter={StaticResource OuterGlowConverter}, ConverterParameter='PlayheadInner'}" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Playing Border Overlay -->
+        <Border Classes="progress"
+                Classes.playing="{Binding IsPlaying}"
+                IsVisible="{Binding IsPlaying}"
+                IsHitTestVisible="False"
+                CornerRadius="{StaticResource PadOuterCornerRadius}"
+                BorderThickness="{StaticResource PadBorderThickness}"
+                BorderBrush="{Binding Category.BackgroundBrush}"
+                OpacityMask="{StaticResource PlayingBorderOpacityMaskBrush}" />
+    </Panel>
+</UserControl>

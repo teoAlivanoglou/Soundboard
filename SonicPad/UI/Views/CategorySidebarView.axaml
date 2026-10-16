@@ -1,0 +1,362 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SonicPad.ViewModels"
+             xmlns:discovery="clr-namespace:SonicPad.Discovery"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="600"
+             x:Class="SonicPad.UI.Views.CategorySidebarView"
+             x:DataType="vm:SonicPadViewModel"
+             Background="{DynamicResource WindowBackgroundBrush}">
+
+    <Design.DataContext>
+        <vm:SonicPadViewModel />
+    </Design.DataContext>
+
+    <UserControl.DataTemplates>
+        <!-- Recursive DataTemplate for CategoryModel (applies to root & all nested children) -->
+        <DataTemplate DataType="discovery:CategoryModel">
+            <StackPanel>
+                <!-- Row Container -->
+                <Border Classes="cat-row-root"
+                        MinHeight="28"
+                        CornerRadius="4"
+                        Margin="4, 2">
+                    <Grid ColumnDefinitions="Auto, *">
+                        <!-- Left Zone: Chevron / Expander (Interactive 20x28 hit zone) -->
+                        <Border Grid.Column="0"
+                                Classes="cat-left-zone"
+                                Width="20"
+                                Height="28"
+                                Background="Transparent"
+                                Cursor="Hand"
+                                PointerPressed="OnLeftZonePointerPressed">
+                            <TextBlock Classes="cat-chevron"
+                                       Classes.expanded="{Binding IsExpanded}"
+                                       IsVisible="{Binding Children.Count}"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Transitions>
+                                    <Transitions>
+                                        <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                                    </Transitions>
+                                </TextBlock.Transitions>
+                            </TextBlock>
+                        </Border>
+
+                        <!-- Right Zone: Category Content (Interactive row body) -->
+                        <Border Grid.Column="1"
+                                Classes="cat-right-zone"
+                                CornerRadius="4"
+                                Background="Transparent"
+                                Cursor="Hand"
+                                PointerPressed="OnCategoryRowPointerPressed">
+                            <Grid Classes="cat-content"
+                                  Classes.disabled="{Binding !IsEnabled}"
+                                  ColumnDefinitions="Auto, *, Auto"
+                                  MinHeight="28"
+                                  VerticalAlignment="Stretch"
+                                  HorizontalAlignment="Stretch">
+
+                                <!-- LED Accent Bar (Style D - Hardware Synth) -->
+                                <Border Classes="cat-led-bar"
+                                        Grid.Column="0"
+                                        IsVisible="{Binding HasColor}"
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
+                                        Height="14" Width="3"
+                                        CornerRadius="1.5" />
+
+                                <!-- Category Name with optional compact prefix -->
+                                <DockPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock DockPanel.Dock="Left"
+                                               Classes="cat-prefix"
+                                               Text="{Binding Prefix}"
+                                               IsVisible="{Binding HasPrefix}" />
+                                    <TextBlock Classes="cat-name"
+                                               Classes.root-label="{Binding IsRootLabel}"
+                                               Text="{Binding Name}" />
+                                </DockPanel>
+
+                                <!-- Sound Count Badge (16px right margin guarantees scrollbar clearance) -->
+                                <TextBlock Classes="cat-count"
+                                           Grid.Column="2"
+                                           Margin="8,0,16,0"
+                                           Text="{Binding SoundCount}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Nested Children with natural hierarchical indentation -->
+                <ItemsControl ItemsSource="{Binding Children}"
+                              IsVisible="{Binding IsExpanded}"
+                              Margin="12, 0, 0, 0" />
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.DataTemplates>
+
+    <UserControl.Styles>
+        <!-- Mini Header Text Buttons (All, None) -->
+        <Style Selector="Button.SidebarHeaderButton">
+            <Setter Property="Height" Value="24" />
+            <Setter Property="MinHeight" Value="24" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="Padding" Value="7, 0" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="{DynamicResource ActionButtonBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PadBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Button.SidebarHeaderButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource HeaderButtonPointerOverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentFocusBrush}" />
+        </Style>
+        <Style Selector="Button.SidebarHeaderButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource HeaderButtonPressedBrush}" />
+        </Style>
+
+        <!-- Mini Header Icon Buttons (Expand All, Collapse All) -->
+        <Style Selector="Button.SidebarHeaderIconButton">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="MinHeight" Value="24" />
+            <Setter Property="MinWidth" Value="24" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontFamily" Value="{StaticResource IconFont}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="{DynamicResource ActionButtonBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PadBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Button.SidebarHeaderIconButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource HeaderButtonPointerOverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentFocusBrush}" />
+        </Style>
+        <Style Selector="Button.SidebarHeaderIconButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource HeaderButtonPressedBrush}" />
+        </Style>
+
+        <!-- Compact Search Box -->
+        <Style Selector="TextBox.SidebarSearchBox">
+            <Setter Property="Height" Value="28" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Padding" Value="8, 0" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Background" Value="{DynamicResource SearchBoxBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PadBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="TextBox.SidebarSearchBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="{DynamicResource SearchBoxPointerOverBorderBrush}" />
+            <Setter Property="Background" Value="{DynamicResource SearchBoxPointerOverBackgroundBrush}" />
+        </Style>
+        <Style Selector="TextBox.SidebarSearchBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentFocusBrush}" />
+            <Setter Property="Background" Value="{DynamicResource SearchBoxPointerOverBackgroundBrush}" />
+        </Style>
+
+        <!-- Chevron Icon Default and Expanded States -->
+        <Style Selector="TextBlock.cat-chevron">
+            <Setter Property="Text" Value="&#xE06F;" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        </Style>
+        <Style Selector="TextBlock.cat-chevron.expanded">
+            <Setter Property="Text" Value="&#xE06D;" />
+        </Style>
+
+        <!-- Category Row Enabled/Disabled Styles & Transitions -->
+        <Style Selector="Grid.cat-content">
+            <Setter Property="Opacity" Value="1.0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <Style Selector="Border.cat-led-bar" x:DataType="discovery:CategoryModel">
+            <Setter Property="Background" Value="{Binding BackgroundBrush}" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <!-- Category Name Base Style -->
+        <Style Selector="TextBlock.cat-name">
+            <Setter Property="FontSize" Value="{DynamicResource SidebarCategoryFontSize}" />
+            <Setter Property="FontWeight" Value="{DynamicResource SidebarCategoryFontWeight}" />
+            <Setter Property="Foreground" Value="{DynamicResource TreeRowTextBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <!-- Compact Prefix Style -->
+        <Style Selector="TextBlock.cat-prefix">
+            <Setter Property="FontSize" Value="{DynamicResource SidebarCategoryFontSize}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Sound Count Badge Base Style -->
+        <Style Selector="TextBlock.cat-count">
+            <Setter Property="FontSize" Value="{DynamicResource SidebarCountFontSize}" />
+            <Setter Property="FontFeatures" Value="tnum" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0, 0, 16, 0" />
+            <Setter Property="Opacity" Value="0.75" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <!-- Root Label Style (italics, muted) -->
+        <Style Selector="TextBlock.cat-name.root-label">
+            <Setter Property="FontStyle" Value="Italic" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="FontSize" Value="11" />
+        </Style>
+
+        <!-- Disabled Category Base Styles -->
+        <Style Selector="Grid.cat-content.disabled">
+            <Setter Property="Opacity" Value="0.35" />
+        </Style>
+        <Style Selector="Grid.cat-content.disabled Border.cat-led-bar">
+            <Setter Property="Background" Value="{DynamicResource TextMutedBrush}" />
+        </Style>
+        <Style Selector="Grid.cat-content.disabled TextBlock.cat-name">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        </Style>
+        <Style Selector="Grid.cat-content.disabled TextBlock.cat-count">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="Opacity" Value="1.0" />
+        </Style>
+
+        <!-- =========================================================================
+             DECOUPLED HOVER STATES (DECLARED AFTER BASE STYLES TO ENSURE PRECEDENCE):
+             1. Hovering the chevron zone ONLY brightens the chevron glyph.
+             2. Hovering the right zone ONLY brightens the category name and count badge.
+             Neither triggers the other.
+             ========================================================================= -->
+
+        <!-- Left Zone Hover: ONLY the chevron glyph brightens -->
+        <Style Selector="Border.cat-left-zone:pointerover TextBlock.cat-chevron">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+
+        <!-- Right Zone Hover: ONLY category name and count badge brighten -->
+        <Style Selector="Border.cat-right-zone:pointerover TextBlock.cat-name">
+            <Setter Property="Foreground" Value="{DynamicResource TreeRowTextHoverBrush}" />
+        </Style>
+        <Style Selector="Border.cat-right-zone:pointerover TextBlock.cat-count">
+            <Setter Property="Opacity" Value="1.0" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+
+        <!-- Root Label remains muted on hover -->
+        <Style Selector="Border.cat-right-zone:pointerover TextBlock.cat-name.root-label">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        </Style>
+
+        <!-- Disabled rows do not brighten on hover -->
+        <Style Selector="Border.cat-right-zone:pointerover Grid.cat-content.disabled TextBlock.cat-name">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        </Style>
+
+        <!-- Styling option: Row background hover effect.
+             DO NOT REMOVE even if currently unused - preserved for user/theme customization options.
+             To activate, add the 'row-hover' class to Border.cat-right-zone (or Border.cat-row-root). -->
+        <Style Selector="Border.cat-right-zone.row-hover:pointerover">
+            <Setter Property="Background" Value="{DynamicResource TreeRowPointerOverBrush}" />
+        </Style>
+        <Style Selector="Border.cat-row-root.full-row-hover:pointerover">
+            <Setter Property="Background" Value="{DynamicResource TreeRowPointerOverBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <!-- Top Section -->
+        <Border Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource PadBorderBrush}">
+            <Grid Grid.Row="0"
+                  ColumnDefinitions="*,Auto,Auto,Auto,Auto"
+                  ColumnSpacing="4"
+                  VerticalAlignment="Center"
+                  Margin="12, 8">
+
+                <TextBlock Grid.Column="0"
+                           VerticalAlignment="Center"
+                           Text="CATEGORIES"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           FontSize="11"
+                           FontWeight="SemiBold"
+                           LetterSpacing="0.6" />
+
+                <Button Grid.Column="1"
+                        Classes="SidebarHeaderButton"
+                        Click="OnSelectAllClick"
+                        Content="All" />
+                <Button Grid.Column="2"
+                        Classes="SidebarHeaderButton"
+                        Click="OnSelectNoneClick"
+                        Content="None" />
+                <Button Grid.Column="3"
+                        Classes="SidebarHeaderIconButton"
+                        Click="OnExpandAllClick"
+                        ToolTip.Tip="Expand All"
+                        Content="&#xE696;" />
+                <Button Grid.Column="4"
+                        Classes="SidebarHeaderIconButton"
+                        Click="OnCollapseAllClick"
+                        ToolTip.Tip="Collapse All"
+                        Content="&#xE694;" />
+            </Grid></Border>
+
+        <!-- ~1~ SearchBar @1@ -->
+        <!-- <Border Grid.Row="1" -->
+        <!--         BorderThickness="0,1,0,0" -->
+        <!--         Padding="12, 8" -->
+        <!--         BorderBrush="{DynamicResource PadBorderBrush}"> -->
+        <!-- -->
+        <!--     <TextBox x:Name="CategoryFilterTextBox" -->
+        <!--              PlaceholderText="Filter categories…" -->
+        <!--              Classes="SidebarSearchBox" /> -->
+        <!-- </Border> -->
+
+        <!-- Pure Recursive ItemsControl Hierarchy (Winning Architecture) -->
+        <ScrollViewer Grid.Row="2"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="4, 6">
+            <ItemsControl ItemsSource="{Binding Categories}" />
+        </ScrollViewer>
+    </Grid>
+</UserControl>

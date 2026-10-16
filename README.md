@@ -1,4 +1,4 @@
-# Soundboard
+# SonicPad
 
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![Avalonia UI](https://img.shields.io/badge/Avalonia_UI-12.1-9C27B0?logo=avalonia&logoColor=white)](https://avaloniaui.net/)
@@ -13,7 +13,7 @@
 ## Preview
 
 <div align="center">
-  <img src="docs/screenshot.png" alt="Soundboard Interface" width="850" />
+  <img src="docs/screenshot.png" alt="SonicPad Interface" width="850" />
   <p><em>Modern, dark/light adaptive soundpad grid featuring hierarchical category navigation, real-time playheads, and master audio controls.</em></p>
 </div>
 
@@ -23,7 +23,7 @@
 
 Traditional soundboards are often bloated, sluggish, and prone to audio jitter or UI micro-stutters when handling large sound directories. 
 
-**Soundboard** is engineered from the ground up to solve that problem. Point it to any audio directory on your filesystem, and it recursively scans and transforms your folders into a clean, searchable, and responsive sound pad grid. Designed with live streaming, podcasting, and quick-trigger audio in mind, it combines modern systems programming patterns with high-frequency graphics and low-latency audio mixing.
+**SonicPad** is engineered from the ground up to solve that problem. Point it to any audio directory on your filesystem, and it recursively scans and transforms your folders into a clean, searchable, and responsive sound pad grid. Designed with live streaming, podcasting, and quick-trigger audio in mind, it combines modern systems programming patterns with high-frequency graphics and low-latency audio mixing.
 
 ---
 
@@ -115,20 +115,20 @@ Rather than relying on inaccurate background timers (e.g. `Task.Delay` or `Dispa
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/Soundboard.git
-cd Soundboard
+git clone https://github.com/your-username/SonicPad.git
+cd SonicPad
 
 # Restore and build the project
-dotnet build Soundboard.Avalonia/Soundboard.Avalonia.csproj
+dotnet build SonicPad/SonicPad.csproj
 
 # Run the application
-dotnet run --project Soundboard.Avalonia/Soundboard.Avalonia.csproj
+dotnet run --project SonicPad/SonicPad.csproj
 ```
 
 ### Native AOT Publish (Optimized Binary)
 
 ```bash
-dotnet publish Soundboard.Avalonia/Soundboard.Avalonia.csproj -c Release -p:PublishAot=true
+dotnet publish SonicPad/SonicPad.csproj -c Release -p:PublishAot=true
 ```
 
 ---
