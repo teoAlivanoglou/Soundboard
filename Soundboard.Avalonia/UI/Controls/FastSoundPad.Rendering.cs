@@ -12,7 +12,6 @@ using System.Collections.Generic;
 namespace Soundboard.Avalonia.UI.Controls;
 
 public readonly record struct CategoryCacheKey(string Name, Color Color);
-
 public sealed class CategoryCacheEntry
 {
     public TextLayout NaturalLayout { get; init; } = null!;
@@ -22,7 +21,6 @@ public sealed class CategoryCacheEntry
     public TextLayout? ElidedLayout { get; set; }
     public int ElidedWidth { get; set; }
 }
-
 public partial class FastSoundPad
 {
     private Pen _borderPen = new(Brushes.Gray, 2);
@@ -116,7 +114,7 @@ public partial class FastSoundPad
 
     // Granularly dirty text layouts
     private TextLayout? _titleLayout;
-    private Point _titlePos;
+    private TextLayout? _idleTitleLayout;
 
 
     private void InitializeRendering()
@@ -189,11 +187,10 @@ public partial class FastSoundPad
         // Will use it for clipping
         var roundedRect = new RoundedRect(new Rect(size), _metrics.CornerRadius);
 
-        var progress = sound.PlaybackStartTime.HasValue                                                                            
-            ? Math.Clamp((DateTime.UtcNow - sound.PlaybackStartTime.Value).TotalMilliseconds / Math.Max(sound.Duration.            
-                TotalMilliseconds, 250.0), 0.0, 1.0)                                                                                         
-            : sound.Progress; 
-        
+        var progress = sound.PlaybackStartTime.HasValue
+            ? Math.Clamp((DateTime.UtcNow - sound.PlaybackStartTime.Value).TotalMilliseconds / Math.Max(sound.Duration.TotalMilliseconds, 250.0), 0.0, 1.0)
+            : sound.Progress;
+
         var progressToSize = new Size(size.Width * progress, size.Height);
         var newRect = new Rect(progressToSize);
 
@@ -249,11 +246,16 @@ public partial class FastSoundPad
         var contentWidth = Math.Max(0, size.Width - _metrics.PaddingLeft - _metrics.PaddingRight);
         var footerY = size.Height - _metrics.PaddingBottom - 16 - _fontSizeDelta;
 
+        var (categoryRect, titleRect) = GetTextHitZones();
+
         // 1. Category Name (Top-Left, Granular Dirty)
         if (_showCategory)
         {
-            var layout = GetCategoryLayout(sound, contentWidth);
-            layout.Draw(context, new Point(_metrics.PaddingLeft, _metrics.PaddingTop));
+            var elidedLayout = GetCategoryLayout(sound, contentWidth);
+            var key = new CategoryCacheKey(sound.Category.Name, sound.Category.BackgroundBrush.Color);
+            var entry = CategoryCache[key];
+
+            _categoryMarquee.Draw(context, entry.NaturalLayout, elidedLayout, categoryRect);
         }
 
         // 2. Footer: Duration & Index (Immutable Text - No Dirty Flags)
@@ -265,11 +267,10 @@ public partial class FastSoundPad
         // 3. Sound Title (Middle, Granular Dirty)
         if (_showTitle)
         {
-            var titleTop = _showCategory ? _metrics.PaddingTop + 24 + _fontSizeDelta : _metrics.PaddingTop;
-            var bottomLimit = _showFooter ? footerY - 4 : size.Height - _metrics.PaddingBottom;
-            var titleHeight = Math.Max(10, bottomLimit - titleTop);
+            var lineHeight = 18.0 + _fontSizeDelta;
+            var maxVisibleLines = Math.Max(1, (int)Math.Round(titleRect.Height / lineHeight));
 
-            if (_titleDirty || _titleLayout is null)
+            if (_titleDirty || _titleLayout is null || _idleTitleLayout is null)
             {
                 _titleLayout = new TextLayout(
                     sound.Name,
@@ -278,26 +279,30 @@ public partial class FastSoundPad
                     foreground: _palette.TextPrimary,
                     textAlignment: TextAlignment.Left,
                     textWrapping: TextWrapping.Wrap,
+                    textTrimming: null,
+                    maxWidth: contentWidth,
+                    maxHeight: double.PositiveInfinity,
+                    lineHeight: lineHeight);
+
+                _idleTitleLayout = new TextLayout(
+                    sound.Name,
+                    NormalTypeface,
+                    fontSize: 14 + _fontSizeDelta,
+                    foreground: _palette.TextPrimary,
+                    textAlignment: TextAlignment.Left,
+                    textWrapping: TextWrapping.Wrap,
                     textTrimming: TextTrimming.CharacterEllipsis,
                     maxWidth: contentWidth,
-                    maxHeight: titleHeight,
-                    lineHeight: 18 + _fontSizeDelta);
+                    maxHeight: titleRect.Height,
+                    maxLines: maxVisibleLines,
+                    lineHeight: lineHeight);
 
-                _titleWrapped = _titleLayout.TextLines.Count > 1 ||
-                                (_titleLayout.TextLines.Count > 0 && _titleLayout.TextLines[0].HasCollapsed);
-
-                if (!_titleWrapped)
-                {
-                    _titleUnwrappedWidth = _titleLayout.Width;
-                }
-
+                _titleWrapped = _titleLayout.TextLines.Count > 1;
+                _titleUnwrappedWidth = _titleLayout.Width;
                 _titleDirty = false;
             }
 
-            var titleOffsetY = titleTop + Math.Max(0, (titleHeight - _titleLayout.Height) / 2);
-            _titlePos = new Point(_metrics.PaddingLeft, titleOffsetY);
-
-            _titleLayout.Draw(context, _titlePos);
+            _titleMarquee.Draw(context, _titleLayout, _idleTitleLayout, titleRect);
         }
     }
 
@@ -477,5 +482,26 @@ public partial class FastSoundPad
         }
 
         return entry.ElidedLayout;
+    }
+
+    private (Rect categoryRect, Rect titleRect) GetTextHitZones()
+    {
+        var size = Bounds.Size;
+        var contentWidth = Math.Max(0, size.Width - _metrics.PaddingLeft - _metrics.PaddingRight);
+        var categoryHeight = 20.0 + _fontSizeDelta;
+        var categoryRect = new Rect(_metrics.PaddingLeft, _metrics.PaddingTop, contentWidth, categoryHeight);
+
+        var titleTop = _showCategory ? _metrics.PaddingTop + 24.0 + _fontSizeDelta : _metrics.PaddingTop;
+        var footerY = size.Height - _metrics.PaddingBottom - 16.0 - _fontSizeDelta;
+        var bottomLimit = _showFooter ? footerY - 4.0 : size.Height - _metrics.PaddingBottom;
+        var rawTitleHeight = Math.Max(10.0, bottomLimit - titleTop);
+
+        var lineHeight = 18.0 + _fontSizeDelta;
+        var maxLines = Math.Max(1, (int)(rawTitleHeight / lineHeight));
+        var snappedTitleHeight = maxLines * lineHeight;
+        var centeredTitleTop = titleTop + (rawTitleHeight - snappedTitleHeight) / 2.0;
+        var titleRect = new Rect(_metrics.PaddingLeft, centeredTitleTop, contentWidth, snappedTitleHeight);
+
+        return (categoryRect, titleRect);
     }
 }

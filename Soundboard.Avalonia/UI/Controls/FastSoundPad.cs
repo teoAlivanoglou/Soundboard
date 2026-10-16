@@ -165,6 +165,7 @@ public partial class FastSoundPad : Control
         _titleDirty = true;
         _titleWrapped = true; // force first layout
         _titleLayout = null;
+        _idleTitleLayout = null;
 
         if (_boundSound is not null)
             _boundSound.PropertyChanged -= OnSoundPropertyChanged;
@@ -247,10 +248,31 @@ public partial class FastSoundPad : Control
 
     private void OnMoved(object? s, PointerEventArgs e)
     {
-        var p = e.GetCurrentPoint(null).Properties;
-        if (!_pointerDown || p.IsLeftButtonPressed || p.IsRightButtonPressed) return;
+        var p = e.GetCurrentPoint(null).Properties;                                                                             
+        if (_pointerDown && !p.IsLeftButtonPressed && !p.IsRightButtonPressed)                                                  
+        {                                                                                                                       
+            _pointerDown = false;                                                                                               
+        }                                                                                                                       
+                                                                                                                                
+        var pos = e.GetPosition(this);                                                                                          
+        var (categoryRect, titleRect) = GetTextHitZones();                                                                      
+                                                                                                                                
+        var isCategoryHovered = categoryRect.Contains(pos);
+        var isTitleHovered = titleRect.Contains(pos);
 
-        _pointerDown = false;
+        _categoryMarquee.SetHover(isCategoryHovered);
+        _titleMarquee.SetHover(isTitleHovered);
+
+        RequestFrameIfNeeded();
+    }
+
+    protected override void OnPointerExited(PointerEventArgs e)
+    {
+        base.OnPointerExited(e);
+        _categoryMarquee.SetHover(false);
+        _titleMarquee.SetHover(false);
+        
+        InvalidateVisual();
     }
 
     #endregion
@@ -311,6 +333,7 @@ public partial class FastSoundPad : Control
     {
         _titleDirty = true;
         _titleLayout = null;
+        _idleTitleLayout = null;
         BuildImmutableText(_boundSound);
         InvalidateVisual();
     }
@@ -321,6 +344,8 @@ public partial class FastSoundPad : Control
         CategoryCache.Clear();
 
         _titleDirty = true;
+        _titleLayout = null;
+        _idleTitleLayout = null;
         BuildImmutableText(_boundSound);
         InvalidateVisual();
     }

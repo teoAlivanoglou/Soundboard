@@ -144,7 +144,7 @@ dotnet publish Soundboard.Avalonia/Soundboard.Avalonia.csproj -c Release -p:Publ
 - [x] **Dynamic Theme System**: Dark/light palettes with perceptual color contrast adaptation.
 - [x] **Master Volume Control**: Thread-safe volume attenuation slider and state persistence.
 - [ ] **Soundpad Active Playback Counters**: Visual indicators displaying concurrent active playback instances per pad.
-- [ ] **Marquee SoundPad Titles**: Smooth hardware-accelerated text scroll for overflowing sound names.
+- [x] **Marquee SoundPad Titles**: Smooth hardware-accelerated text scroll for overflowing sound names.
 - [ ] **Sidebar Search Polish**: Full-text instant search filtering across categories and pads.
 - [ ] **Startup Loading Experience**: Eliminate empty window state on initial directory scan via a lightweight splash/skeleton screen or progressive chunked sound discovery streaming.
 

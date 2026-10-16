@@ -1,5 +1,6 @@
 using System;
 using Avalonia.Controls;
+using Avalonia.Layout;
 
 namespace Soundboard.Avalonia.UI.Controls;
 
@@ -21,7 +22,14 @@ public partial class FastSoundPad
     private TimeSpan _lastFrameTime = TimeSpan.Zero;
     private bool _isFrameScheduled;
 
-    private bool ShouldAnimate => (_timeline?.IsRunning == true) || (_boundSound?.IsPlaying == true);
+    private MarqueeScroller _categoryMarquee = new(Orientation.Horizontal);
+    private MarqueeScroller _titleMarquee = new(Orientation.Vertical);
+
+    private bool ShouldAnimate =>
+        (_timeline?.IsRunning == true) ||
+        (_boundSound?.IsPlaying == true) ||
+        _categoryMarquee.IsActive ||
+        _titleMarquee.IsActive;
 
     private void InitializeAnimations()
     {
@@ -61,6 +69,8 @@ public partial class FastSoundPad
         _borderPen.Brush = _palette.Border;
         _isFrameScheduled = false;
         _lastFrameTime = TimeSpan.Zero;
+        _categoryMarquee.Reset();
+        _titleMarquee.Reset();
     }
 
     private void StartAnimation(bool isPlaying)
@@ -99,6 +109,8 @@ public partial class FastSoundPad
         _lastFrameTime = currentTime;
 
         _timeline?.Update(dt);
+        _categoryMarquee.Update(dt);
+        _titleMarquee.Update(dt);
         InvalidateVisual();
 
         if (ShouldAnimate)
