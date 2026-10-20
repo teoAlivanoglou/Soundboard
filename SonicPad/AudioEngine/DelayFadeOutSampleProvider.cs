@@ -18,6 +18,7 @@ public class DelayFadeOutSampleProvider : ISampleProvider, IDisposable
     private int _fadeInSamples;
     private int _fadeOutStart;
     private int _fadeOutSamples;
+    private float _fadeOutStartGain = 1f;
     private int _position;
 
     /// <summary>
@@ -82,6 +83,7 @@ public class DelayFadeOutSampleProvider : ISampleProvider, IDisposable
             _fadeOutSamples =
                 (int)((fadeDurationInMilliseconds * _source.WaveFormat.SampleRate * _source.WaveFormat.Channels) /
                       1000);
+            _fadeOutStartGain = 1f;
         }
     }
     /// <summary>
@@ -97,6 +99,7 @@ public class DelayFadeOutSampleProvider : ISampleProvider, IDisposable
                                   _source.WaveFormat.Channels);
             _fadeOutSamples = (int)(fadeOutLength.TotalSeconds * _source.WaveFormat.SampleRate *
                                     _source.WaveFormat.Channels);
+            _fadeOutStartGain = 1f;
         }
     }
 
@@ -108,6 +111,12 @@ public class DelayFadeOutSampleProvider : ISampleProvider, IDisposable
     {
         lock (_lockObject)
         {
+            if (_fadeOutSamples > 0 && _position > _fadeOutStart)
+            {
+                var progress = (_position - _fadeOutStart) / (float)_fadeOutSamples;
+                _fadeOutStartGain *= Math.Clamp(1f - progress, 0f, 1f);
+            }
+
             _fadeOutStart = _position;
             _fadeOutSamples = (int)(fadeOutLength.TotalSeconds * _source.WaveFormat.SampleRate *
                                     _source.WaveFormat.Channels);
@@ -162,7 +171,8 @@ public class DelayFadeOutSampleProvider : ISampleProvider, IDisposable
                 {
                     if (samplePos < (_fadeOutStart + _fadeOutSamples))
                     {
-                        buffer[i] *= (1f - ((samplePos - _fadeOutStart) / (float)_fadeOutSamples));
+                        buffer[i] *= _fadeOutStartGain *
+                                     (1f - ((samplePos - _fadeOutStart) / (float)_fadeOutSamples));
                     }
                     else
                     {

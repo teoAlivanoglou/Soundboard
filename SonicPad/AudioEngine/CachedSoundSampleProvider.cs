@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using NAudio.Wave;
 using SonicPad.Discovery;
 
@@ -8,20 +7,22 @@ namespace SonicPad.AudioEngine;
 internal class CachedSoundSampleProvider(SoundModel cachedSound) : ISampleProvider
 {
     private long _position;
+    private readonly float[] _audioData = cachedSound.AudioData ??
+                                          throw new ArgumentException("Sound has no cached audio data.", nameof(cachedSound));
+    private readonly WaveFormat _waveFormat = cachedSound.WaveFormat ??
+                                              throw new ArgumentException("Sound has no wave format.", nameof(cachedSound));
     public SoundModel CachedSound { get; init; } = cachedSound;
 
 
     public int Read(Span<float> buffer)
     {
-        Debug.Assert(CachedSound.AudioData != null);
-
-        var availableSamples = CachedSound.AudioData.Length - _position;
+        var availableSamples = _audioData.Length - _position;
         var samplesToCopy = Math.Min(availableSamples, buffer.Length);
 
-        CachedSound.AudioData.AsSpan((int)_position, (int)samplesToCopy).CopyTo(buffer);
+        _audioData.AsSpan((int)_position, (int)samplesToCopy).CopyTo(buffer);
         _position += samplesToCopy;
         return (int)samplesToCopy;
     }
 
-    public WaveFormat WaveFormat => CachedSound.WaveFormat!;
+    public WaveFormat WaveFormat => _waveFormat;
 }
