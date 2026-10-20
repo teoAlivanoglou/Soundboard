@@ -246,11 +246,8 @@ public partial class FastSoundPad
         var (categoryRect, titleRect) = GetTextHitZones();
 
         // 1. Category Name (Top-Left, Granular Dirty)
-        var elidedLayout = GetCategoryLayout(sound, contentWidth);
-        var key = new CategoryCacheKey(sound.Category.Name, sound.Category.BackgroundBrush.Color);
-        var entry = CategoryCache[key];
-
-        _categoryMarquee.Draw(context, entry.NaturalLayout, elidedLayout, categoryRect);
+        var (naturalLayout, idleLayout) = GetCategoryLayouts(sound, contentWidth);
+        _categoryMarquee.Draw(context, naturalLayout, idleLayout, categoryRect);
 
         // 2. Footer: Duration & Index (Immutable Text - No Dirty Flags)
         DrawImmutableText(context, size);
@@ -259,7 +256,7 @@ public partial class FastSoundPad
         var lineHeight = 18.0 + _fontSizeDelta;
         var maxVisibleLines = Math.Max(1, (int)Math.Round(titleRect.Height / lineHeight));
 
-        if (_titleDirty || _titleLayout is null || _idleTitleLayout is null)
+        if (_titleDirty || _titleLayout is null)
         {
             _titleLayout = new TextLayout(
                 sound.Name,
@@ -273,18 +270,20 @@ public partial class FastSoundPad
                 maxHeight: double.PositiveInfinity,
                 lineHeight: lineHeight);
 
-            _idleTitleLayout = new TextLayout(
-                sound.Name,
-                NormalTypeface,
-                fontSize: 14 + _fontSizeDelta,
-                foreground: _palette.TextPrimary,
-                textAlignment: TextAlignment.Left,
-                textWrapping: TextWrapping.Wrap,
-                textTrimming: TextTrimming.CharacterEllipsis,
-                maxWidth: contentWidth,
-                maxHeight: titleRect.Height,
-                maxLines: maxVisibleLines,
-                lineHeight: lineHeight);
+            _idleTitleLayout = _titleLayout.Height > titleRect.Height
+                ? new TextLayout(
+                    sound.Name,
+                    NormalTypeface,
+                    fontSize: 14 + _fontSizeDelta,
+                    foreground: _palette.TextPrimary,
+                    textAlignment: TextAlignment.Left,
+                    textWrapping: TextWrapping.Wrap,
+                    textTrimming: TextTrimming.CharacterEllipsis,
+                    maxWidth: contentWidth,
+                    maxHeight: titleRect.Height,
+                    maxLines: maxVisibleLines,
+                    lineHeight: lineHeight)
+                : null;
 
             _titleWrapped = _titleLayout.TextLines.Count > 1;
             _titleUnwrappedWidth = _titleLayout.Width;
@@ -408,7 +407,7 @@ public partial class FastSoundPad
     }
 
 
-    private TextLayout GetCategoryLayout(SoundModel sound, double contentWidth)
+    private (TextLayout NaturalLayout, TextLayout IdleLayout) GetCategoryLayouts(SoundModel sound, double contentWidth)
     {
         var key = new CategoryCacheKey(sound.Category.Name, sound.Category.BackgroundBrush.Color);
 
@@ -435,7 +434,7 @@ public partial class FastSoundPad
         // Case 1, fits inside the content area
         if (contentWidth >= entry.NaturalWidth)
         {
-            return entry.NaturalLayout;
+            return (entry.NaturalLayout, entry.NaturalLayout);
         }
 
         // Case 2, overflows
@@ -455,7 +454,7 @@ public partial class FastSoundPad
             entry.ElidedWidth = intWidth;
         }
 
-        return entry.ElidedLayout;
+        return (entry.NaturalLayout, entry.ElidedLayout!);
     }
 
     private (Rect categoryRect, Rect titleRect) GetTextHitZones()
