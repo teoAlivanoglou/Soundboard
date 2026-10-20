@@ -247,6 +247,7 @@ public partial class FastSoundPad
 
         // 1. Category Name (Top-Left, Granular Dirty)
         var (naturalLayout, idleLayout) = GetCategoryLayouts(sound, contentWidth);
+        var categoryMarqueeStarted = _categoryMarquee.UpdateOverflow(naturalLayout.Width, categoryRect.Width);
         _categoryMarquee.Draw(context, naturalLayout, idleLayout, categoryRect);
 
         // 2. Footer: Duration & Index (Immutable Text - No Dirty Flags)
@@ -290,7 +291,12 @@ public partial class FastSoundPad
             _titleDirty = false;
         }
 
+        var titleMarqueeStarted = _titleMarquee.UpdateOverflow(_titleLayout.Height, titleRect.Height);
         _titleMarquee.Draw(context, _titleLayout, _idleTitleLayout, titleRect);
+
+        // Hover may have arrived before this render established overflow.
+        if (categoryMarqueeStarted || titleMarqueeStarted)
+            RequestFrameIfNeeded();
     }
 
     /// <summary>

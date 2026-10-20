@@ -57,6 +57,25 @@ public struct MarqueeScroller
         }
     }
 
+    public bool UpdateOverflow(double contentSize, double zoneSize)
+    {
+        Overflow = Math.Max(0.0, contentSize - zoneSize);
+
+        if (Overflow <= 1.0)
+        {
+            Phase = MarqueePhase.Idle;
+            Offset = 0.0;
+            _phaseTimer = 0.0;
+            return false;
+        }
+
+        if (!IsHovered || Phase != MarqueePhase.Idle) return false;
+
+        Phase = MarqueePhase.StartDelay;
+        _phaseTimer = 0.0;
+        return true;
+    }
+
     public void Update(double dt)
     {
         if (Overflow <= 1.0)
@@ -124,8 +143,6 @@ public struct MarqueeScroller
     {
         if (Orientation == Orientation.Horizontal)
         {
-            Overflow = Math.Max(0.0, activeLayout.Width - zone.Width);
-
             if (IsActive)
             {
                 using (context.PushClip(zone))
@@ -144,8 +161,6 @@ public struct MarqueeScroller
         }
         else // Orientation.Vertical
         {
-            Overflow = Math.Max(0.0, activeLayout.Height - zone.Height);
-
             if (IsActive)
             {
                 using (context.PushClip(zone))
