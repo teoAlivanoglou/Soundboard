@@ -151,7 +151,7 @@ public partial class FastSoundPad
 
     private void DrawShadows(DrawingContext context, RoundedRect roundedRect, Color categoryColor)
     {
-        if (!_enableShadows || _glowOpacity <= 0.0) return;
+        if (_glowOpacity <= 0.0) return;
 
         var shadow = GetGlowShadow(categoryColor, _palette.IsLightTheme, _glowBlur, _glowOpacity);
         if (shadow.Count > 0)
@@ -182,7 +182,7 @@ public partial class FastSoundPad
 
     private void DrawProgress(DrawingContext context, Size size, SoundModel sound)
     {
-        if (!_enableProgress || !sound.IsPlaying) return;
+        if (!sound.IsPlaying) return;
 
         // Will use it for clipping
         var roundedRect = new RoundedRect(new Rect(size), _metrics.CornerRadius);
@@ -210,7 +210,7 @@ public partial class FastSoundPad
 
     private void DrawProgressPlayhead(DrawingContext context, Size size, SoundModel sound)
     {
-        if (!_enableProgress || !sound.IsPlaying) return;
+        if (!sound.IsPlaying) return;
 
         var categoryColor = sound.BackgroundBrush.Color;
         var isLight = _palette.IsLightTheme;
@@ -241,69 +241,57 @@ public partial class FastSoundPad
 
     private void DrawText(DrawingContext context, Size size, SoundModel sound)
     {
-        if (!_enableText) return;
-
         var contentWidth = Math.Max(0, size.Width - _metrics.PaddingLeft - _metrics.PaddingRight);
-        var footerY = size.Height - _metrics.PaddingBottom - 16 - _fontSizeDelta;
 
         var (categoryRect, titleRect) = GetTextHitZones();
 
         // 1. Category Name (Top-Left, Granular Dirty)
-        if (_showCategory)
-        {
-            var elidedLayout = GetCategoryLayout(sound, contentWidth);
-            var key = new CategoryCacheKey(sound.Category.Name, sound.Category.BackgroundBrush.Color);
-            var entry = CategoryCache[key];
+        var elidedLayout = GetCategoryLayout(sound, contentWidth);
+        var key = new CategoryCacheKey(sound.Category.Name, sound.Category.BackgroundBrush.Color);
+        var entry = CategoryCache[key];
 
-            _categoryMarquee.Draw(context, entry.NaturalLayout, elidedLayout, categoryRect);
-        }
+        _categoryMarquee.Draw(context, entry.NaturalLayout, elidedLayout, categoryRect);
 
         // 2. Footer: Duration & Index (Immutable Text - No Dirty Flags)
-        if (_showFooter)
-        {
-            DrawImmutableText(context, size);
-        }
+        DrawImmutableText(context, size);
 
         // 3. Sound Title (Middle, Granular Dirty)
-        if (_showTitle)
+        var lineHeight = 18.0 + _fontSizeDelta;
+        var maxVisibleLines = Math.Max(1, (int)Math.Round(titleRect.Height / lineHeight));
+
+        if (_titleDirty || _titleLayout is null || _idleTitleLayout is null)
         {
-            var lineHeight = 18.0 + _fontSizeDelta;
-            var maxVisibleLines = Math.Max(1, (int)Math.Round(titleRect.Height / lineHeight));
+            _titleLayout = new TextLayout(
+                sound.Name,
+                NormalTypeface,
+                fontSize: 14 + _fontSizeDelta,
+                foreground: _palette.TextPrimary,
+                textAlignment: TextAlignment.Left,
+                textWrapping: TextWrapping.Wrap,
+                textTrimming: null,
+                maxWidth: contentWidth,
+                maxHeight: double.PositiveInfinity,
+                lineHeight: lineHeight);
 
-            if (_titleDirty || _titleLayout is null || _idleTitleLayout is null)
-            {
-                _titleLayout = new TextLayout(
-                    sound.Name,
-                    NormalTypeface,
-                    fontSize: 14 + _fontSizeDelta,
-                    foreground: _palette.TextPrimary,
-                    textAlignment: TextAlignment.Left,
-                    textWrapping: TextWrapping.Wrap,
-                    textTrimming: null,
-                    maxWidth: contentWidth,
-                    maxHeight: double.PositiveInfinity,
-                    lineHeight: lineHeight);
+            _idleTitleLayout = new TextLayout(
+                sound.Name,
+                NormalTypeface,
+                fontSize: 14 + _fontSizeDelta,
+                foreground: _palette.TextPrimary,
+                textAlignment: TextAlignment.Left,
+                textWrapping: TextWrapping.Wrap,
+                textTrimming: TextTrimming.CharacterEllipsis,
+                maxWidth: contentWidth,
+                maxHeight: titleRect.Height,
+                maxLines: maxVisibleLines,
+                lineHeight: lineHeight);
 
-                _idleTitleLayout = new TextLayout(
-                    sound.Name,
-                    NormalTypeface,
-                    fontSize: 14 + _fontSizeDelta,
-                    foreground: _palette.TextPrimary,
-                    textAlignment: TextAlignment.Left,
-                    textWrapping: TextWrapping.Wrap,
-                    textTrimming: TextTrimming.CharacterEllipsis,
-                    maxWidth: contentWidth,
-                    maxHeight: titleRect.Height,
-                    maxLines: maxVisibleLines,
-                    lineHeight: lineHeight);
-
-                _titleWrapped = _titleLayout.TextLines.Count > 1;
-                _titleUnwrappedWidth = _titleLayout.Width;
-                _titleDirty = false;
-            }
-
-            _titleMarquee.Draw(context, _titleLayout, _idleTitleLayout, titleRect);
+            _titleWrapped = _titleLayout.TextLines.Count > 1;
+            _titleUnwrappedWidth = _titleLayout.Width;
+            _titleDirty = false;
         }
+
+        _titleMarquee.Draw(context, _titleLayout, _idleTitleLayout, titleRect);
     }
 
     /// <summary>
@@ -367,57 +355,43 @@ public partial class FastSoundPad
 
     private void DrawBorder(DrawingContext context, RoundedRect roundedRect, Size size, Color categoryColor)
     {
-        switch (_borderEffect)
+        if (_borderFade <= 0.0)
         {
-            case BorderEffect.None:
-                return;
-
-            case BorderEffect.Solid:
-                _borderPen.Brush = _palette.Border;
-                context.DrawRectangle(null, _borderPen, roundedRect);
-                break;
-
-            case BorderEffect.AnimatedGradient:
-            default:
-                if (_borderFade <= 0.0)
-                {
-                    _borderPen.Brush = _palette.Border;
-                }
-                else
-                {
-                    var borderCol = _palette.Border.Color;
-                    var fade = _borderFade;
-                    var a = (byte)(borderCol.A + (categoryColor.A - borderCol.A) * fade);
-                    var r = (byte)(borderCol.R + (categoryColor.R - borderCol.R) * fade);
-                    var g = (byte)(borderCol.G + (categoryColor.G - borderCol.G) * fade);
-                    var b = (byte)(borderCol.B + (categoryColor.B - borderCol.B) * fade);
-
-                    _animatedBorderBrush.GradientStops[0].Color = Color.FromArgb(a, r, g, b);
-                    _animatedBorderBrush.GradientStops[1].Color = borderCol;
-
-                    var borderThickness = _borderPen.Thickness;
-                    var shadowEdgePx = _metrics.AccentThickness + borderThickness;
-
-                    const double initGradientWidthPx = 11.0;
-
-                    var initStartX = shadowEdgePx / size.Width;
-                    var initEndX = (shadowEdgePx + initGradientWidthPx) / size.Width;
-
-                    var sweep = _borderSweep;
-                    var startX = initStartX + (0.0 - initStartX) * sweep;
-                    var startY = 0.0 + (0.8 - 0.0) * sweep;
-
-                    var endX = initEndX + (0.7 - initEndX) * sweep;
-                    var endY = 0.0 + (0.2 - 0.0) * sweep;
-
-                    _animatedBorderBrush.StartPoint = new RelativePoint(startX, startY, RelativeUnit.Relative);
-                    _animatedBorderBrush.EndPoint = new RelativePoint(endX, endY, RelativeUnit.Relative);
-                    _borderPen.Brush = _animatedBorderBrush;
-                }
-
-                context.DrawRectangle(null, _borderPen, roundedRect);
-                break;
+            _borderPen.Brush = _palette.Border;
         }
+        else
+        {
+            var borderCol = _palette.Border.Color;
+            var fade = _borderFade;
+            var a = (byte)(borderCol.A + (categoryColor.A - borderCol.A) * fade);
+            var r = (byte)(borderCol.R + (categoryColor.R - borderCol.R) * fade);
+            var g = (byte)(borderCol.G + (categoryColor.G - borderCol.G) * fade);
+            var b = (byte)(borderCol.B + (categoryColor.B - borderCol.B) * fade);
+
+            _animatedBorderBrush.GradientStops[0].Color = Color.FromArgb(a, r, g, b);
+            _animatedBorderBrush.GradientStops[1].Color = borderCol;
+
+            var borderThickness = _borderPen.Thickness;
+            var shadowEdgePx = _metrics.AccentThickness + borderThickness;
+
+            const double initGradientWidthPx = 11.0;
+
+            var initStartX = shadowEdgePx / size.Width;
+            var initEndX = (shadowEdgePx + initGradientWidthPx) / size.Width;
+
+            var sweep = _borderSweep;
+            var startX = initStartX + (0.0 - initStartX) * sweep;
+            var startY = 0.0 + (0.8 - 0.0) * sweep;
+
+            var endX = initEndX + (0.7 - initEndX) * sweep;
+            var endY = 0.0 + (0.2 - 0.0) * sweep;
+
+            _animatedBorderBrush.StartPoint = new RelativePoint(startX, startY, RelativeUnit.Relative);
+            _animatedBorderBrush.EndPoint = new RelativePoint(endX, endY, RelativeUnit.Relative);
+            _borderPen.Brush = _animatedBorderBrush;
+        }
+
+        context.DrawRectangle(null, _borderPen, roundedRect);
     }
 
     #endregion
@@ -491,9 +465,9 @@ public partial class FastSoundPad
         var categoryHeight = 20.0 + _fontSizeDelta;
         var categoryRect = new Rect(_metrics.PaddingLeft, _metrics.PaddingTop, contentWidth, categoryHeight);
 
-        var titleTop = _showCategory ? _metrics.PaddingTop + 24.0 + _fontSizeDelta : _metrics.PaddingTop;
+        var titleTop = _metrics.PaddingTop + 24.0 + _fontSizeDelta;
         var footerY = size.Height - _metrics.PaddingBottom - 16.0 - _fontSizeDelta;
-        var bottomLimit = _showFooter ? footerY - 4.0 : size.Height - _metrics.PaddingBottom;
+        var bottomLimit = footerY - 4.0;
         var rawTitleHeight = Math.Max(10.0, bottomLimit - titleTop);
 
         var lineHeight = 18.0 + _fontSizeDelta;

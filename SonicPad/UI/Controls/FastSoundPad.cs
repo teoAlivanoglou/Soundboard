@@ -14,13 +14,6 @@ using MouseButton = Avalonia.Input.MouseButton;
 
 namespace SonicPad.UI.Controls;
 
-public enum BorderEffect
-{
-    AnimatedGradient,
-    Solid,
-    None
-}
-
 public record struct PadMetrics()
 {
     public CornerRadius CornerRadius { get; set; } = new(16);
@@ -86,15 +79,6 @@ public readonly record struct PadPalette(
 
 public partial class FastSoundPad : Control
 {
-    // Feature Flags & Effects
-    private bool _enableShadows = true;
-    private BorderEffect _borderEffect = BorderEffect.AnimatedGradient;
-    private bool _enableProgress = true;
-    private bool _enableText = true;
-    private bool _showCategory = true;
-    private bool _showTitle = true;
-    private bool _showFooter = true;
-
     // Cache dirtiness
     private bool _titleDirty = true;
     private bool _titleWrapped;
