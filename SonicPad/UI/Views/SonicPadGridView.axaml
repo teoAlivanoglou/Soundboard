@@ -35,51 +35,6 @@
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
 
-            <!-- <ItemsControl ItemsSource="{Binding SoundRows}" -->
-            <!--               SizeChanged="OnItemsControlSizeChanged" -->
-            <!--               ClipToBounds="False"> -->
-            <!-- -->
-            <!--     <ItemsControl.Styles> -->
-            <!--         <Style Selector="ItemsControl > ContentPresenter"> -->
-            <!--             <Setter Property="ClipToBounds" Value="False" /> -->
-            <!--         </Style> -->
-            <!--     </ItemsControl.Styles> -->
-            <!-- -->
-            <!--     <ItemsControl.ItemsPanel> -->
-            <!--         <ItemsPanelTemplate> -->
-            <!--             <VirtualizingStackPanel /> -->
-            <!--         </ItemsPanelTemplate> -->
-            <!--     </ItemsControl.ItemsPanel> -->
-            <!-- -->
-            <!--     <ItemsControl.ItemTemplate> -->
-            <!--         <DataTemplate DataType="vm:SoundRow"> -->
-            <!--             <ItemsControl ItemsSource="{Binding Items}" -->
-            <!--                           ClipToBounds="False" -->
-            <!--                           Height="{Binding $parent[views:SonicPadGridView].((vm:SonicPadViewModel)DataContext).ItemSize}" -->
-            <!--                           Margin="{Binding $parent[views:SonicPadGridView].((vm:SonicPadViewModel)DataContext).RowMargin}"> -->
-            <!--                 <ItemsControl.ItemsPanel> -->
-            <!--                     <ItemsPanelTemplate> -->
-            <!--                         <StackPanel Orientation="Horizontal" -->
-            <!--                                     ClipToBounds="False" -->
-            <!--                                     Spacing="{Binding $parent[views:SonicPadGridView].((vm:SonicPadViewModel)DataContext).Settings.ApplicationUiSettings.ButtonGap}" /> -->
-            <!--                     </ItemsPanelTemplate> -->
-            <!--                 </ItemsControl.ItemsPanel> -->
-            <!--                 <ItemsControl.ItemTemplate> -->
-            <!--                     <DataTemplate DataType="discovery:SoundModel"> -->
-            <!--                         <controls:FastSoundPad -->
-            <!--                             IsVisible="{Binding IsVisible}" -->
-            <!--                             Width="{Binding $parent[views:SonicPadGridView].((vm:SonicPadViewModel)DataContext).ItemSize}" -->
-            <!--                             Height="{Binding $parent[views:SonicPadGridView].((vm:SonicPadViewModel)DataContext).ItemSize}" /> -->
-            <!--                         ~1~ <controls:SoundPad @1@ -->
-            <!--                         ~1~     IsVisible="{Binding IsVisible}" @1@ -->
-            <!--                         ~1~     Width="{Binding $parent[views:SonicPadGridView].((vm:SonicPadViewModel)DataContext).ItemSize}" @1@ -->
-            <!--                         ~1~     Height="{Binding $parent[views:SonicPadGridView].((vm:SonicPadViewModel)DataContext).ItemSize}" /> @1@ -->
-            <!--                     </DataTemplate> -->
-            <!--                 </ItemsControl.ItemTemplate> -->
-            <!--             </ItemsControl> -->
-            <!--         </DataTemplate> -->
-            <!--     </ItemsControl.ItemTemplate> -->
-            <!-- </ItemsControl> -->
         </ScrollViewer>
 
         <!-- Top edge fade shadow -->
