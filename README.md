@@ -13,7 +13,7 @@
 ## Preview
 
 <div align="center">
-  <img src="docs/screenshot.png" alt="SonicPad Interface" width="850" />
+  <img src="docs/screenshots/screenshots-split.png" alt="SonicPad Interface" width="850" />
   <p><em>Modern, dark/light adaptive soundpad grid featuring hierarchical category navigation, real-time playheads, and master audio controls.</em></p>
 </div>
 
