@@ -11,6 +11,19 @@
         <Style Selector="Window">
             <Setter Property="FontFamily" Value="{x:Static fonts:UiTypography.FontFamily}" />
         </Style>
+        <Style Selector="Button.GhostButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="Button.GhostButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource HeaderButtonPointerOverBrush}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.GhostButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource HeaderButtonPressedBrush}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
         <Style Selector="Button.ActionButton">
             <Setter Property="Background" Value="{DynamicResource ActionButtonBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource ActionButtonForeground}" />

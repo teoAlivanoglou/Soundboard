@@ -245,6 +245,9 @@ public partial class SonicPadViewModel : ObservableObject
 
     public Task ReadSoundsAsync(string filesystemUrl) => StreamSoundsAsync(filesystemUrl);
 
+    private bool CanRefreshSounds() => !string.IsNullOrWhiteSpace(_lastChosenDirectory);
+
+    [RelayCommand(CanExecute = nameof(CanRefreshSounds))]
     public Task RefreshSoundsAsync() => ReadSoundsAsync(_lastChosenDirectory);
 
     public void UpdateSoundVisibility()

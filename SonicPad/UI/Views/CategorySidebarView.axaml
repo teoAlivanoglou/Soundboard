@@ -111,18 +111,7 @@
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Background" Value="{DynamicResource ActionButtonBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource PadBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-        </Style>
-        <Style Selector="Button.SidebarHeaderButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource HeaderButtonPointerOverBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentFocusBrush}" />
-        </Style>
-        <Style Selector="Button.SidebarHeaderButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource HeaderButtonPressedBrush}" />
         </Style>
 
         <!-- Mini Header Icon Buttons (Expand All, Collapse All) -->
@@ -137,18 +126,7 @@
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Background" Value="{DynamicResource ActionButtonBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource PadBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-        </Style>
-        <Style Selector="Button.SidebarHeaderIconButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource HeaderButtonPointerOverBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentFocusBrush}" />
-        </Style>
-        <Style Selector="Button.SidebarHeaderIconButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource HeaderButtonPressedBrush}" />
         </Style>
 
         <!-- Compact Search Box -->
@@ -321,20 +299,20 @@
                            LetterSpacing="0.6" />
 
                 <Button Grid.Column="1"
-                        Classes="SidebarHeaderButton"
+                        Classes="SidebarHeaderButton GhostButton"
                         Click="OnSelectAllClick"
                         Content="All" />
                 <Button Grid.Column="2"
-                        Classes="SidebarHeaderButton"
+                        Classes="SidebarHeaderButton GhostButton"
                         Click="OnSelectNoneClick"
                         Content="None" />
                 <Button Grid.Column="3"
-                        Classes="SidebarHeaderIconButton"
+                        Classes="SidebarHeaderIconButton GhostButton"
                         Click="OnExpandAllClick"
                         ToolTip.Tip="Expand All"
                         Content="&#xE696;" />
                 <Button Grid.Column="4"
-                        Classes="SidebarHeaderIconButton"
+                        Classes="SidebarHeaderIconButton GhostButton"
                         Click="OnCollapseAllClick"
                         ToolTip.Tip="Collapse All"
                         Content="&#xE694;" />

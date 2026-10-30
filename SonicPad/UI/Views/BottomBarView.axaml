@@ -10,6 +10,14 @@
              x:DataType="vm:SonicPadViewModel">
     <UserControl.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Dark">
+                    <system:String x:Key="CurrentThemeIcon">&#xe11e;</system:String>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <system:String x:Key="CurrentThemeIcon">&#xe178;</system:String>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
             <system:Double x:Key="ButtonHeight">32</system:Double>
             <converters:VolumeIconConverter x:Key="VolumeIconConverter"/>
         </ResourceDictionary>
@@ -27,9 +35,6 @@
             <Setter Property="FontSize" Value="15" />
             <Setter Property="Padding" Value="0" />
         </Style>
-        <Style Selector="Button.GhostButton">
-            <Setter Property="Background" Value="Transparent" />
-        </Style>
         <Style Selector="Button.StopAllButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource StopAllButtonPointerOverBrush}" />
             <Setter Property="Foreground" Value="White" />
@@ -41,7 +46,7 @@
     </UserControl.Styles>
 
 
-    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" RowDefinitions="Auto,*" ColumnSpacing="4" Margin="8,0">
+    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" RowDefinitions="Auto,*" ColumnSpacing="4" Margin="8,0">
 
         <!-- Stop All Button -->
         <Button Grid.Column="0" Content="Stop All"
@@ -77,19 +82,29 @@
 
         <!-- Browse Folder Button -->
         <Button Grid.Row="0" Grid.Column="2"
-                Classes="ConsistentButton IconButton ActionButton"
+                Classes="ConsistentButton IconButton GhostButton"
                 Click="OnBrowseFolderClick"
                 Content="&#xe247;" />
 
-        <!-- Refresh Button (temporary theme toggle) -->
+        <!-- Refresh Sounds -->
         <Button Grid.Row="0" Grid.Column="3"
-                Classes="ConsistentButton IconButton ActionButton"
-                Click="OnRefreshClick"
+                Classes="ConsistentButton IconButton GhostButton"
+                Command="{Binding RefreshSoundsCommand}"
+                ToolTip.Tip="Reload sounds with current settings"
+                AutomationProperties.Name="Refresh sounds"
                 Content="&#xe144;" />
 
-        <!-- Settings Button -->
+        <!-- Light / Dark Theme -->
         <Button Grid.Row="0" Grid.Column="4"
-                Classes="ConsistentButton IconButton ActionButton"
+                Classes="ConsistentButton IconButton GhostButton"
+                Click="OnToggleThemeClick"
+                ToolTip.Tip="Toggle light/dark mode"
+                AutomationProperties.Name="Toggle light/dark mode"
+                Content="{DynamicResource CurrentThemeIcon}" />
+
+        <!-- Settings Button -->
+        <Button Grid.Row="0" Grid.Column="5"
+                Classes="ConsistentButton IconButton GhostButton"
                 Command="{Binding ToggleSettingsCommand}"
                 Content="&#xe154;" />
     </Grid>

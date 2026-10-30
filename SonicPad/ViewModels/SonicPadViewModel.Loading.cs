@@ -41,6 +41,7 @@ public partial class SonicPadViewModel
         _loadCancellation = cancellation;
         var token = cancellation.Token;
         _lastChosenDirectory = folderPath;
+        RefreshSoundsCommand.NotifyCanExecuteChanged();
         StopAllSounds();
         Categories.Clear();
         SoundItems.Clear();
