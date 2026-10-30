@@ -5,7 +5,7 @@ using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SonicPad.Utils;
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace SonicPad.Discovery;
 
@@ -24,7 +24,7 @@ public partial class CategoryModel : ObservableObject
     [ObservableProperty] public partial ImmutableSolidColorBrush BackgroundBrushLight { get; set; }
 
     public CategoryModel? Parent { get; set; }
-    public List<CategoryModel> Children { get; set; } = [];
+    public ObservableCollection<CategoryModel> Children { get; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPrefix))]

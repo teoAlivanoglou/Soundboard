@@ -1,0 +1,32 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:SonicPad.ViewModels"
+        x:Class="SonicPad.SplashWindow"
+        x:DataType="vm:SonicPadViewModel"
+        Title="SonicPad"
+        Width="420" Height="220"
+        WindowStartupLocation="CenterScreen"
+        WindowDecorations="None"
+        CanResize="False"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent">
+    <Border Margin="10" Padding="28,24"
+            CornerRadius="12"
+            Background="{DynamicResource WindowBackgroundBrush}"
+            BorderBrush="{DynamicResource PadBorderBrush}"
+            BorderThickness="1"
+            BoxShadow="0 4 12 0 #60000000">
+        <Grid RowDefinitions="Auto,Auto,*,Auto">
+            <TextBlock Text="SonicPad" FontSize="24" FontWeight="SemiBold"
+                       LetterSpacing="0.4"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+            <TextBlock Grid.Row="1" Margin="0,8,0,0"
+                       Text="Low-latency soundboard for live audio."
+                       FontSize="13"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+            <TextBlock Grid.Row="3" FontSize="11" FontFeatures="tnum"
+                       Text="{Binding LoadingStatusText, FallbackValue='Opening folder picker...'}"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+        </Grid>
+    </Border>
+</Window>

@@ -192,6 +192,11 @@ public partial class FastSoundPad : Control
             _titleDirty = true;
         }
 
+        if (e.PropertyName is nameof(SoundModel.IndexDisplayWidth) or nameof(SoundModel.Index) or nameof(SoundModel.Duration))
+        {
+            BuildImmutableText(_boundSound);
+        }
+
         InvalidateVisual();
     }
 
@@ -291,7 +296,7 @@ public partial class FastSoundPad : Control
         }
 
         UpdateThemeBrushes();
-        // BuildImmutableText(_boundSound);
+        BuildImmutableText(_boundSound);
         RequestFrameIfNeeded();
 
         GlobalFontFamilyChanged -= OnGlobalFontFamilyChanged;

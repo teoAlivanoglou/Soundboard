@@ -31,64 +31,17 @@ namespace SonicPad.UI.Views
             }
         }
 
-        private static void SetExpandedRecursive(CategoryModel category, bool isExpanded)
-        {
-            category.IsExpanded = isExpanded;
-            foreach (var child in category.Children)
-            {
-                SetExpandedRecursive(child, isExpanded);
-            }
-        }
+        private void OnSelectAllClick(object? sender, RoutedEventArgs e) =>
+            GetViewModel()?.SetAllCategoriesEnabled(true);
 
-        private void OnSelectAllClick(object? sender, RoutedEventArgs e)
-        {
-            var vm = GetViewModel();
-            if (vm != null)
-            {
-                foreach (var cat in vm.Categories)
-                {
-                    SetEnabledRecursive(cat, true);
-                }
-                vm.UpdateSoundVisibility();
-            }
-        }
+        private void OnSelectNoneClick(object? sender, RoutedEventArgs e) =>
+            GetViewModel()?.SetAllCategoriesEnabled(false);
 
-        private void OnSelectNoneClick(object? sender, RoutedEventArgs e)
-        {
-            var vm = GetViewModel();
-            if (vm != null)
-            {
-                foreach (var cat in vm.Categories)
-                {
-                    SetEnabledRecursive(cat, false);
-                }
-                vm.UpdateSoundVisibility();
-            }
-        }
+        private void OnExpandAllClick(object? sender, RoutedEventArgs e) =>
+            GetViewModel()?.SetAllCategoriesExpanded(true);
 
-        private void OnExpandAllClick(object? sender, RoutedEventArgs e)
-        {
-            var vm = GetViewModel();
-            if (vm != null)
-            {
-                foreach (var cat in vm.Categories)
-                {
-                    SetExpandedRecursive(cat, true);
-                }
-            }
-        }
-
-        private void OnCollapseAllClick(object? sender, RoutedEventArgs e)
-        {
-            var vm = GetViewModel();
-            if (vm != null)
-            {
-                foreach (var cat in vm.Categories)
-                {
-                    SetExpandedRecursive(cat, false);
-                }
-            }
-        }
+        private void OnCollapseAllClick(object? sender, RoutedEventArgs e) =>
+            GetViewModel()?.SetAllCategoriesExpanded(false);
 
         private void OnLeftZonePointerPressed(object? sender, PointerPressedEventArgs e)
         {

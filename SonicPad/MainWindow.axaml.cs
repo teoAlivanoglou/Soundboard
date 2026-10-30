@@ -37,22 +37,7 @@ public partial class MainWindow : Window
             MainWorkspaceGrid.ColumnDefinitions[0].Width = new GridLength(savedSidebarWidth);
         }
 
-        Opacity = 0;
-
-        Opened += async (_, _) =>
-        {
-            try
-            {
-                if (viewModel != null)
-                {
-                    await PickAndLoadFolderAsync(this, viewModel);
-                }
-            }
-            finally
-            {
-                Opacity = 1;
-            }
-        };
+        Closed += (_, _) => viewModel?.CancelSoundLoading();
 
         SizeChanged += (_, e) =>
         {
@@ -81,20 +66,48 @@ public partial class MainWindow : Window
         };
     }
 
-    public static async Task PickAndLoadFolderAsync(TopLevel topLevel, SonicPadViewModel viewModel)
+    public static async Task PickAndLoadFolderAsync(TopLevel topLevel, SonicPadViewModel viewModel,
+        Action? firstChunkReady = null, Func<bool>? isActive = null)
     {
-        var storageProvider = topLevel.StorageProvider;
-        if (!storageProvider.CanPickFolder) return;
+        var closed = false;
+        var window = topLevel as Window;
+        void OnClosed(object? sender, EventArgs e) => closed = true;
+        if (window != null) window.Closed += OnClosed;
+        bool CanApply() => !closed && (isActive?.Invoke() ?? true);
 
-        var folders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        void LoadWarning()
         {
-            Title = "Select Sounds Folder",
-            AllowMultiple = false
-        });
+            if (!CanApply()) return;
+            viewModel.CancelSoundLoading();
+            viewModel.StopAllSounds();
+            viewModel.LoadDefaultSounds();
+            viewModel.LoadingStatusText = "Please Select a Folder";
+            firstChunkReady?.Invoke();
+        }
 
-        if (folders.Count > 0)
+        try
         {
-            var folder = folders[0];
+            var storageProvider = topLevel.StorageProvider;
+            if (!storageProvider.CanPickFolder)
+            {
+                LoadWarning();
+                return;
+            }
+
+            var folders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Select Sounds Folder",
+                AllowMultiple = false
+            });
+            if (!CanApply()) return;
+            if (folders.Count == 0)
+            {
+                // Canceling a later Browse keeps the current library. Startup still needs a window.
+                if (firstChunkReady != null) LoadWarning();
+                return;
+            }
+
+            using var folder = folders[0];
             string? localPath = null;
             try
             {
@@ -102,18 +115,31 @@ public partial class MainWindow : Window
             }
             catch
             {
-                // Fallback to Uri local path
+                // Some providers expose the local path only through a file URI.
             }
 
-            if (string.IsNullOrWhiteSpace(localPath) && folder.Path != null)
+            if (string.IsNullOrWhiteSpace(localPath) && folder.Path is { IsAbsoluteUri: true, IsFile: true })
+                localPath = folder.Path.LocalPath;
+
+            if (string.IsNullOrWhiteSpace(localPath))
             {
-                localPath = folder.Path.IsAbsoluteUri ? folder.Path.LocalPath : folder.Path.ToString();
+                LoadWarning();
+                return;
             }
 
-            if (!string.IsNullOrWhiteSpace(localPath))
-            {
-                await viewModel.ReadSoundsAsync(localPath);
-            }
+            await viewModel.StreamSoundsAsync(localPath, firstChunkReady);
+        }
+        catch (OperationCanceledException)
+        {
+            // Shutdown or a newer load owns the outcome.
+        }
+        catch (Exception)
+        {
+            LoadWarning();
+        }
+        finally
+        {
+            if (window != null) window.Closed -= OnClosed;
         }
     }
 

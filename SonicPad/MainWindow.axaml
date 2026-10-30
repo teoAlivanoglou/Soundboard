@@ -127,17 +127,24 @@
             </GridSplitter>
 
             <!-- Right Side: SonicPad Grid, Settings Panel, Bottom Bar -->
-            <Grid Grid.Column="2" RowDefinitions="*,Auto,Auto">
-                <views:SonicPadGridView Grid.Row="0"
+            <Grid Grid.Column="2" RowDefinitions="2,*,Auto,Auto">
+                <!-- Reserve the slot even when hidden to keep pad positions stable. -->
+                <ProgressBar Grid.Row="0" Height="2" MinHeight="0"
+                             Minimum="0" Maximum="1"
+                             Value="{Binding LoadingProgress}"
+                             IsVisible="{Binding IsLoadingSounds}"
+                             IsIndeterminate="{Binding IsScanningSounds}"
+                             Foreground="{DynamicResource AccentFocusBrush}" />
+                <views:SonicPadGridView Grid.Row="1"
                                           BorderThickness="0,0,0,1"
                                           BorderBrush="{DynamicResource PadBorderBrush}" />
 
-                <views:SettingsPanelView Grid.Row="1"
+                <views:SettingsPanelView Grid.Row="2"
                                          IsVisible="{Binding SettingsVisible}"
                                          BorderThickness="0,0,0,1"
                                          BorderBrush="{DynamicResource PadBorderBrush}" />
 
-                <views:BottomBarView Grid.Row="2" />
+                <views:BottomBarView Grid.Row="3" />
             </Grid>
         </Grid>
     </DockPanel>

@@ -228,7 +228,7 @@ public partial class SonicPadViewModel : ObservableObject
 
         if (!AssetLoader.Exists(uri)) return;
 
-        var stream = AssetLoader.Open(uri);
+        using var stream = AssetLoader.Open(uri);
 
         var defaultCategory = new CategoryModel("Info", 1, ColorPalette.GetColor(0));
         var warningSound = SoundModel.FromStream("Please Select a Folder", stream, defaultCategory, index: 1);
@@ -243,68 +243,7 @@ public partial class SonicPadViewModel : ObservableObject
         UpdateVisibleSounds();
     }
 
-    public void ReadSounds(string filesystemUrl)
-    {
-        _lastChosenDirectory = filesystemUrl;
-        if (string.IsNullOrWhiteSpace(_lastChosenDirectory)) return;
-
-        var result = _soundDiscoveryService.DiscoverSounds(
-            filesystemUrl,
-            Settings.ApplicationUiSettings.MaxFolderLevel);
-
-        if (result.Sounds.Count == 0)
-        {
-            LoadDefaultSounds();
-            return;
-        }
-
-        Categories.Clear();
-        foreach (var category in result.Categories)
-        {
-            Categories.Add(category);
-        }
-
-        SoundItems.Clear();
-        foreach (var sound in result.Sounds)
-        {
-            SoundItems.Add(sound);
-        }
-
-        // UpdateLayoutAndRows(forceRebuild: true);
-        UpdateVisibleSounds();
-    }
-    
-    public async Task ReadSoundsAsync(string filesystemUrl)
-    {
-        _lastChosenDirectory = filesystemUrl;
-        if (string.IsNullOrWhiteSpace(_lastChosenDirectory)) return;
-
-        var result = await _soundDiscoveryService.DiscoverSoundsAsync(
-            filesystemUrl,
-            Settings.ApplicationUiSettings.MaxFolderLevel);
-
-        if (result.Sounds.Count == 0)
-        {
-            LoadDefaultSounds();
-            return;
-        }
-
-        Categories.Clear();
-        foreach (var category in result.Categories)
-        {
-            Categories.Add(category);
-        }
-
-        SoundItems.Clear();
-        foreach (var sound in result.Sounds)
-        {
-            SoundItems.Add(sound);
-        }
-
-        // UpdateLayoutAndRows(forceRebuild: true);
-        UpdateVisibleSounds();
-    }
-
+    public Task ReadSoundsAsync(string filesystemUrl) => StreamSoundsAsync(filesystemUrl);
 
     public Task RefreshSoundsAsync() => ReadSoundsAsync(_lastChosenDirectory);
 

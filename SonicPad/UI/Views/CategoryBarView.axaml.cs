@@ -24,13 +24,7 @@ namespace SonicPad.UI.Views
                 {
                     var newState = !category.IsEnabled;
                     category.IsEnabled = newState;
-                    if (vm != null)
-                    {
-                        foreach (var cat in vm.Categories)
-                        {
-                            cat.IsEnabled = newState;
-                        }
-                    }
+                    vm?.SetAllCategoriesEnabled(newState);
                 }
                 else
                 {

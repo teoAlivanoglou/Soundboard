@@ -335,7 +335,8 @@ public partial class FastSoundPad
         }
 
         var durationStr = sound.Duration.ToString(@"m\:ss\.ff");
-        var indexStr = _showHashPrefix ? $"#{sound.Index:D2}" : $"{sound.Index:D2}";
+        var indexNumber = sound.Index.ToString($"D{sound.IndexDisplayWidth}", System.Globalization.CultureInfo.InvariantCulture);
+        var indexStr = _showHashPrefix ? $"#{indexNumber}" : indexNumber;
 
         _durationLayout = new TextLayout(
             durationStr,

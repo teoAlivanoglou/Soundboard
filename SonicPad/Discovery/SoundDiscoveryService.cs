@@ -12,12 +12,10 @@ namespace SonicPad.Discovery;
 
 public class SoundDiscoveryService
 {
-    /// <summary>
-    /// When true, audio files are fully decoded into memory as float[] arrays for playback.
-    /// When false, audio is streamed on-demand from disk with near-zero RAM usage.
-    /// </summary>
-    public static bool EnableAudioCaching { get; set; } = false;
+    /// <summary>Decode full audio into memory when enabled; otherwise resolve metadata only.</summary>
+    public static bool EnableAudioCaching { get; set; }
 
+    private const int ChunkSize = 30;
     private static readonly HashSet<string> ValidExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".mp3",
@@ -36,182 +34,193 @@ public class SoundDiscoveryService
     public DiscoveryResult DiscoverSounds(string rootPath, int maxDepth = 6,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath))
+        IReadOnlyList<CategoryModel> categories = [];
+        var sounds = new List<SoundModel>();
+        DiscoverSoundsStreamingAsync(rootPath, update => {
+            if (update.Categories is not null) categories = update.Categories;
+            sounds.AddRange(update.Sounds);
+            return Task.CompletedTask;
+        }, maxDepth, cancellationToken).GetAwaiter().GetResult();
+
+        // This batch API has not published its models to a UI and can reconcile them here.
+        int Reconcile(CategoryModel category)
         {
-            return new DiscoveryResult([], []);
+            var ownCount = sounds.Count(sound => ReferenceEquals(sound.Category, category));
+            category.SoundCount = ownCount + category.Children.Sum(Reconcile);
+            category.DirectSoundCount = ownCount + category.Children.Where(child => child.IsRootLabel)
+                .Sum(child => child.SoundCount);
+            foreach (var empty in category.Children.Where(child => child.SoundCount == 0).ToArray())
+                category.Children.Remove(empty);
+            return category.SoundCount;
         }
 
-        var rootScan = ScanDirectoryNode(rootPath, 0, maxDepth, cancellationToken);
-        if (rootScan == null)
-        {
-            return new DiscoveryResult([], []);
-        }
-
-        var categories = new List<CategoryModel>();
-        var allSounds = new List<SoundModel>();
-        var colorIndex = 0;
-
-        // Direct loose files in the selected root folder become a top-level (root) category
-        if (rootScan.DirectSounds.Count > 0)
-        {
-            var rootColor = ColorPalette.GetColor(colorIndex++);
-            var rootCategory = new CategoryModel("(root)", rootScan.DirectSounds.Count, rootColor)
-            {
-                DirectSoundCount = rootScan.DirectSounds.Count,
-                RelativePath = ""
-            };
-            categories.Add(rootCategory);
-
-            foreach (var raw in rootScan.DirectSounds)
-            {
-                allSounds.Add(new SoundModel(
-                    name: raw.Name,
-                    filePath: raw.FilePath,
-                    category: rootCategory,
-                    subFolder: "",
-                    duration: raw.Duration,
-                    audioData: raw.AudioData,
-                    waveFormat: raw.WaveFormat,
-                    index: allSounds.Count + 1));
-            }
-        }
-
-        // Subdirectories of the root folder become top-level categories
-        foreach (var subNode in rootScan.SubDirectories)
-        {
-            var category = BuildCategory(subNode, null, rootPath, ref colorIndex, allSounds);
-            categories.Add(category);
-        }
-
-        return new DiscoveryResult(categories, allSounds);
+        foreach (var category in categories) Reconcile(category);
+        return new DiscoveryResult(categories.Where(category => category.SoundCount > 0).ToArray(), sounds);
     }
 
     public Task<DiscoveryResult> DiscoverSoundsAsync(string rootPath, int maxDepth = 6,
         CancellationToken cancellationToken = default) =>
         Task.Run(() => DiscoverSounds(rootPath, maxDepth, cancellationToken), cancellationToken);
 
-    private DirectoryScanNode? ScanDirectoryNode(string currentPath, int depth, int maxDepth,
+    /// <summary>
+    /// Scans and decodes off-thread, awaiting every publication to bound pending work.
+    /// Category models are never mutated by the producer after initialization is published.
+    /// </summary>
+    public Task DiscoverSoundsStreamingAsync(string rootPath, Func<DiscoveryUpdate, Task> publish,
+        int maxDepth = 6, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(publish);
+        return Task.Run(async () => {
+            cancellationToken.ThrowIfCancellationRequested();
+            var root = string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath)
+                ? null : ScanDirectoryNode(rootPath, 0, maxDepth, cancellationToken);
+            var categories = new List<CategoryModel>();
+            var candidates = new List<SoundCandidate>();
+            var colorIndex = 0;
+            if (root is not null)
+            {
+                if (root.DirectSounds.Count > 0)
+                {
+                    var category = new CategoryModel("(root)", root.DirectSounds.Count, ColorPalette.GetColor(colorIndex++))
+                    {
+                        DirectSoundCount = root.DirectSounds.Count,
+                        RelativePath = ""
+                    };
+                    categories.Add(category);
+                    candidates.AddRange(root.DirectSounds.Select(file => CreateCandidate(file, category, rootPath)));
+                }
+                foreach (var child in root.SubDirectories)
+                    categories.Add(BuildCategory(child, null, rootPath, ref colorIndex, candidates));
+            }
+
+            await publish(new DiscoveryUpdate(categories, candidates.Count, [], 0, 0, false)).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            var processed = 0;
+            var successful = 0;
+            var chunk = new List<SoundModel>(ChunkSize);
+            var cacheAudio = EnableAudioCaching;
+            foreach (var candidate in candidates)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var sound = ResolveSound(candidate, successful + 1, cacheAudio, cancellationToken);
+                if (sound is not null)
+                {
+                    chunk.Add(sound);
+                    successful++;
+                }
+                processed++;
+                if (processed % ChunkSize == 0)
+                {
+                    await publish(new DiscoveryUpdate(null, candidates.Count, chunk.ToArray(), processed, successful, false))
+                        .ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    chunk.Clear();
+                }
+            }
+            if (processed % ChunkSize != 0)
+            {
+                await publish(new DiscoveryUpdate(null, candidates.Count, chunk.ToArray(), processed, successful, false))
+                    .ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+            await publish(new DiscoveryUpdate(null, candidates.Count, [], processed, successful, true)).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+        }, cancellationToken);
+    }
+
+    private static SoundModel? ResolveSound(SoundCandidate candidate, int index, bool cacheAudio,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var fileStream = File.Open(candidate.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var stream = VorbisWavHelper.WrapIfVorbisWav(fileStream);
+            using var reader = new SoundFileReader(stream);
+            var waveFormat = reader.WaveFormat;
+            var duration = reader.TotalTime;
+            float[]? audioData = null;
+            if (cacheAudio)
+            {
+                var samples = new List<float>();
+                var buffer = new float[waveFormat.SampleRate * waveFormat.Channels];
+                int count;
+                while ((count = reader.Read(buffer.AsSpan())) > 0)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    samples.AddRange(buffer.AsSpan(0, count));
+                }
+                audioData = samples.ToArray();
+                if (waveFormat is { SampleRate: > 0, Channels: > 0 })
+                    duration = TimeSpan.FromSeconds((double)samples.Count / (waveFormat.SampleRate * waveFormat.Channels));
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            return new SoundModel(Path.GetFileNameWithoutExtension(candidate.FilePath), candidate.FilePath,
+                candidate.Category, candidate.SubFolder, duration, audioData, waveFormat, index);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch
+        {
+            // A corrupt, missing, or unreadable candidate does not consume a successful index.
+            return null;
+        }
+    }
+
+    private static DirectoryScanNode? ScanDirectoryNode(string currentPath, int depth, int maxDepth,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var directSounds = new List<RawSoundRecord>();
-
-        IEnumerable<string> files;
-
-        try
-        {
-            files = Directory.EnumerateFiles(currentPath, "*", SafeEnumOptions);
-        }
-        catch
-        {
-            return null;
-        }
-
-        foreach (var file in files)
+        var files = EnumerateSorted(currentPath, directories: false, cancellationToken)
+            .Where(file => ValidExtensions.Contains(Path.GetExtension(file))).ToList();
+        var children = new List<DirectoryScanNode>();
+        foreach (var directory in EnumerateSorted(currentPath, directories: true, cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var extension = Path.GetExtension(file);
-            if (!ValidExtensions.Contains(extension)) continue;
+            var child = ScanDirectoryNode(directory, depth + 1, maxDepth, cancellationToken);
+            if (child is null) continue;
 
-            try
-            {
-                using var fileStream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
-                using var stream = VorbisWavHelper.WrapIfVorbisWav(fileStream);
-                using var reader = new SoundFileReader(stream);
-                var waveFormat = reader.WaveFormat;
-                var duration = reader.TotalTime;
-
-                float[]? audioData = null;
-                if (EnableAudioCaching)
-                {
-                    var wholeFile = new List<float>((int)(reader.Length / sizeof(float)));
-                    var readBuffer = new float[waveFormat.SampleRate * waveFormat.Channels]; // 1 second buffer
-                    int samplesRead;
-                    while ((samplesRead = reader.Read(readBuffer.AsSpan())) > 0)
-                    {
-                        wholeFile.AddRange(readBuffer.AsSpan(0, samplesRead));
-                    }
-
-                    audioData = [.. wholeFile];
-
-                    if (waveFormat is { SampleRate: > 0, Channels: > 0 })
-                    {
-                        duration = TimeSpan.FromSeconds((double)wholeFile.Count /
-                                                        (waveFormat.Channels * waveFormat.SampleRate));
-                    }
-                }
-
-                directSounds.Add(new RawSoundRecord(
-                    Name: Path.GetFileNameWithoutExtension(file),
-                    FilePath: file,
-                    CategoryName: string.Empty,
-                    SubFolder: string.Empty,
-                    Duration: duration,
-                    AudioData: audioData,
-                    WaveFormat: waveFormat
-                ));
-            }
-            catch
-            {
-                // Discard. Corrupted or unreadable sound file
-                continue;
-            }
+            // Depth limits the category hierarchy, not which sounds are discovered.
+            // Beyond the boundary each child has already flattened its descendants.
+            if (depth < maxDepth) children.Add(child);
+            else files.AddRange(child.DirectSounds);
         }
-
-        // Subdirectories
-        var subNodes = new List<DirectoryScanNode>();
-        if (depth < maxDepth)
-        {
-            IEnumerable<string> subDirectories;
-            try
-            {
-                subDirectories = Directory.EnumerateDirectories(currentPath, "*", SafeEnumOptions);
-            }
-            catch
-            {
-                subDirectories = [];
-            }
-
-            foreach (var subDir in subDirectories)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var childNode = ScanDirectoryNode(subDir, depth + 1, maxDepth, cancellationToken);
-                if (childNode != null)
-                    subNodes.Add(childNode);
-            }
-        }
-
-        // Prune empty
-        if (directSounds.Count == 0 && subNodes.Count == 0)
-        {
-            return null;
-        }
-
-        return new DirectoryScanNode(
-            currentPath,
-            Path.GetFileName(currentPath),
-            directSounds,
-            subNodes);
+        cancellationToken.ThrowIfCancellationRequested();
+        return files.Count == 0 && children.Count == 0 ? null
+            : new DirectoryScanNode(currentPath, Path.GetFileName(currentPath), files, children);
     }
 
+    private static string[] EnumerateSorted(string path, bool directories, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Materialize here: lazy enumeration can fail during iteration, not just creation.
+            var entries = directories
+                ? Directory.EnumerateDirectories(path, "*", SafeEnumOptions)
+                : Directory.EnumerateFiles(path, "*", SafeEnumOptions);
+            var materialized = new List<string>();
+            foreach (var entry in entries)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                materialized.Add(entry);
+            }
+            return materialized.OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(Path.GetFileName, StringComparer.Ordinal).ToArray();
+        }
+        catch (IOException) { return []; }
+        catch (UnauthorizedAccessException) { return []; }
+    }
 
-    private record RawSoundRecord(
-        string Name,
-        string FilePath,
-        string CategoryName,
-        string SubFolder,
-        TimeSpan Duration,
-        float[]? AudioData,
-        NAudio.Wave.WaveFormat WaveFormat
-    );
+    private static SoundCandidate CreateCandidate(string filePath, CategoryModel category, string rootPath)
+    {
+        var subFolder = Path.GetRelativePath(rootPath, Path.GetDirectoryName(filePath)!);
+        return new SoundCandidate(filePath, category, subFolder == "." ? "" : subFolder);
+    }
 
-    private record DirectoryScanNode(
+    private sealed record SoundCandidate(string FilePath, CategoryModel Category, string SubFolder);
+    private sealed record DirectoryScanNode(
         string Path,
         string Name,
-        List<RawSoundRecord> DirectSounds,
-        List<DirectoryScanNode> SubDirectories
-    );
+        List<string> DirectSounds,
+        List<DirectoryScanNode> SubDirectories);
 
     private static int GetTotalSoundCount(DirectoryScanNode node) =>
         node.DirectSounds.Count + node.SubDirectories.Sum(GetTotalSoundCount);
@@ -221,7 +230,7 @@ public class SoundDiscoveryService
         CategoryModel? parent,
         string rootPath,
         ref int colorIndex,
-        List<SoundModel> allSounds)
+        List<SoundCandidate> candidates)
     {
         // Compact linear chains of single-child folders with 0 direct sounds
         var prefix = string.Empty;
@@ -265,23 +274,14 @@ public class SoundDiscoveryService
         }
 
         // Now sounds
-        foreach (var raw in current.DirectSounds)
+        foreach (var file in current.DirectSounds)
         {
-            allSounds.Add(new SoundModel(
-                name: raw.Name,
-                filePath: raw.FilePath,
-                category: soundTargetCategory,
-                subFolder: relPath == "." ? "" : relPath,
-                duration: raw.Duration,
-                audioData: raw.AudioData,
-                waveFormat: raw.WaveFormat,
-                index: allSounds.Count + 1
-            ){IsPlaying = false});
+            candidates.Add(CreateCandidate(file, soundTargetCategory, rootPath));
         }
 
         foreach (var sub in current.SubDirectories)
         {
-            var childCat = BuildCategory(sub, category, rootPath, ref colorIndex, allSounds);
+            var childCat = BuildCategory(sub, category, rootPath, ref colorIndex, candidates);
             category.Children.Add(childCat);
         }
 

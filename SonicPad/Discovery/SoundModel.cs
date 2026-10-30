@@ -16,6 +16,7 @@ public partial class SoundModel : ObservableObject
     [ObservableProperty] public partial double Progress { get; set; }
     [ObservableProperty] public partial TimeSpan Duration { get; set; }
     [ObservableProperty] public partial int Index { get; set; }
+    [ObservableProperty] public partial int IndexDisplayWidth { get; set; } = 2;
 
     
     
