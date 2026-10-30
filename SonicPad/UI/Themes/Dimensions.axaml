@@ -24,5 +24,4 @@
 
     <system:Double x:Key="SidebarCategoryFontSize">12</system:Double>
     <system:Double x:Key="SidebarCountFontSize">11</system:Double>
-    <FontWeight x:Key="SidebarCategoryFontWeight">Normal</FontWeight>
 </ResourceDictionary>

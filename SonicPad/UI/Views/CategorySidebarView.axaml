@@ -204,7 +204,7 @@
         <!-- Category Name Base Style -->
         <Style Selector="TextBlock.cat-name">
             <Setter Property="FontSize" Value="{DynamicResource SidebarCategoryFontSize}" />
-            <Setter Property="FontWeight" Value="{DynamicResource SidebarCategoryFontWeight}" />
+            <Setter Property="FontWeight" Value="Normal" />
             <Setter Property="Foreground" Value="{DynamicResource TreeRowTextBrush}" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />

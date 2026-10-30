@@ -58,7 +58,7 @@
 
 
 	<ItemGroup>
-		<AvaloniaResource Include="UI\Fonts\**\*.ttf" />
+		<AvaloniaResource Include="UI\Fonts\lucide.ttf" />
 	</ItemGroup>
 
 	<ItemGroup>

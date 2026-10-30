@@ -298,9 +298,6 @@ public partial class FastSoundPad : Control
         UpdateThemeBrushes();
         BuildImmutableText(_boundSound);
         RequestFrameIfNeeded();
-
-        GlobalFontFamilyChanged -= OnGlobalFontFamilyChanged;
-        GlobalFontFamilyChanged += OnGlobalFontFamilyChanged;
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -309,22 +306,10 @@ public partial class FastSoundPad : Control
         if (Application.Current is not null)
         {
             Application.Current.ActualThemeVariantChanged -= OnAppThemeChanged;
-
         }
-
-        GlobalFontFamilyChanged -= OnGlobalFontFamilyChanged;
 
         if (_boundSound is not null)
             _boundSound.PropertyChanged -= OnSoundPropertyChanged;
-    }
-
-    private void OnGlobalFontFamilyChanged()
-    {
-        _titleDirty = true;
-        _titleLayout = null;
-        _idleTitleLayout = null;
-        BuildImmutableText(_boundSound);
-        InvalidateVisual();
     }
 
     private void OnAppThemeChanged(object? sender, EventArgs e)

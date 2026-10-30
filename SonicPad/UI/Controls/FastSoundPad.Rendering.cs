@@ -5,6 +5,7 @@ using Avalonia.Media.TextFormatting;
 using Microsoft.Win32.SafeHandles;
 using SkiaSharp;
 using SonicPad.Discovery;
+using SonicPad.UI.Fonts;
 using SonicPad.Utils;
 using System;
 using System.Collections.Generic;
@@ -26,81 +27,8 @@ public partial class FastSoundPad
     private Pen _borderPen = new(Brushes.Gray, 2);
     private LinearGradientBrush _animatedBorderBrush = null!;
 
-    // Static immutable typefaces (updated globally when font family or weight offset changes)
-    private static FontFamily _globalFontFamily = FontFamily.Default;
-    private static int _fontWeightDelta = 0;
-
-    private static Typeface CategoryTypeface = new(FontFamily.Default, FontStyle.Normal, FontWeight.DemiBold);
-    private static Typeface NormalTypeface = new(FontFamily.Default, FontStyle.Normal, FontWeight.Normal);
-
-    public static event Action? GlobalFontFamilyChanged;
-
-    public static int FontWeightDelta
-    {
-        get => _fontWeightDelta;
-        set
-        {
-            if (_fontWeightDelta != value)
-            {
-                _fontWeightDelta = value;
-                UpdateGlobalTypefaces();
-                CategoryCache.Clear();
-                GlobalFontFamilyChanged?.Invoke();
-            }
-        }
-    }
-
-    private static double _fontSizeDelta = 0.0;
-    public static double FontSizeDelta
-    {
-        get => _fontSizeDelta;
-        set
-        {
-            if (Math.Abs(_fontSizeDelta - value) > 0.01)
-            {
-                _fontSizeDelta = value;
-                CategoryCache.Clear();
-                GlobalFontFamilyChanged?.Invoke();
-            }
-        }
-    }
-
-    private static bool _showHashPrefix = true;
-    public static bool ShowHashPrefix
-    {
-        get => _showHashPrefix;
-        set
-        {
-            if (_showHashPrefix != value)
-            {
-                _showHashPrefix = value;
-                GlobalFontFamilyChanged?.Invoke();
-            }
-        }
-    }
-
-    public static void SetGlobalFontFamily(FontFamily fontFamily)
-    {
-        _globalFontFamily = fontFamily;
-        UpdateGlobalTypefaces();
-        CategoryCache.Clear();
-        GlobalFontFamilyChanged?.Invoke();
-    }
-
-    private static void UpdateGlobalTypefaces()
-    {
-        var normalWeight = (FontWeight)Math.Clamp(400 + _fontWeightDelta, 100, 900);
-        var categoryWeight = (FontWeight)Math.Clamp(600 + _fontWeightDelta, 100, 900);
-
-        NormalTypeface = new Typeface(_globalFontFamily, FontStyle.Normal, normalWeight);
-        CategoryTypeface = new Typeface(_globalFontFamily, FontStyle.Normal, categoryWeight);
-    }
-
-    public static void RefreshAllPads()
-    {
-        CategoryCache.Clear();
-        GlobalFontFamilyChanged?.Invoke();
-    }
+    private static readonly Typeface CategoryTypeface = new(UiTypography.FontFamily, FontStyle.Normal, FontWeight.SemiBold);
+    private static readonly Typeface NormalTypeface = new(UiTypography.FontFamily, FontStyle.Normal, FontWeight.Normal);
 
     // Immutable text layouts (built strictly when DataContext changes, zero dirty flags or rebuilds during render/resize)
     private TextLayout? _durationLayout;
@@ -254,7 +182,7 @@ public partial class FastSoundPad
         DrawImmutableText(context, size);
 
         // 3. Sound Title (Middle, Granular Dirty)
-        var lineHeight = 18.0 + _fontSizeDelta;
+        var lineHeight = 18.0;
         var maxVisibleLines = Math.Max(1, (int)Math.Round(titleRect.Height / lineHeight));
 
         if (_titleDirty || _titleLayout is null)
@@ -262,7 +190,7 @@ public partial class FastSoundPad
             _titleLayout = new TextLayout(
                 sound.Name,
                 NormalTypeface,
-                fontSize: 14 + _fontSizeDelta,
+                fontSize: 14,
                 foreground: _palette.TextPrimary,
                 textAlignment: TextAlignment.Left,
                 textWrapping: TextWrapping.Wrap,
@@ -275,7 +203,7 @@ public partial class FastSoundPad
                 ? new TextLayout(
                     sound.Name,
                     NormalTypeface,
-                    fontSize: 14 + _fontSizeDelta,
+                    fontSize: 14,
                     foreground: _palette.TextPrimary,
                     textAlignment: TextAlignment.Left,
                     textWrapping: TextWrapping.Wrap,
@@ -311,7 +239,7 @@ public partial class FastSoundPad
 
         if (_durationLayout is null && _indexLayout is null) return;
 
-        var footerY = size.Height - _metrics.PaddingBottom - 16 - _fontSizeDelta;
+        var footerY = size.Height - _metrics.PaddingBottom - 16;
         var durationX = _metrics.PaddingLeft;
 
         _durationLayout?.Draw(context, new Point(durationX, footerY));
@@ -336,12 +264,12 @@ public partial class FastSoundPad
 
         var durationStr = sound.Duration.ToString(@"m\:ss\.ff");
         var indexNumber = sound.Index.ToString($"D{sound.IndexDisplayWidth}", System.Globalization.CultureInfo.InvariantCulture);
-        var indexStr = _showHashPrefix ? $"#{indexNumber}" : indexNumber;
+        var indexStr = $"#{indexNumber}";
 
         _durationLayout = new TextLayout(
             durationStr,
             NormalTypeface,
-            fontSize: 14 + _fontSizeDelta,
+            fontSize: 14,
             foreground: _palette.TextMuted,
             textAlignment: TextAlignment.Left,
             fontFeatures: TabularNumbersFeatures);
@@ -349,7 +277,7 @@ public partial class FastSoundPad
         _indexLayout = new TextLayout(
             indexStr,
             NormalTypeface,
-            fontSize: 14 + _fontSizeDelta,
+            fontSize: 14,
             foreground: _palette.TextMuted,
             textAlignment: TextAlignment.Left,
             fontFeatures: TabularNumbersFeatures);
@@ -424,10 +352,10 @@ public partial class FastSoundPad
             var naturalLayout = new TextLayout(
                 sound.Category.Name,
                 CategoryTypeface,
-                fontSize: 14 + _fontSizeDelta,
+                fontSize: 14,
                 foreground: sound.Category.BackgroundBrush,
                 textAlignment: TextAlignment.Left,
-                maxHeight: 20 + _fontSizeDelta);
+                maxHeight: 20);
 
             entry = new CategoryCacheEntry
             {
@@ -451,11 +379,11 @@ public partial class FastSoundPad
             entry.ElidedLayout = new TextLayout(
                 sound.Category.Name,
                 CategoryTypeface,
-                fontSize: 14 + _fontSizeDelta,
+                fontSize: 14,
                 foreground: sound.Category.BackgroundBrush,
                 textAlignment: TextAlignment.Left,
                 maxWidth: contentWidth,
-                maxHeight: 20 + _fontSizeDelta,
+                maxHeight: 20,
                 textTrimming: TextTrimming.CharacterEllipsis);
 
             entry.ElidedWidth = intWidth;
@@ -468,15 +396,15 @@ public partial class FastSoundPad
     {
         var size = Bounds.Size;
         var contentWidth = Math.Max(0, size.Width - _metrics.PaddingLeft - _metrics.PaddingRight);
-        var categoryHeight = 20.0 + _fontSizeDelta;
+        var categoryHeight = 20.0;
         var categoryRect = new Rect(_metrics.PaddingLeft, _metrics.PaddingTop, contentWidth, categoryHeight);
 
-        var titleTop = _metrics.PaddingTop + 24.0 + _fontSizeDelta;
-        var footerY = size.Height - _metrics.PaddingBottom - 16.0 - _fontSizeDelta;
+        var titleTop = _metrics.PaddingTop + 24.0;
+        var footerY = size.Height - _metrics.PaddingBottom - 16.0;
         var bottomLimit = footerY - 4.0;
         var rawTitleHeight = Math.Max(10.0, bottomLimit - titleTop);
 
-        var lineHeight = 18.0 + _fontSizeDelta;
+        var lineHeight = 18.0;
         var maxLines = Math.Max(1, (int)(rawTitleHeight / lineHeight));
         var snappedTitleHeight = maxLines * lineHeight;
         var centeredTitleTop = titleTop + (rawTitleHeight - snappedTitleHeight) / 2.0;

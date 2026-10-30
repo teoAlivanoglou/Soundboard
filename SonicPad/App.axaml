@@ -1,5 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:fonts="clr-namespace:SonicPad.UI.Fonts"
              xmlns:converters="clr-namespace:SonicPad.UI.Converters"
              x:Class="SonicPad.App"
              RequestedThemeVariant="Default">
@@ -7,6 +8,9 @@
 
     <Application.Styles>
         <FluentTheme />
+        <Style Selector="Window">
+            <Setter Property="FontFamily" Value="{x:Static fonts:UiTypography.FontFamily}" />
+        </Style>
         <Style Selector="Button.ActionButton">
             <Setter Property="Background" Value="{DynamicResource ActionButtonBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource ActionButtonForeground}" />
