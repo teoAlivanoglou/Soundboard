@@ -144,9 +144,8 @@ dotnet publish SonicPad/SonicPad.csproj -c Release -p:PublishAot=true
 - [x] **Dynamic Theme System**: Dark/light palettes with perceptual color contrast adaptation.
 - [x] **Master Volume Control**: Thread-safe volume attenuation slider and state persistence.
 - [x] **Marquee SoundPad Titles**: Smooth hardware-accelerated text scroll for overflowing sound names.
-- [ ] ~~**Sidebar Search Polish**: Full-text instant search filtering across categories and pads.~~
+- [x] **Startup Loading Experience**: Eliminate empty window state on initial directory scan via a lightweight splash/skeleton screen or progressive chunked sound discovery streaming.
 - [ ] **Soundpad Active Playback Counters**: Visual indicators displaying concurrent active playback instances per pad.
-- [ ] **Startup Loading Experience**: Eliminate empty window state on initial directory scan via a lightweight splash/skeleton screen or progressive chunked sound discovery streaming.
 
 ---
 
