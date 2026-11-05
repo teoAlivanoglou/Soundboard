@@ -10,6 +10,7 @@
         <FluentTheme />
         <Style Selector="Window">
             <Setter Property="FontFamily" Value="{x:Static fonts:UiTypography.FontFamily}" />
+            <Setter Property="Icon" Value="avares://SonicPad/Assets/sonicpad.ico" />
         </Style>
         <Style Selector="Button.GhostButton">
             <Setter Property="Background" Value="Transparent" />

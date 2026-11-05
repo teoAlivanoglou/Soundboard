@@ -3,6 +3,7 @@
 		<RootNamespace>SonicPad</RootNamespace>
 		<AssemblyName>SonicPad</AssemblyName>
 		<OutputType>WinExe</OutputType>
+		<ApplicationIcon>Assets\sonicpad.ico</ApplicationIcon>
     <TargetFramework Condition="$([MSBuild]::IsOSPlatform('Windows'))">net10.0-windows7.0</TargetFramework>
     <TargetFramework Condition="!$([MSBuild]::IsOSPlatform('Windows'))">net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
@@ -67,6 +68,7 @@
 
 	<ItemGroup>
 		<AvaloniaResource Include="Assets\warning.mp3" />
+		<AvaloniaResource Include="Assets\sonicpad.ico" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
